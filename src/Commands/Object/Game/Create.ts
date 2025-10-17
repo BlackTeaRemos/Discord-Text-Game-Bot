@@ -138,7 +138,13 @@ export async function execute(interaction: ChatInputCommandInteraction) {
                         return;
                     }
                 }
-                const g = await createGame(ctx.state.gameName!, ctx.state.imageUrl || ``, ctx.state.serverId);
+                const g = await createGame(
+                    ctx.state.gameName!,
+                    ctx.state.imageUrl || ``,
+                    ctx.state.serverId,
+                    undefined,
+                    { currentTurn: 1 },
+                );
                 await (ctx.interaction as ChatInputCommandInteraction).followUp({
                     content: `Game created: ${g.uid} '${g.name}'.`,
                 });

@@ -20,7 +20,7 @@ const handlers: Record<string, Handler> = {};
 /** Root command for 'object' with dynamic subcommand groups */
 export const data = new SlashCommandBuilder().setName(`object`).setDescription(`Manage graph objects`);
 // Dynamically load and attach subcommand groups for each object type
-await (async() => {
+await (async () => {
     try {
         // Identify group directories under commands/object
         const groups = readdirSync(__dirname).filter(name => {
@@ -30,14 +30,14 @@ await (async() => {
         for (const groupName of groups) {
             const groupPath = path.join(__dirname, groupName);
             // Load all subcommand modules in group directory
-            const files = readdirSync(groupPath).filter(
-                file => {
-                    return path.extname(file) === `.js` && !file.startsWith(`index`);
-                },
+            const files = readdirSync(groupPath).filter(file => {
+                return path.extname(file) === `.js` && !file.startsWith(`index`);
+            });
+            const mods = await Promise.all(
+                files.map(file => {
+                    return import(pathToFileURL(path.join(groupPath, file)).href);
+                }),
             );
-            const mods = await Promise.all(files.map(file => {
-                return import(pathToFileURL(path.join(groupPath, file)).href);
-            }));
             // Register subcommands
             data.addSubcommandGroup(group => {
                 const groupId = groupName.toLowerCase(); // Discord requires lowercase identifiers
@@ -54,7 +54,7 @@ await (async() => {
                 return group;
             });
         }
-    } catch(err) {
+    } catch (err) {
         log.error(`Error initializing object command groups`, (err as Error).message, `ObjectCommand`);
     }
 })();
@@ -63,21 +63,30 @@ await (async() => {
 export async function execute(interaction: ChatInputCommandInteraction) {
     const groupRaw = interaction.options.getSubcommandGroup(false) ?? ``;
     const subRaw = interaction.options.getSubcommand(true) ?? ``;
-    const key = `${groupRaw.toLowerCase()}.${subRaw.toLowerCase()}`;
+    const group = groupRaw.toLowerCase();
+    const sub = subRaw.toLowerCase();
+    const tokens: TokenSegmentInput[][] = [];
+    if (group && sub) {
+        tokens.push([`object`, group, sub]);
+    }
+    if (group) {
+        tokens.push([`object`, group]);
+    }
+    tokens.push([`object`]);
+
+    const key = `${group}.${sub}`;
     const handler = handlers[key];
 
     if (handler) {
         await handler(interaction);
     } else {
-        await interaction
-            .reply({ content: `Unknown subcommand`, flags: MessageFlags.Ephemeral })
-            .catch(() => {
-                return undefined;
-            });
+        await interaction.reply({ content: `Unknown subcommand`, flags: MessageFlags.Ephemeral }).catch(() => {
+            return undefined;
+        });
     }
 }
 
-export const permissionTokens = async(interaction: ChatInputCommandInteraction): Promise<TokenSegmentInput[][]> => {
+export const permissionTokens = async (interaction: ChatInputCommandInteraction): Promise<TokenSegmentInput[][]> => {
     const groupRaw = interaction.options.getSubcommandGroup(false) ?? ``;
     const subRaw = interaction.options.getSubcommand(true) ?? ``;
     const group = groupRaw.toLowerCase();

@@ -5,6 +5,7 @@ import {
     MessageFlags,
 } from 'discord.js';
 import { createCommandContext } from '../../Common/ExecutionContextHelpers.js';
+import type { TokenSegmentInput } from '../../Common/permission/index.js';
 
 // Diagnostic: list commands built by loader
 
@@ -22,7 +23,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     const sub = interaction.options.getSubcommand(true);
     if (sub === `tree`) {
         // Dynamically import loadedCommands to list builder data immediately
-        const lines = await ctx.executionContext!.getOrCompute(`diagnostic:commands_tree`, async() => {
+        const lines = await ctx.executionContext!.getOrCompute(`diagnostic:commands_tree`, async () => {
             const { commands } = await import(`../index.js`);
 
             return Object.values(commands).map((cmd: any) => {

@@ -6,9 +6,27 @@ import { collectEnsureTokens } from './collectEnsureTokens.js';
 import { toInputs } from './toInputs.js';
 
 /**
- * Public resolve function. Delegates to internal doEnsure implementation.
- * The function is explicitly named `resolve` to preserve a consistent symbol
- * name across the codebase.
+ * Resolves permission templates into tokens, evaluates them against the provided permissions,
+ * and handles approval workflows for denied but approvable permissions.
+ *
+ * This function takes permission templates (strings or arrays), substitutes placeholders using context,
+ * checks if the user has permission, and if not, can request approval from administrators.
+ * It returns a result indicating success or failure, along with details like tokens and reasons.
+ *
+ * @param templates - Array of permission templates to resolve and check
+ * @param options - Configuration options including context, permissions, member, and approval callbacks
+ * @returns Promise resolving to permission resolution result
+ *
+ * @example
+ * const result = await resolve(['command:{action}'], {
+ *   context: { action: 'ban' },
+ *   permissions: { 'command:ban': 'once' },
+ *   member: guildMember,
+ *   requestApproval: async (payload) => 'approve_once'
+ * });
+ * if (result.success) {
+ *   // Permission granted, proceed with action
+ * }
  */
 export async function resolve(
     templates: Array<string | import('../types.js').TokenSegmentInput[]>,

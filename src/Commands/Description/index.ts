@@ -19,7 +19,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         return;
     }
 
-    await executeWithContext(interaction, async(fm, executionContext) => {
+    await executeWithContext(interaction, async (fm, executionContext) => {
         // Delegate interaction handling to the Editor subcommand which owns the UI flow.
         await startInteractiveDescriptionEditor(fm, interaction, executionContext);
     });

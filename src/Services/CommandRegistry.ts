@@ -14,6 +14,7 @@ import {
     type PermissionTokenInput,
     type PermissionsObject,
 } from '../Common/permission/index.js';
+import { fetchUserOrganizationUids } from '../Common/permission/organizationAccess.js';
 import type { GuildMember } from 'discord.js';
 
 /** Error thrown when attempting to register a duplicate command id. */
@@ -114,6 +115,8 @@ export class CommandRegistry {
             skipApproval?: boolean; // when true, do not attempt any interactive approval (programmatic execution)
             skipPermissionCheck?: boolean; // allow caller to bypass permission evaluation
             userRoles?: string[]; // optional role ids for evaluation when member is not available
+            organizationUid?: string; // organization scope to allow bypass when user belongs
+            targetUserId?: string; // target Discord ID to allow bypass when matching actor
         },
     ): Promise<CommandResult> {
         const mod = this.Get(id);
@@ -192,7 +195,7 @@ export class CommandRegistry {
                     userId: ctx.userId,
                     guildId: ctx.guildId ?? undefined,
                     executionContext: ctx.executionContext,
-                    getMember: async() => {
+                    getMember: async () => {
                         if (opts?.member) {
                             return opts.member;
                         }
@@ -219,8 +222,8 @@ export class CommandRegistry {
 
                 const inputs: PermissionTokenInput[] = tokens.length
                     ? tokens.map(t => {
-                        return [...t];
-                    })
+                          return [...t];
+                      })
                     : [`command:${mod.meta.id}`];
 
                 // Build a minimal member-like object when none provided so permanent grants can be checked
@@ -229,31 +232,55 @@ export class CommandRegistry {
                     member = {
                         id: ctx.userId,
                         guild: { id: ctx.guildId },
-                        permissions: { has: (_: any) => {
-                            return false;
-                        } },
+                        permissions: {
+                            has: (_: any) => {
+                                return false;
+                            },
+                        },
                     } as unknown as GuildMember;
                 }
 
-                // Allow callers to override the permissions map via opts.permissions; otherwise
-                // use undefined which will make checkPermission consult the default source.
-                const evaluation = await checkPermission(opts?.permissions ?? undefined, member, inputs);
+                let bypassPermission = false;
+                if (opts?.organizationUid && ctx.userId) {
+                    try {
+                        const organizations = await fetchUserOrganizationUids(ctx.userId);
+                        if (organizations.includes(opts.organizationUid)) {
+                            bypassPermission = true;
+                        }
+                    } catch {
+                        // Ignore membership lookup errors and fall back to permission evaluation.
+                    }
+                }
 
-                if (!evaluation.allowed) {
-                    if (evaluation.requiresApproval && !opts?.skipApproval) {
-                        // Programmatic callers cannot request interactive admin approval here.
+                if (!bypassPermission && opts?.targetUserId && opts.targetUserId === ctx.userId) {
+                    bypassPermission = true;
+                }
+
+                if (!bypassPermission) {
+                    // Allow callers to override the permissions map via opts.permissions; otherwise
+                    // use undefined which will make checkPermission consult the default source.
+                    const evaluation = await checkPermission(opts?.permissions ?? undefined, member, inputs);
+
+                    if (!evaluation.allowed) {
+                        if (evaluation.requiresApproval && !opts?.skipApproval) {
+                            // Programmatic callers cannot request interactive admin approval here.
+                            return {
+                                ok: false,
+                                error: `PERMISSION_REQUIRES_APPROVAL`,
+                                message: evaluation.reason ?? `Permission requires approval`,
+                            };
+                        }
                         return {
                             ok: false,
-                            error: `PERMISSION_REQUIRES_APPROVAL`,
-                            message: evaluation.reason ?? `Permission requires approval`,
+                            error: `PERMISSION_DENIED`,
+                            message: evaluation.reason ?? `Permission denied`,
                         };
                     }
-                    return { ok: false, error: `PERMISSION_DENIED`, message: evaluation.reason ?? `Permission denied` };
                 }
             }
 
             return await mod.execute(ctx);
-        } catch(err: any) {
+        } catch (err: any) {
             return { ok: false, error: err?.message || `UNKNOWN_ERROR` };
         }
     }

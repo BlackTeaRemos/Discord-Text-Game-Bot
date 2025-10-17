@@ -14,6 +14,8 @@ import { flowManager } from '../../../Common/Flow/Manager.js';
 import { executeWithContext } from '../../../Common/ExecutionContextHelpers.js';
 import type { ExecutionContext } from '../../../Domain/index.js';
 import type { TokenSegmentInput } from '../../../Common/permission/index.js';
+import { resolveForOrganizationAction } from '../../../Common/permission/organizationAccess.js';
+import { requestPermissionFromAdmin } from '../../../SubCommand/Permission/requestPermissionFromAdmin.js';
 
 interface FlowState {
     type: string;
@@ -36,7 +38,7 @@ export const data = new SlashCommandSubcommandBuilder()
 export const permissionTokens: TokenSegmentInput[][] = [[`object`, `building`, `create`]];
 
 export async function execute(interaction: ChatInputCommandInteraction) {
-    await executeWithContext(interaction, async(flowManager, executionContext) => {
+    await executeWithContext(interaction, async (flowManager, executionContext) => {
         // Interactive flow: collect type, organization UID, description, optional UID
         await flowManager
             .builder(
@@ -46,7 +48,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
                 executionContext,
             )
             .step(`factory_modal`)
-            .prompt(async(ctx: StepContext) => {
+            .prompt(async (ctx: StepContext) => {
                 const modal = new ModalBuilder()
                     .setCustomId(`factory_modal`)
                     .setTitle(`New Factory`)
@@ -82,7 +84,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
                     );
                 await (ctx.interaction as ChatInputCommandInteraction).showModal(modal);
             })
-            .onInteraction(async(ctx: StepContext, interaction: any) => {
+            .onInteraction(async (ctx: StepContext, interaction: any) => {
                 if (interaction.isModalSubmit()) {
                     const fields = interaction.fields;
                     ctx.state.type = fields.getTextInputValue(`type`).trim();
@@ -97,7 +99,41 @@ export async function execute(interaction: ChatInputCommandInteraction) {
             })
             .next()
             .step()
-            .prompt(async(ctx: StepContext) => {
+            .prompt(async (ctx: StepContext) => {
+                const baseInteraction = ctx.interaction as ChatInputCommandInteraction;
+                if (!baseInteraction.deferred && !baseInteraction.replied) {
+                    await baseInteraction.deferReply({ flags: MessageFlags.Ephemeral });
+                }
+                const member = baseInteraction.guild
+                    ? await baseInteraction.guild.members.fetch(baseInteraction.user.id).catch(() => null)
+                    : null;
+                const permissionResult = await resolveForOrganizationAction(
+                    [[`object`, `building`, `create`]],
+                    baseInteraction.user.id,
+                    ctx.state.orgUid,
+                    {
+                        context: {
+                            commandName: `object`,
+                            guildId: baseInteraction.guildId ?? undefined,
+                            userId: baseInteraction.user.id,
+                        },
+                        member,
+                        skipApproval: false,
+                        requestApproval: async payload =>
+                            requestPermissionFromAdmin(baseInteraction, {
+                                tokens: payload.tokens,
+                                reason: payload.reason,
+                            }),
+                    },
+                );
+                if (!permissionResult.success) {
+                    const denialReason = permissionResult.detail.reason ?? `Permission denied.`;
+                    await baseInteraction.followUp({
+                        content: denialReason,
+                        flags: MessageFlags.Ephemeral,
+                    });
+                    return;
+                }
                 try {
                     const factory = await createFactory(
                         ctx.state.type,
@@ -109,7 +145,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
                         content: `Factory ${factory.uid} '${factory.type}' created under organization ${factory.organizationUid}.`,
                         flags: MessageFlags.Ephemeral,
                     });
-                } catch(error) {
+                } catch (error) {
                     const msg = error instanceof Error ? error.message : String(error);
                     log.error(`Error creating factory`, msg, `createFactory`);
                     await (ctx.interaction as ChatInputCommandInteraction).followUp({
