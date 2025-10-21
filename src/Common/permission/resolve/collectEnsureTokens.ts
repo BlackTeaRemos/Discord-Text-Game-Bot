@@ -1,4 +1,4 @@
-import { formatPermissionToken } from '../tokens.js';
+import { FormatPermissionToken } from '../Tokens.js';
 import { ResolveTokens } from './ResolveTokens.js';
 import type { PermissionToken } from '../types.js';
 import type { TokenResolveContext } from './types.js';
@@ -12,7 +12,7 @@ export function CollectEnsureTokens(
     for (const template of templates) {
         const resolved = ResolveTokens(template, context);
         for (const token of resolved) {
-            const key = formatPermissionToken(token);
+            const key = FormatPermissionToken(token);
             if (seen.has(key)) {
                 continue;
             }

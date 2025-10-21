@@ -1,4 +1,9 @@
-export { checkPermission, formatPermissionToken, grantForever, resolve } from '../../Common/permission/index.js';
+export {
+    CheckPermission as checkPermission,
+    FormatPermissionToken as formatPermissionToken,
+    GrantForever as grantForever,
+    resolve,
+} from '../../Common/permission/index.js';
 
 export type {
     PermissionCheckResult,

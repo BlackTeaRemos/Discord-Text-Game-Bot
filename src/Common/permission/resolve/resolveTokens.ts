@@ -1,5 +1,6 @@
 import { log } from '../../Log.js';
-import { formatPermissionToken, normalizeToken } from '../tokens.js';
+import { FormatPermissionToken } from '../formatPermissionToken.js';
+import { NormalizeToken } from '../NormalizeToken.js';
 import type { PermissionToken, TokenSegmentInput } from '../types.js';
 import type { TokenResolveContext } from './types.js';
 
@@ -57,19 +58,19 @@ export function ResolveTokens(
             const resolvedSegments = tmpl.map(part => {
                 return typeof part === `string` ? SubstitutePlaceholders(part, context) : part;
             });
-            const normalized = normalizeToken(resolvedSegments);
+            const normalized = NormalizeToken(resolvedSegments);
             if (!normalized.length) {
                 continue;
             }
             for (let i = normalized.length; i >= 1; i--) {
                 const candidate = normalized.slice(0, i) as PermissionToken;
-                const key = formatPermissionToken(candidate);
+                const key = FormatPermissionToken(candidate);
                 if (seen.has(key)) {
                     continue;
                 }
                 seen.add(key);
                 log.info(
-                    `Permission resolve: resolved token [${formatPermissionToken(candidate)}] from array template`,
+                    `Permission resolve: resolved token [${FormatPermissionToken(candidate)}] from array template`,
                     `Permission.resolve`,
                 );
                 results.push(candidate);
@@ -87,19 +88,19 @@ export function ResolveTokens(
             .filter(p => {
                 return p !== ``;
             });
-        const normalized = normalizeToken(parts);
+        const normalized = NormalizeToken(parts);
         if (!normalized.length) {
             continue;
         }
         for (let i = normalized.length; i >= 1; i--) {
             const candidate = normalized.slice(0, i) as PermissionToken;
-            const key = formatPermissionToken(candidate);
+            const key = FormatPermissionToken(candidate);
             if (seen.has(key)) {
                 continue;
             }
             seen.add(key);
             log.info(
-                `Permission resolve: adding fallback token: "${formatPermissionToken(candidate)}"`,
+                `Permission resolve: adding fallback token: "${FormatPermissionToken(candidate)}"`,
                 `Permission.resolve`,
             );
             results.push(candidate);

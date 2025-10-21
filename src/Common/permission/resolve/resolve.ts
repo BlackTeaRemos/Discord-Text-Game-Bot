@@ -1,5 +1,5 @@
 import { log } from '../../Log.js';
-import { checkPermission } from '../manager.js';
+import { CheckPermission } from '../Manager.js';
 import type { PermissionToken, PermissionTokenInput } from '../types.js';
 import type { ResolveEnsureOptions, ResolveEnsureResult } from './types.js';
 import { CollectEnsureTokens } from './CollectEnsureTokens.js';
@@ -46,7 +46,7 @@ export async function Resolve(
         }
 
         const inputs: PermissionTokenInput[] = ToInputs(tokens);
-        const evaluation = await checkPermission(options.permissions, member ?? null, inputs);
+        const evaluation = await CheckPermission(options.permissions, member ?? null, inputs);
 
         if (evaluation.allowed) {
             return { success: true, detail: { tokens, requiresApproval: !!evaluation.requiresApproval } };

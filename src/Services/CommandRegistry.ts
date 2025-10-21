@@ -8,9 +8,9 @@ import {
     createExecutionContext,
 } from '../Domain/index.js';
 import {
-    checkPermission,
+    CheckPermission,
     resolveTokens as resolvePermission,
-    formatPermissionToken,
+    FormatPermissionToken,
     type PermissionTokenInput,
     type PermissionsObject,
 } from '../Common/permission/index.js';
@@ -210,7 +210,7 @@ export class CommandRegistry {
                 for (const tmpl of templates) {
                     const resolved = resolvePermission(tmpl as any, resolverCtx as any);
                     for (const token of resolved) {
-                        const display = formatPermissionToken(token);
+                        const display = FormatPermissionToken(token);
                         if (seen.has(display)) {
                             continue;
                         }
@@ -248,7 +248,7 @@ export class CommandRegistry {
                 if (!bypassPermission) {
                     // Allow callers to override the permissions map via opts.permissions; otherwise
                     // use undefined which will make checkPermission consult the default source.
-                    const evaluation = await checkPermission(opts?.permissions ?? undefined, member, inputs);
+                    const evaluation = await CheckPermission(opts?.permissions ?? undefined, member, inputs);
 
                     if (!evaluation.allowed) {
                         if (evaluation.requiresApproval && !opts?.skipApproval) {

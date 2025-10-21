@@ -5,7 +5,7 @@
  */
 import type { ChatInputCommandInteraction, GuildMember } from 'discord.js';
 import {
-    grantForever,
+    GrantForever,
     resolve,
     type PermissionDecision,
     type PermissionToken,
@@ -49,9 +49,11 @@ export interface EnsureCommandPermissionResult {
 }
 
 function __buildBaseContext(interaction: ChatInputCommandInteraction): TokenResolveContext {
-    const options = Object.fromEntries(interaction.options.data.map(o => {
-        return [o.name, o.value];
-    }));
+    const options = Object.fromEntries(
+        interaction.options.data.map(o => {
+            return [o.name, o.value];
+        }),
+    );
     return {
         commandName: interaction.commandName,
         guildId: interaction.guildId ?? undefined,
@@ -72,7 +74,7 @@ async function __getMember(
     }
     try {
         return await interaction.guild.members.fetch(interaction.user.id);
-    } catch(error) {
+    } catch (error) {
         log.warning(`Failed to fetch guild member: ${String(error)}`, `PermissionGuard`, `ensureCommandPermission`);
         return null;
     }

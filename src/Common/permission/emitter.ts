@@ -1,8 +1,8 @@
-export * from './buildPermissionEmitter.js';
-export * from './evaluateToken.js';
+export * from './BuildPermissionEmitter.js';
+export * from './EvaluateToken.js';
 import ComplexEventEmitter from '../ComplexEventEmitter.js';
+import { NormalizeToken } from './NormalizeToken.js';
 import type { PermissionEvaluationPayload, PermissionState, PermissionToken, PermissionsObject } from './types.js';
-import { normalizeToken } from './tokens.js';
 
 /**
  * Builds a ComplexEventEmitter instance populated with permission listeners.
@@ -11,7 +11,7 @@ import { normalizeToken } from './tokens.js';
  * @example
  * const emitter = buildPermissionEmitter({ 'command:create': 'allowed' });
  */
-export function buildPermissionEmitter(
+export function BuildPermissionEmitter(
     permissions: PermissionsObject,
 ): ComplexEventEmitter<PermissionEvaluationPayload> {
     const emitter = new ComplexEventEmitter<PermissionEvaluationPayload>();
@@ -19,7 +19,7 @@ export function buildPermissionEmitter(
         if (!state || state === `undefined`) {
             continue;
         }
-        const token = normalizeToken(rawToken);
+        const token = NormalizeToken(rawToken);
         if (!token.length) {
             continue;
         }
@@ -39,7 +39,7 @@ export function buildPermissionEmitter(
  * @example
  * const state = evaluateToken(emitter, ['command', 'create']);
  */
-export function evaluateToken(
+export function EvaluateToken(
     emitter: ComplexEventEmitter<PermissionEvaluationPayload>,
     token: PermissionToken,
 ): PermissionState | undefined {

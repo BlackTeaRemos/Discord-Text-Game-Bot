@@ -1,6 +1,6 @@
 import type { PermissionToken } from './types.js';
 
-export function tokenKey(token: PermissionToken): string {
+export function TokenKey(token: PermissionToken): string {
     return token
         .map(part => {
             if (part === undefined) {

@@ -2,10 +2,10 @@ import { MessageFlags } from 'discord.js';
 import { log } from '../Common/Log.js';
 import {
     resolveTokens as resolvePermission,
-    formatPermissionToken,
+    FormatPermissionToken,
     type PermissionToken,
     type TokenSegmentInput,
-    grantForever,
+    GrantForever,
     resolve,
 } from '../Common/permission/index.js';
 
@@ -57,12 +57,14 @@ export function createInteractionHandler(options: { loadedCommands: Record<strin
             const resolverCtx = {
                 commandName: interaction.commandName,
                 interaction,
-                options: Object.fromEntries(interaction.options.data.map((o: any) => {
-                    return [o.name, o.value];
-                })),
+                options: Object.fromEntries(
+                    interaction.options.data.map((o: any) => {
+                        return [o.name, o.value];
+                    }),
+                ),
                 userId: interaction.user.id,
                 guildId: interaction.guildId ?? undefined,
-                getMember: async() => {
+                getMember: async () => {
                     return interaction.guild ? await interaction.guild.members.fetch(interaction.user.id) : null;
                 },
             };
@@ -81,7 +83,7 @@ export function createInteractionHandler(options: { loadedCommands: Record<strin
                 const seen = new Set<string>();
                 for (const tmpl of templates) {
                     for (const token of resolvePermission(tmpl, resolverCtx)) {
-                        const display = formatPermissionToken(token);
+                        const display = FormatPermissionToken(token);
                         if (seen.has(display)) {
                             continue;
                         }
@@ -90,12 +92,12 @@ export function createInteractionHandler(options: { loadedCommands: Record<strin
                     }
                 }
                 const grantToken = tokens?.[0] ?? interaction.commandName;
-                grantForever(interaction.guildId, interaction.user.id, grantToken);
+                GrantForever(interaction.guildId, interaction.user.id, grantToken);
             }
 
             // Execute the command
             await command.execute(interaction);
-        } catch(err: any) {
+        } catch (err: any) {
             // Centralized error handler for permission denials and execution errors
             try {
                 log.error(`Interaction handler error for /${interaction.commandName}: ${String(err)}`, `Boot`);

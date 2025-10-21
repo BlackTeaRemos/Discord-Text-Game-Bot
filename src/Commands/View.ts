@@ -14,7 +14,7 @@ import { log } from '../Common/Log.js';
 import { getGame } from '../Flow/Object/Game/View.js';
 import { resolveViewPermissions } from '../Flow/Command/ViewFlow.js';
 import { requestPermissionFromAdmin } from '../SubCommand/Permission/PermissionUI.js';
-import { grantForever } from '../Common/permission/index.js';
+import { GrantForever } from '../Common/permission/index.js';
 
 export const data = new SlashCommandBuilder().setName(`view`).setDescription(`Interactive view of stored objects`);
 export const permissionTokens = `command:view`;
@@ -199,7 +199,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
                             reason: permission.reason,
                         });
                         if (decision === `approve_forever` && baseInteraction.guildId) {
-                            grantForever(baseInteraction.guildId, baseInteraction.user.id, permission.tokens[0] ?? []);
+                            GrantForever(baseInteraction.guildId, baseInteraction.user.id, permission.tokens[0] ?? []);
                         }
                         if (decision !== `approve_forever` && decision !== `approve_once`) {
                             await baseInteraction.followUp({

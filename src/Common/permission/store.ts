@@ -1,4 +1,5 @@
-import { tokenKey, normalizeToken } from './tokens.js';
+import { NormalizeToken } from './NormalizeToken.js';
+import { TokenKey } from './TokenKey.js';
 import type { PermissionTokenInput } from './types.js';
 
 const grantedForever: Map<string, Map<string, Set<string>>> = new Map(); // guildId -> userId -> serialized tokens
@@ -12,15 +13,15 @@ const grantedForever: Map<string, Map<string, Set<string>>> = new Map(); // guil
  * @example
  * grantForever('guild', 'user', 'command:create');
  */
-export function grantForever(guildId: string, userId: string, token: PermissionTokenInput): void {
+export function GrantForever(guildId: string, userId: string, token: PermissionTokenInput): void {
     if (!guildId || !userId) {
         return;
     }
-    const normalized = normalizeToken(token);
+    const normalized = NormalizeToken(token);
     if (!normalized.length) {
         return;
     }
-    const serialized = tokenKey(normalized);
+    const serialized = TokenKey(normalized);
     if (!grantedForever.has(guildId)) {
         grantedForever.set(guildId, new Map());
     }
@@ -40,7 +41,7 @@ export function grantForever(guildId: string, userId: string, token: PermissionT
  * @example
  * const allowed = hasPermanentGrant('guild', 'user', ['command:create']);
  */
-export function hasPermanentGrant(
+export function HasPermanentGrant(
     guildId: string | undefined,
     userId: string | undefined,
     tokens: PermissionTokenInput[],
@@ -57,11 +58,11 @@ export function hasPermanentGrant(
         return false;
     }
     for (const token of tokens) {
-        const normalized = normalizeToken(token);
+        const normalized = NormalizeToken(token);
         if (!normalized.length) {
             continue;
         }
-        const serialized = tokenKey(normalized);
+        const serialized = TokenKey(normalized);
         if (userTokens.has(serialized)) {
             return true;
         }
