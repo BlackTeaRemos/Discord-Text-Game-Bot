@@ -9,7 +9,7 @@ export interface FlowStep<State> {
      * Unique identifier for interaction component (button or modal) expected in this step.
      * If not applicable, leave undefined.
      */
-    customId?: string; // optional component id to match interactions
+    customId?: string | string[]; // optional component id(s) to match interactions
     /**
      * Optional human-readable tag for referencing this step from later steps. Must be unique per flow definition.
      * @example 'selectOrganization'

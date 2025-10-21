@@ -28,11 +28,11 @@ export class FlowBuilder<State> {
 
     /**
      * Add a new step with an optional component custom id and tag.
-     * @param customId string | undefined Custom id to match for component interactions. Example 'select_type'.
+     * @param customId string | string[] | undefined Custom id(s) to match for component interactions. Example 'select_type' or ['btn1', 'btn2'].
      * @param tag string | undefined Unique tag identifier that allows later steps to recall this step's context. Example 'selectOrganization'.
      * @returns StepBuilder<State> Step builder for configuring the step. Example builder.step('select').
      */
-    public step(customId?: string, tag?: string): StepBuilder<State> {
+    public step(customId?: string | string[], tag?: string): StepBuilder<State> {
         return new StepBuilder(this, customId, tag);
     }
 

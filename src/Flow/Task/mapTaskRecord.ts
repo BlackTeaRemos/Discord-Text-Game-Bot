@@ -1,0 +1,47 @@
+import type { TaskListItem, TaskStatus } from '../../Domain/Task.js';
+import { DEFAULT_TASK_STATUS } from './taskConstants.js';
+
+export interface TaskQueryRow {
+    task: { properties: Record<string, any> };
+    organization?: { properties?: Record<string, any> } | null;
+    creator?: { properties?: Record<string, any> } | null;
+    executor?: { properties?: Record<string, any> } | null;
+}
+
+function pickName(node?: { properties?: Record<string, any> } | null): string | undefined {
+    if (!node?.properties) {
+        return undefined;
+    }
+    const friendly = node.properties.friendly_name ?? node.properties.friendlyName;
+    if (friendly) {
+        return String(friendly);
+    }
+    const label = node.properties.name ?? node.properties.label;
+    return label ? String(label) : undefined;
+}
+
+function toStatus(value: unknown): TaskStatus {
+    return String(value ?? DEFAULT_TASK_STATUS) as TaskStatus;
+}
+
+export function mapTaskRecord(row: TaskQueryRow): TaskListItem {
+    const taskProps = row.task.properties ?? {};
+    const createdAt = Number(taskProps.created_at ?? taskProps.createdAt ?? Date.now());
+    const updatedAt = Number(taskProps.updated_at ?? taskProps.updatedAt ?? createdAt);
+    const version = Number(taskProps.version ?? 1);
+    return {
+        id: String(taskProps.id),
+        organizationUid: String(taskProps.organization_uid ?? ``),
+        creatorDiscordId: String(taskProps.creator_discord_id ?? ``),
+        executorDiscordId: taskProps.executor_discord_id ? String(taskProps.executor_discord_id) : null,
+        objectUid: taskProps.object_uid ? String(taskProps.object_uid) : null,
+        description: String(taskProps.description ?? ``),
+        status: toStatus(taskProps.status),
+        createdAt,
+        updatedAt,
+        version,
+        organizationName: pickName(row.organization),
+        creatorName: pickName(row.creator),
+        executorName: pickName(row.executor),
+    };
+}

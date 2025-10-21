@@ -2,9 +2,7 @@ import { SlashCommandSubcommandBuilder, ChatInputCommandInteraction, MessageFlag
 import { removeFactory, getFactoryOrganizationUid } from '../../../Flow/Object/Building/Remove.js';
 import { log } from '../../../Common/Log.js';
 import { createCommandContext } from '../../../Common/ExecutionContextHelpers.js';
-import type { TokenSegmentInput } from '../../../Common/permission/index.js';
-import { resolveForOrganizationAction } from '../../../Common/permission/organizationAccess.js';
-import { requestPermissionFromAdmin } from '../../../SubCommand/Permission/requestPermissionFromAdmin.js';
+import { resolve, type TokenSegmentInput } from '../../../Common/permission/index.js';
 
 export const data = new SlashCommandSubcommandBuilder()
     .setName(`remove`)
@@ -29,25 +27,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
             ? await interaction.guild.members.fetch(interaction.user.id).catch(() => null)
             : null;
 
-        const permissionResult = await resolveForOrganizationAction(
-            [[`object`, `building`, `remove`]],
-            interaction.user.id,
-            orgUid,
-            {
-                context: {
-                    commandName: `object`,
-                    guildId: interaction.guildId ?? undefined,
-                    userId: interaction.user.id,
-                },
-                member,
-                skipApproval: false,
-                requestApproval: async payload =>
-                    requestPermissionFromAdmin(interaction, {
-                        tokens: payload.tokens,
-                        reason: payload.reason,
-                    }),
-            },
-        );
+        const permissionResult = await resolve([[`object`, `building`, `remove`]]);
 
         if (!permissionResult.success) {
             const denialReason = permissionResult.detail.reason ?? `Permission denied.`;

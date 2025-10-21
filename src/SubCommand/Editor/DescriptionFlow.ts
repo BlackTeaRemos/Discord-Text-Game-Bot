@@ -16,8 +16,9 @@ import {
     getVersion,
     togglePublic,
     listObjectsForType,
-    listUserOrgs,
+    getUserOrganizations,
 } from '../../Flow/Command/Description/db.js';
+import { getUserOrganizations } from '../../Flow/Command/Description/getUserOrganizations.js';
 import { getLatestDescription } from '../../Flow/Object/Description/Latest.js';
 import { createDescriptionVersion } from '../../Flow/Object/Description/Update.js';
 
@@ -51,7 +52,7 @@ export async function startDescriptionCreateFlow(
     await flowManager
         .builder(interaction.user.id, interaction, {} as State, executionContext)
         .step(`desc_select_type`, `root`)
-        .prompt(async(ctx: DescriptionStepContext) => {
+        .prompt(async (ctx: DescriptionStepContext) => {
             const base = resolveBaseInteraction(ctx);
             if (base && !ctx.recall(`root`, `interaction`)) {
                 ctx.remember(`interaction`, base);
@@ -72,7 +73,7 @@ export async function startDescriptionCreateFlow(
                 components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(select)],
             });
         })
-        .onInteraction(async(ctx: DescriptionStepContext, i: Interaction) => {
+        .onInteraction(async (ctx: DescriptionStepContext, i: Interaction) => {
             if (!i.isStringSelectMenu()) {
                 return false;
             }
@@ -82,7 +83,7 @@ export async function startDescriptionCreateFlow(
         })
         .next()
         .step(`desc_select_object`)
-        .prompt(async(ctx: DescriptionStepContext) => {
+        .prompt(async (ctx: DescriptionStepContext) => {
             const type = ctx.state.targetType as State[`targetType`];
             if (!type) {
                 await renderDescription(ctx, { content: `Object type was not selected. Cancelling description flow.` });
@@ -114,7 +115,7 @@ export async function startDescriptionCreateFlow(
                 components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(select)],
             });
         })
-        .onInteraction(async(ctx: DescriptionStepContext, i: Interaction) => {
+        .onInteraction(async (ctx: DescriptionStepContext, i: Interaction) => {
             if (!i.isStringSelectMenu()) {
                 return false;
             }
@@ -124,8 +125,8 @@ export async function startDescriptionCreateFlow(
         })
         .next()
         .step(`desc_select_org`)
-        .prompt(async(ctx: DescriptionStepContext) => {
-            const orgs = await listUserOrgs(interaction.user.id);
+        .prompt(async (ctx: DescriptionStepContext) => {
+            const orgs = await getUserOrganizations(interaction.user.id);
             if (orgs.length === 0) {
                 await renderDescription(ctx, {
                     content: `You do not belong to any organization. Description creation cancelled.`,
@@ -136,32 +137,28 @@ export async function startDescriptionCreateFlow(
             }
             if (orgs.length === 1) {
                 ctx.state.orgUid = orgs[0].uid;
-                await renderDescription(ctx, {
-                    content: `Using organization **${orgs[0].name}** for this description. Description preview will update once the latest version is loaded.`,
-                });
-                await renderControls(ctx, {
-                    content: `Organization auto-selected. Preparing description...`,
-                    components: [],
-                });
                 await ctx.advance();
                 return;
             }
             const select = new StringSelectMenuBuilder()
                 .setCustomId(`desc_select_org`)
                 .setPlaceholder(`Select organization for this description`)
-                .addOptions(uniqueSelectOptions(orgs.map(o => {
-                    return { label: o.name.slice(0, 50), value: o.uid };
-                })) as any);
+                .addOptions(
+                    uniqueSelectOptions(
+                        orgs.map(o => {
+                            return { label: o.name.slice(0, 50), value: o.uid };
+                        }),
+                    ) as any,
+                );
             await renderDescription(ctx, {
-                content:
-                    `Select the organization that owns this description. Preview will appear after loading the latest version.`,
+                content: `Select the organization that owns this description. Preview will appear after loading the latest version.`,
             });
             await renderControls(ctx, {
                 content: `Select organization for this description`,
                 components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(select)],
             });
         })
-        .onInteraction(async(ctx: DescriptionStepContext, i: Interaction) => {
+        .onInteraction(async (ctx: DescriptionStepContext, i: Interaction) => {
             if (!i.isStringSelectMenu()) {
                 return false;
             }
@@ -171,7 +168,7 @@ export async function startDescriptionCreateFlow(
         })
         .next()
         .step(`desc_menu`)
-        .prompt(async(ctx: DescriptionStepContext) => {
+        .prompt(async (ctx: DescriptionStepContext) => {
             const { targetType, targetUid, orgUid } = ctx.state as State;
             const latest = await getLatestDescription(targetType!, targetUid!, orgUid!);
             ctx.state.latestText = latest?.text ?? ``;
@@ -202,7 +199,7 @@ export async function startDescriptionCreateFlow(
                 components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(menu)],
             });
         })
-        .onInteraction(async(ctx: DescriptionStepContext, i: Interaction) => {
+        .onInteraction(async (ctx: DescriptionStepContext, i: Interaction) => {
             if (!i.isStringSelectMenu()) {
                 return false;
             }
@@ -229,7 +226,7 @@ export async function startDescriptionCreateFlow(
         })
         .next()
         .step(`desc_select_version`)
-        .prompt(async(ctx: DescriptionStepContext) => {
+        .prompt(async (ctx: DescriptionStepContext) => {
             const action = ctx.state.nextAction;
             switch (action) {
                 case `version`: {
@@ -293,7 +290,7 @@ export async function startDescriptionCreateFlow(
                 }
             }
         })
-        .onInteraction(async(ctx: DescriptionStepContext, i: Interaction) => {
+        .onInteraction(async (ctx: DescriptionStepContext, i: Interaction) => {
             const action = ctx.state.nextAction;
             if (action === `version`) {
                 if (!i.isStringSelectMenu()) {
@@ -333,7 +330,7 @@ export async function startDescriptionCreateFlow(
         })
         .next()
         .step(`desc_edit_session`, `edit_session`)
-        .prompt(async(ctx: DescriptionStepContext) => {
+        .prompt(async (ctx: DescriptionStepContext) => {
             ctx.state.editMode = ctx.state.editMode ?? `replace`;
             ctx.state.nextAction = `edit`;
             if (!ctx.state.editInputs || !ctx.state.editInputs.length) {
@@ -364,7 +361,7 @@ export async function startDescriptionCreateFlow(
                 ],
             });
         })
-        .onInteraction(async(ctx: DescriptionStepContext, i: Interaction) => {
+        .onInteraction(async (ctx: DescriptionStepContext, i: Interaction) => {
             if (!i.isStringSelectMenu()) {
                 return false;
             }
@@ -474,7 +471,7 @@ export async function startDescriptionCreateFlow(
             });
             return false;
         })
-        .onMessage(async(ctx: DescriptionStepContext, msg: Message) => {
+        .onMessage(async (ctx: DescriptionStepContext, msg: Message) => {
             let inputText = ``;
             const attachment = msg.attachments?.first?.();
             const attachmentIsTxt = Boolean(attachment && String(attachment.name).toLowerCase().endsWith(`.txt`));

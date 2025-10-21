@@ -26,6 +26,7 @@ export async function getGame(uid: string): Promise<Game | null> {
             name: props.name,
             image: props.image,
             serverId: srvId || ``,
+            parameters: (props.parameters as Record<string, any>) || {},
         };
     } finally {
         await session.close();

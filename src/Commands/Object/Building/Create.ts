@@ -7,19 +7,19 @@ import {
     ActionRowBuilder,
     ModalSubmitInteraction,
     MessageFlags,
+    StringSelectMenuBuilder,
 } from 'discord.js';
 import { createFactory } from '../../../Flow/Object/Building/Create.js';
 import { log } from '../../../Common/Log.js';
-import { flowManager } from '../../../Common/Flow/Manager.js';
 import { executeWithContext } from '../../../Common/ExecutionContextHelpers.js';
 import type { ExecutionContext } from '../../../Domain/index.js';
-import type { TokenSegmentInput } from '../../../Common/permission/index.js';
-import { resolveForOrganizationAction } from '../../../Common/permission/organizationAccess.js';
-import { requestPermissionFromAdmin } from '../../../SubCommand/Permission/requestPermissionFromAdmin.js';
+import { resolve, type TokenSegmentInput } from '../../../Common/permission/index.js';
+import { getUserOrganizations } from '../../../Flow/Command/Description/getUserOrganizations.js';
 
 interface FlowState {
     type: string;
     orgUid: string;
+    orgName?: string;
     desc: string;
     uid?: string;
 }
@@ -39,14 +39,57 @@ export const permissionTokens: TokenSegmentInput[][] = [[`object`, `building`, `
 
 export async function execute(interaction: ChatInputCommandInteraction) {
     await executeWithContext(interaction, async (flowManager, executionContext) => {
-        // Interactive flow: collect type, organization UID, description, optional UID
+        // Interactive flow: select organization, then collect type, description, optional UID
         await flowManager
             .builder(
                 interaction.user.id,
                 interaction as any,
-                { type: ``, orgUid: ``, desc: ``, uid: `` },
+                { type: ``, orgUid: ``, orgName: ``, desc: ``, uid: `` },
                 executionContext,
             )
+            .step(`factory_select_org`)
+            .prompt(async (ctx: StepContext) => {
+                await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+                const orgs = await getUserOrganizations(interaction.user.id);
+                if (orgs.length === 0) {
+                    await interaction.editReply({
+                        content: `You are not linked to any organization. Cannot create factory.`,
+                    });
+                    return;
+                }
+                if (orgs.length === 1) {
+                    ctx.state.orgUid = orgs[0].uid;
+                    ctx.state.orgName = orgs[0].name;
+                    return;
+                }
+                const options = orgs
+                    .map(org => ({
+                        label: org.name.slice(0, 50),
+                        value: org.uid,
+                    }))
+                    .slice(0, 25);
+                const menu = new StringSelectMenuBuilder()
+                    .setCustomId(`factory_select_org`)
+                    .setPlaceholder(`Select organization`)
+                    .addOptions(options as any);
+                await interaction.editReply({
+                    content: `Choose organization to continue.`,
+                    components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(menu)],
+                });
+            })
+            .onInteraction(async (ctx: StepContext, select: any) => {
+                if (!select.isStringSelectMenu() || select.customId !== `factory_select_org`) {
+                    return false;
+                }
+                ctx.state.orgUid = select.values[0];
+                const match = select.component.options?.find((option: any) => {
+                    return option.value === select.values[0];
+                });
+                ctx.state.orgName = match?.label || select.values[0];
+                await select.deferUpdate();
+                return true;
+            })
+            .next()
             .step(`factory_modal`)
             .prompt(async (ctx: StepContext) => {
                 const modal = new ModalBuilder()
@@ -57,13 +100,6 @@ export async function execute(interaction: ChatInputCommandInteraction) {
                             new TextInputBuilder()
                                 .setCustomId(`type`)
                                 .setLabel(`Factory Type`)
-                                .setStyle(TextInputStyle.Short)
-                                .setRequired(true),
-                        ),
-                        new ActionRowBuilder<TextInputBuilder>().addComponents(
-                            new TextInputBuilder()
-                                .setCustomId(`orgUid`)
-                                .setLabel(`Organization UID`)
                                 .setStyle(TextInputStyle.Short)
                                 .setRequired(true),
                         ),
@@ -88,7 +124,6 @@ export async function execute(interaction: ChatInputCommandInteraction) {
                 if (interaction.isModalSubmit()) {
                     const fields = interaction.fields;
                     ctx.state.type = fields.getTextInputValue(`type`).trim();
-                    ctx.state.orgUid = fields.getTextInputValue(`orgUid`).trim();
                     ctx.state.desc = fields.getTextInputValue(`desc`).trim();
                     const custom = fields.getTextInputValue(`uid`).trim();
                     ctx.state.uid = custom || undefined;
@@ -107,25 +142,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
                 const member = baseInteraction.guild
                     ? await baseInteraction.guild.members.fetch(baseInteraction.user.id).catch(() => null)
                     : null;
-                const permissionResult = await resolveForOrganizationAction(
-                    [[`object`, `building`, `create`]],
-                    baseInteraction.user.id,
-                    ctx.state.orgUid,
-                    {
-                        context: {
-                            commandName: `object`,
-                            guildId: baseInteraction.guildId ?? undefined,
-                            userId: baseInteraction.user.id,
-                        },
-                        member,
-                        skipApproval: false,
-                        requestApproval: async payload =>
-                            requestPermissionFromAdmin(baseInteraction, {
-                                tokens: payload.tokens,
-                                reason: payload.reason,
-                            }),
-                    },
-                );
+                const permissionResult = await resolve(['']);
                 if (!permissionResult.success) {
                     const denialReason = permissionResult.detail.reason ?? `Permission denied.`;
                     await baseInteraction.followUp({

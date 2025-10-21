@@ -14,7 +14,6 @@ import {
     type PermissionTokenInput,
     type PermissionsObject,
 } from '../Common/permission/index.js';
-import { fetchUserOrganizationUids } from '../Common/permission/organizationAccess.js';
 import type { GuildMember } from 'discord.js';
 
 /** Error thrown when attempting to register a duplicate command id. */
@@ -241,16 +240,6 @@ export class CommandRegistry {
                 }
 
                 let bypassPermission = false;
-                if (opts?.organizationUid && ctx.userId) {
-                    try {
-                        const organizations = await fetchUserOrganizationUids(ctx.userId);
-                        if (organizations.includes(opts.organizationUid)) {
-                            bypassPermission = true;
-                        }
-                    } catch {
-                        // Ignore membership lookup errors and fall back to permission evaluation.
-                    }
-                }
 
                 if (!bypassPermission && opts?.targetUserId && opts.targetUserId === ctx.userId) {
                     bypassPermission = true;

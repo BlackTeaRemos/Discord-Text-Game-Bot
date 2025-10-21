@@ -59,16 +59,16 @@ export async function createGame(
             MERGE (game)-[:HAS_PARAMETER]->(param:Parameter { key: entry[0], value: entry[1] })
             RETURN game, server.id AS serverId`;
         const params = { uid: gameUid, name, image, serverId, paramEntries };
-        const result = await session.run(query, params);
+        const result: any = await session.run(query, params);
         const record = result.records[0];
         const gameNode = record.get(`game`);
-        const serverId = record.get(`serverId`);
+        const serverIdFromDb = record.get(`serverId`);
         const gameProps = gameNode.properties;
         return {
             uid: gameProps.uid,
             name: gameProps.name,
             image: gameProps.image,
-            serverId,
+            serverId: serverIdFromDb,
             parameters: gameParams, // still return as record
         };
     } finally {
