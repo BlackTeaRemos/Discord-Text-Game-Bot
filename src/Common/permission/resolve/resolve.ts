@@ -2,8 +2,8 @@ import { log } from '../../Log.js';
 import { checkPermission } from '../manager.js';
 import type { PermissionToken, PermissionTokenInput } from '../types.js';
 import type { ResolveEnsureOptions, ResolveEnsureResult } from './types.js';
-import { collectEnsureTokens } from './collectEnsureTokens.js';
-import { toInputs } from './toInputs.js';
+import { CollectEnsureTokens } from './CollectEnsureTokens.js';
+import { ToInputs } from './ToInputs.js';
 
 /**
  * Resolves permission templates into tokens, evaluates them against the provided permissions,
@@ -28,13 +28,13 @@ import { toInputs } from './toInputs.js';
  *   // Permission granted, proceed with action
  * }
  */
-export async function resolve(
+export async function Resolve(
     templates: Array<string | import('../types.js').TokenSegmentInput[]>,
     options: ResolveEnsureOptions = {},
 ): Promise<ResolveEnsureResult> {
     try {
         const context = (options.context ?? {}) as import('./types.js').TokenResolveContext;
-        const tokens = collectEnsureTokens(templates, context);
+        const tokens = CollectEnsureTokens(templates, context);
 
         if (tokens.length === 0) {
             return { success: true, detail: { tokens } };
@@ -45,7 +45,7 @@ export async function resolve(
             member = await options.getMember();
         }
 
-        const inputs: PermissionTokenInput[] = toInputs(tokens);
+        const inputs: PermissionTokenInput[] = ToInputs(tokens);
         const evaluation = await checkPermission(options.permissions, member ?? null, inputs);
 
         if (evaluation.allowed) {
@@ -77,7 +77,7 @@ export async function resolve(
                 reason: evaluation.reason ?? `Permission denied`,
             },
         };
-    } catch(error) {
+    } catch (error) {
         log.error(`doEnsure failed: ${String(error)}`, `Permission.doEnsure`);
         return {
             success: false,

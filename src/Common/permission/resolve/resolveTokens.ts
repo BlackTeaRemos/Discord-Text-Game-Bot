@@ -6,7 +6,7 @@ import type { TokenResolveContext } from './types.js';
 /**
  * Replace placeholders like `{name}` using values from context.
  */
-function substitutePlaceholders(value: string, context: TokenResolveContext): string {
+function SubstitutePlaceholders(value: string, context: TokenResolveContext): string {
     return value.replace(/\{([^}]+)\}/g, (_m, name) => {
         const valFromOptions =
             context.options && Object.prototype.hasOwnProperty.call(context.options, name)
@@ -31,7 +31,7 @@ function substitutePlaceholders(value: string, context: TokenResolveContext): st
 /**
  * Convert a template (string or array) into ordered tokens from most-specific to least-specific.
  */
-export function resolveTokens(
+export function ResolveTokens(
     template: string | TokenSegmentInput[],
     context: TokenResolveContext = {},
 ): PermissionToken[] {
@@ -55,9 +55,8 @@ export function resolveTokens(
     for (const tmpl of templates) {
         if (Array.isArray(tmpl)) {
             const resolvedSegments = tmpl.map(part => {
-                return typeof part === `string` ? substitutePlaceholders(part, context) : part;
-            },
-            );
+                return typeof part === `string` ? SubstitutePlaceholders(part, context) : part;
+            });
             const normalized = normalizeToken(resolvedSegments);
             if (!normalized.length) {
                 continue;
@@ -79,7 +78,7 @@ export function resolveTokens(
         }
 
         log.info(`Permission resolve: expanding template: "${tmpl}"`, `Permission.resolve`);
-        const resolved = substitutePlaceholders(tmpl, context);
+        const resolved = SubstitutePlaceholders(tmpl, context);
         const parts = resolved
             .split(`:`)
             .map(p => {

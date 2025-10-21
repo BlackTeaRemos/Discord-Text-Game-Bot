@@ -1,16 +1,16 @@
 import { formatPermissionToken } from '../tokens.js';
-import { resolveTokens } from './resolveTokens.js';
+import { ResolveTokens } from './ResolveTokens.js';
 import type { PermissionToken } from '../types.js';
 import type { TokenResolveContext } from './types.js';
 
-export function collectEnsureTokens(
+export function CollectEnsureTokens(
     templates: Array<string | import('../types.js').TokenSegmentInput[]> = [],
     context: TokenResolveContext,
 ): PermissionToken[] {
     const tokens: PermissionToken[] = [];
     const seen = new Set<string>();
     for (const template of templates) {
-        const resolved = resolveTokens(template, context);
+        const resolved = ResolveTokens(template, context);
         for (const token of resolved) {
             const key = formatPermissionToken(token);
             if (seen.has(key)) {
