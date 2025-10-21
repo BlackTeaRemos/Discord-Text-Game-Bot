@@ -1,5 +1,5 @@
 import type { TaskListItem, TaskStatus } from '../../Domain/Task.js';
-import { DEFAULT_TASK_STATUS } from './taskConstants.js';
+import { DEFAULT_TASK_STATUS } from './TaskConstants.js';
 
 export interface TaskQueryRow {
     task: { properties: Record<string, any> };
@@ -8,7 +8,7 @@ export interface TaskQueryRow {
     executor?: { properties?: Record<string, any> } | null;
 }
 
-function pickName(node?: { properties?: Record<string, any> } | null): string | undefined {
+function PickName(node?: { properties?: Record<string, any> } | null): string | undefined {
     if (!node?.properties) {
         return undefined;
     }
@@ -20,11 +20,11 @@ function pickName(node?: { properties?: Record<string, any> } | null): string | 
     return label ? String(label) : undefined;
 }
 
-function toStatus(value: unknown): TaskStatus {
+function ToStatus(value: unknown): TaskStatus {
     return String(value ?? DEFAULT_TASK_STATUS) as TaskStatus;
 }
 
-export function mapTaskRecord(row: TaskQueryRow): TaskListItem {
+export function MapTaskRecord(row: TaskQueryRow): TaskListItem {
     const taskProps = row.task.properties ?? {};
     const createdAt = Number(taskProps.created_at ?? taskProps.createdAt ?? Date.now());
     const updatedAt = Number(taskProps.updated_at ?? taskProps.updatedAt ?? createdAt);
@@ -36,12 +36,12 @@ export function mapTaskRecord(row: TaskQueryRow): TaskListItem {
         executorDiscordId: taskProps.executor_discord_id ? String(taskProps.executor_discord_id) : null,
         objectUid: taskProps.object_uid ? String(taskProps.object_uid) : null,
         description: String(taskProps.description ?? ``),
-        status: toStatus(taskProps.status),
+        status: ToStatus(taskProps.status),
         createdAt,
         updatedAt,
         version,
-        organizationName: pickName(row.organization),
-        creatorName: pickName(row.creator),
-        executorName: pickName(row.executor),
+        organizationName: PickName(row.organization),
+        creatorName: PickName(row.creator),
+        executorName: PickName(row.executor),
     };
 }

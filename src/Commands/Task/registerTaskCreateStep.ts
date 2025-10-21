@@ -2,7 +2,7 @@ import { ActionRowBuilder, EmbedBuilder, StringSelectMenuBuilder } from 'discord
 import type { FlowBuilder } from '../../Common/Flow/Builder.js';
 import type { StepContext } from '../../Common/Flow/Types.js';
 import { neo4jClient } from '../../Setup/Neo4j.js';
-import { createTaskRecord } from '../../Flow/Task/createTaskRecord.js';
+import { CreateTaskRecord } from '../../Flow/Task/CreateTaskRecord.js';
 import type { TaskFlowState } from './TaskFlowState.js';
 import { buildExecutorOptions, resolveExecutorSelection } from './taskExecutorOptions.js';
 
@@ -27,7 +27,7 @@ async function __FinalizeTaskCreation(
         return;
     }
 
-    const task = await createTaskRecord(neo4jClient, {
+    const task = await CreateTaskRecord(neo4jClient, {
         organizationUid: orgUid,
         creatorDiscordId: baseInteraction.user.id,
         description,

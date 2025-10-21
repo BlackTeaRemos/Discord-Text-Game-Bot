@@ -1,10 +1,10 @@
 import type { Neo4jClient } from '../../Repository/Neo4jClient.js';
 import type { TaskListItem } from '../../Domain/Task.js';
-import { REL_BELONGS_TO, REL_CREATED_TASK, REL_EXECUTES_TASK, TASK_LABEL } from './taskConstants.js';
-import { mapTaskRecord } from './mapTaskRecord.js';
+import { REL_BELONGS_TO, REL_CREATED_TASK, REL_EXECUTES_TASK, TASK_LABEL } from './TaskConstants.js';
+import { MapTaskRecord } from './MapTaskRecord.js';
 import type { TaskFetchInput } from './TaskFlowTypes.js';
 
-export async function fetchTasksForViewer(client: Neo4jClient, input: TaskFetchInput): Promise<TaskListItem[]> {
+export async function FetchTasksForViewer(client: Neo4jClient, input: TaskFetchInput): Promise<TaskListItem[]> {
     const session = await client.GetSession(`READ`);
 
     try {
@@ -33,7 +33,7 @@ export async function fetchTasksForViewer(client: Neo4jClient, input: TaskFetchI
         );
 
         return result.records.map(record => {
-            return mapTaskRecord({
+            return MapTaskRecord({
                 task: record.get(`task`),
                 organization: record.get(`organization`),
                 creator: record.get(`creator`),

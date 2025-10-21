@@ -8,11 +8,11 @@ import {
     REL_EXECUTES_TASK,
     REL_RELATES_TO,
     TASK_LABEL,
-} from './taskConstants.js';
-import { mapTaskRecord } from './mapTaskRecord.js';
+} from './TaskConstants.js';
+import { MapTaskRecord } from './MapTaskRecord.js';
 import type { CreateTaskInput } from './TaskFlowTypes.js';
 
-export async function createTaskRecord(client: Neo4jClient, input: CreateTaskInput): Promise<TaskListItem> {
+export async function CreateTaskRecord(client: Neo4jClient, input: CreateTaskInput): Promise<TaskListItem> {
     const session = await client.GetSession(`WRITE`);
     const executorDiscordId = input.executorDiscordId ?? input.creatorDiscordId;
     const taskId = `task_${randomUUID().replace(/-/g, ``).toLowerCase()}`;
@@ -61,7 +61,7 @@ export async function createTaskRecord(client: Neo4jClient, input: CreateTaskInp
         if (!record) {
             throw new Error(`Failed to create task`);
         }
-        return mapTaskRecord({
+        return MapTaskRecord({
             task: record.get(`task`),
             organization: record.get(`organization`),
             creator: record.get(`creator`),

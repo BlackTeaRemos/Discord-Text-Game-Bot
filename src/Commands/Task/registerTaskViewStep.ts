@@ -1,15 +1,15 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder } from 'discord.js';
 import type { FlowBuilder } from '../../Common/Flow/Builder.js';
 import type { StepContext } from '../../Common/Flow/Types.js';
-import { fetchTasksForViewer } from '../../Flow/Task/fetchTasksForViewer.js';
+import { FetchTasksForViewer } from '../../Flow/Task/FetchTasksForViewer.js';
 import { neo4jClient } from '../../Setup/Neo4j.js';
 import { resolve } from '../../Common/permission/index.js';
 import { requestPermissionFromAdmin } from '../../SubCommand/Permission/PermissionUI.js';
 import type { TaskFlowState } from './TaskFlowState.js';
 import { DEFAULT_TASK_STATUSES } from '../../Domain/Task.js';
 import type { TaskListItem } from '../../Domain/Task.js';
-import { updateTaskStatus } from '../../Flow/Task/updateTaskStatus.js';
-import { assignTaskExecutor } from '../../Flow/Task/assignTaskExecutor.js';
+import { UpdateTaskStatus } from '../../Flow/Task/UpdateTaskStatus.js';
+import { AssignTaskExecutor } from '../../Flow/Task/AssignTaskExecutor.js';
 import { buildExecutorOptions, resolveExecutorSelection } from './taskExecutorOptions.js';
 
 const TASK_VIEW_SELECT_ID = `task_view_select`;
@@ -68,7 +68,7 @@ export function registerTaskViewStep(builder: FlowBuilder<TaskFlowState>): FlowB
                     return;
                 }
             }
-            const tasks = await fetchTasksForViewer(neo4jClient, {
+            const tasks = await FetchTasksForViewer(neo4jClient, {
                 organizationUid: orgUid,
                 viewerDiscordId: base.user.id,
                 includeAll,
@@ -271,7 +271,7 @@ export function registerTaskViewStep(builder: FlowBuilder<TaskFlowState>): FlowB
                 return false;
             }
             await interaction.deferUpdate();
-            const updated = await updateTaskStatus(neo4jClient, {
+            const updated = await UpdateTaskStatus(neo4jClient, {
                 organizationUid: orgUid,
                 taskId,
                 status,
@@ -346,7 +346,7 @@ export function registerTaskViewStep(builder: FlowBuilder<TaskFlowState>): FlowB
             const selection = interaction.values[0];
             ctx.state.executorDiscordId = resolveExecutorSelection(selection);
             await interaction.deferUpdate();
-            const updated = await assignTaskExecutor(neo4jClient, {
+            const updated = await AssignTaskExecutor(neo4jClient, {
                 organizationUid: orgUid,
                 taskId,
                 executorDiscordId: ctx.state.executorDiscordId,
