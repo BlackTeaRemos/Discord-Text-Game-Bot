@@ -7,7 +7,7 @@ import { neo4jClient } from '../../../Setup/Neo4j.js';
  * @param orgUid string Owning organization id
  * @returns Promise<number[]> Sorted list of version numbers (desc)
  */
-export async function listVersions(
+export async function ListVersions(
     refType: `organization` | `game` | `user`,
     refUid: string,
     orgUid: string,

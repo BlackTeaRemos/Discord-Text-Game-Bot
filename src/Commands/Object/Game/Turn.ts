@@ -13,7 +13,7 @@ import {
 } from 'discord.js';
 import { flowManager } from '../../../Common/Flow/Manager.js';
 import { executeWithContext } from '../../../Common/ExecutionContextHelpers.js';
-import { getGameForServer, updateGameTurn } from '../../../Flow/Object/Game/Turn.js';
+import { GetGameForServer, UpdateGameTurn } from '../../../Flow/Object/Game/Turn.js';
 import { log } from '../../../Common/Log.js';
 
 interface State {
@@ -28,12 +28,12 @@ export const data = new SlashCommandSubcommandBuilder()
 export const permissionTokens: any[] = [[`object`, `game`, `turn`]];
 
 export async function execute(interaction: ChatInputCommandInteraction) {
-    await executeWithContext(interaction, async (flowManager, executionContext) => {
+    await executeWithContext(interaction, async(flowManager, executionContext) => {
         await flowManager
             .builder(interaction.user.id, interaction, {} as State, executionContext)
             .step(`manage_turn`)
-            .prompt(async (ctx: any) => {
-                const game = await getGameForServer(executionContext.guildId);
+            .prompt(async(ctx: any) => {
+                const game = await GetGameForServer(executionContext.guildId);
                 if (!game) {
                     if (!interaction.deferred && !interaction.replied) {
                         await interaction.deferReply({ flags: MessageFlags.Ephemeral });
@@ -68,17 +68,17 @@ export async function execute(interaction: ChatInputCommandInteraction) {
                     components: [row],
                 });
             })
-            .onInteraction(async (ctx: any, interaction: any) => {
+            .onInteraction(async(ctx: any, interaction: any) => {
                 if (interaction.isButton()) {
                     const customId = interaction.customId;
                     if (customId === `decrement_turn`) {
                         ctx.state.currentTurn = Math.max(1, (ctx.state.currentTurn || 1) - 1);
-                        await updateGameTurn(ctx.state.gameUid, ctx.state.currentTurn);
+                        await UpdateGameTurn(ctx.state.gameUid, ctx.state.currentTurn);
                         await interaction.deferUpdate();
                         return false; // Re-prompt
                     } else if (customId === `increment_turn`) {
                         ctx.state.currentTurn = (ctx.state.currentTurn || 1) + 1;
-                        await updateGameTurn(ctx.state.gameUid, ctx.state.currentTurn);
+                        await UpdateGameTurn(ctx.state.gameUid, ctx.state.currentTurn);
                         await interaction.deferUpdate();
                         return false; // Re-prompt
                     } else if (customId === `set_turn`) {
@@ -102,11 +102,14 @@ export async function execute(interaction: ChatInputCommandInteraction) {
                     const turnStr = interaction.fields.getTextInputValue(`turn_number`);
                     const newTurn = parseInt(turnStr, 10);
                     if (isNaN(newTurn) || newTurn < 1) {
-                        await interaction.reply({ content: `Invalid turn number. Must be a positive integer.`, flags: MessageFlags.Ephemeral });
+                        await interaction.reply({
+                            content: `Invalid turn number. Must be a positive integer.`,
+                            flags: MessageFlags.Ephemeral,
+                        });
                         return false;
                     }
                     ctx.state.currentTurn = newTurn;
-                    await updateGameTurn(ctx.state.gameUid, ctx.state.currentTurn);
+                    await UpdateGameTurn(ctx.state.gameUid, ctx.state.currentTurn);
                     await interaction.deferUpdate();
                     return false; // Re-prompt
                 }

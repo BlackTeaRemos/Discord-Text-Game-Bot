@@ -6,7 +6,7 @@ import { Description } from './Create.js';
  * @param uid Description UID
  * @returns Description properties or null
  */
-export async function getDescription(uid: string): Promise<Description | null> {
+export async function GetDescription(uid: string): Promise<Description | null> {
     const session = await neo4jClient.GetSession(`READ`);
     try {
         const query = `MATCH (d:Description { uid: $uid }) RETURN d`;

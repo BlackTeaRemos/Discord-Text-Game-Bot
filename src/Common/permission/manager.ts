@@ -98,7 +98,7 @@ export async function CheckPermission(
             missing: missing.length ? missing : undefined,
             reason: missing.length ? `Token(s) not defined` : undefined,
         };
-    } catch (err: any) {
+    } catch(err: any) {
         return { allowed: false, reason: `Permission check error: ${String(err)}` };
     }
 }

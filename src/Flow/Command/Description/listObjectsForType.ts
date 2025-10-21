@@ -5,7 +5,7 @@ import { neo4jClient } from '../../../Setup/Neo4j.js';
  * @param type 'organization' | 'game' | 'user'
  * @returns Promise<Array<{ uid: string; label: string }>>
  */
-export async function listObjectsForType(type: `organization` | `game` | `user`) {
+export async function ListObjectsForType(type: `organization` | `game` | `user`) {
     const session = await neo4jClient.GetSession(`READ`);
     try {
         const queries: Record<string, string> = {

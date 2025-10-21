@@ -5,7 +5,7 @@ import { neo4jClient } from '../../../Setup/Neo4j.js';
  * @param discordId string User discord id. @example '123456789012345678'
  * @returns Promise<Array<{ uid: string; name: string }>> Deduplicated organization list. @example [{ uid: 'org_1', name: 'Acme Corp' }]
  */
-export async function getUserOrganizations(discordId: string): Promise<Array<{ uid: string; name: string }>> {
+export async function GetUserOrganizations(discordId: string): Promise<Array<{ uid: string; name: string }>> {
     const session = await neo4jClient.GetSession(`READ`);
     try {
         const res = await session.run(
@@ -34,13 +34,13 @@ export async function getUserOrganizations(discordId: string): Promise<Array<{ u
  * @param discordId string User discord id. @example '123456789012345678'
  * @returns Promise<{ selected: boolean; orgUid?: string; orgName?: string; orgs: Array<{ uid: string; name: string }> }> Selection result with org list. @example { selected: true, orgUid: 'org_1', orgName: 'Acme', orgs: [...] }
  */
-export async function getOrganizationSelection(discordId: string): Promise<{
+export async function GetOrganizationSelection(discordId: string): Promise<{
     selected: boolean;
     orgUid?: string;
     orgName?: string;
     orgs: Array<{ uid: string; name: string }>;
 }> {
-    const orgs = await getUserOrganizations(discordId);
+    const orgs = await GetUserOrganizations(discordId);
     if (orgs.length === 1) {
         return {
             selected: true,

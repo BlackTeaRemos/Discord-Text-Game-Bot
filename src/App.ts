@@ -12,9 +12,9 @@ import { DiscordService } from './Discord.js';
 import { GatewayIntentBits, REST, Routes, Client, MessageFlags, Events } from 'discord.js';
 import { Session } from './Common/Session.js';
 import type { Message } from 'discord.js';
-import { onReady } from './Events/Ready.js';
-import { onInteractionCreate } from './Events/InteractionCreate.js';
-import { onMessageCreate } from './Events/MessageCreate.js';
+import { OnReady } from './Events/Ready.js';
+import { OnInteractionCreate } from './Events/InteractionCreate.js';
+import { OnMessageCreate } from './Events/MessageCreate.js';
 import { commands as loadedCommands, commandsReady } from './Commands/index.js';
 import { flowManager } from './Common/Flow/Manager.js';
 import { bootDiscordClient } from './App/Boot.js';
@@ -100,8 +100,8 @@ export class DiscordApp {
                 configService: this._configService,
                 loadedCommands,
                 commandsReady,
-                onInteractionCreate,
-                onMessageCreate,
+                onInteractionCreate: OnInteractionCreate,
+                onMessageCreate: OnMessageCreate,
             });
 
             this._client = client;
@@ -122,7 +122,7 @@ export class DiscordApp {
 
             // Keep original lightweight output after login
             this.eventBus.emit(`output`, `Boot completed.`);
-        } catch(err) {
+        } catch (err) {
             this.eventBus.emit(`output`, `Fatal boot error: ${err}`);
             throw err;
         }
@@ -221,7 +221,7 @@ export class DiscordApp {
             if (this._logLevel <= LOG_LEVELS.info) {
                 try {
                     log.info(msg, `App`);
-                } catch(err) {
+                } catch (err) {
                     // Fallback to console if log fails
                     console.log(msg);
                 }

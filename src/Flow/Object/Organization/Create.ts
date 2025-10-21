@@ -6,7 +6,7 @@ import { neo4jClient } from '../../../Setup/Neo4j.js';
  * @param prefix UID prefix
  * @returns generated UID string
  */
-export function generateUid(prefix: string): string {
+export function GenerateUid(prefix: string): string {
     return `${prefix}_${randomUUID().replace(/-/g, ``)}`;
 }
 
@@ -26,10 +26,10 @@ export interface ViewOrganization {
  * @param uid Optional UID; if not provided, a new one is generated
  * @returns The created or matched organization properties
  */
-export async function createOrganization(name: string, friendly_name: string, uid?: string): Promise<ViewOrganization> {
+export async function CreateOrganization(name: string, friendly_name: string, uid?: string): Promise<ViewOrganization> {
     const session = await neo4jClient.GetSession(`WRITE`);
     try {
-        const orgUid = uid || generateUid(`org`);
+        const orgUid = uid || GenerateUid(`org`);
         const query = `
             MERGE (o:Organization { uid: $uid })
             ON CREATE SET o.name = $name, o.friendly_name = $friendly

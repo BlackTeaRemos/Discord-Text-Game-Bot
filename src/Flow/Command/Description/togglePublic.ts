@@ -7,7 +7,7 @@ import { neo4jClient } from '../../../Setup/Neo4j.js';
  * @param orgUid string Owning organization id
  * @param isPublic boolean New visibility state
  */
-export async function togglePublic(
+export async function TogglePublic(
     refType: `organization` | `game` | `user`,
     refUid: string,
     orgUid: string,

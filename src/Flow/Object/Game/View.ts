@@ -6,7 +6,7 @@ import { Game } from './Create.js';
  * @param uid Game UID
  * @returns Game properties or null if not found
  */
-export async function getGame(uid: string): Promise<Game | null> {
+export async function GetGame(uid: string): Promise<Game | null> {
     const session = await neo4jClient.GetSession(`READ`);
     try {
         const query = `

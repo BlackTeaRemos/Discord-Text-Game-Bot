@@ -8,7 +8,7 @@ import minioClient from '../../minio.js';
  * @param contentType MIME type, e.g. 'image/png'
  * @returns URL string
  */
-export async function uploadGameImage(
+export async function UploadGameImage(
     bucket: string,
     objectName: string,
     buffer: Buffer,

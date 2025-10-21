@@ -17,7 +17,7 @@ function options(): Array<{ label: string; value: TaskFlowAction }> {
 export function registerTaskActionMenuStep(builder: FlowBuilder<TaskFlowState>): FlowBuilder<TaskFlowState> {
     return builder
         .step(`task_action_menu`)
-        .prompt(async (ctx: StepContext<TaskFlowState>) => {
+        .prompt(async(ctx: StepContext<TaskFlowState>) => {
             const base = ctx.state.baseInteraction;
             if (!base) {
                 await ctx.cancel();
@@ -36,7 +36,7 @@ export function registerTaskActionMenuStep(builder: FlowBuilder<TaskFlowState>):
                 components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(menu)],
             });
         })
-        .onInteraction(async (ctx: StepContext<TaskFlowState>, choice) => {
+        .onInteraction(async(ctx: StepContext<TaskFlowState>, choice) => {
             if (!choice.isStringSelectMenu()) {
                 return false;
             }

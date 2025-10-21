@@ -1,5 +1,5 @@
 import type { ChatInputCommandInteraction } from 'discord.js';
-import { resolveCommandPermission, type CommandPermissionResult } from './PermissionResolver.js';
+import { ResolveCommandPermission, type CommandPermissionResult } from './PermissionResolver.js';
 
 /**
  * Context required for resolving view command permissions.
@@ -21,11 +21,11 @@ export type ViewPermissionResult = CommandPermissionResult;
  * @example
  * const result = await resolveViewPermissions(interaction, { type: 'game', id: 'g-1' });
  */
-export async function resolveViewPermissions(
+export async function ResolveViewPermissions(
     interaction: ChatInputCommandInteraction,
     context: ViewPermissionContext,
 ): Promise<ViewPermissionResult> {
-    return resolveCommandPermission({
+    return ResolveCommandPermission({
         interaction,
         templates: [`view:{type}:{id}`],
         context: { type: context.type, id: context.id },

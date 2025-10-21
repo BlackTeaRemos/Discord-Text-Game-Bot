@@ -8,7 +8,7 @@ import {
     ModalSubmitInteraction,
     MessageFlags,
 } from 'discord.js';
-import { createDescription } from '../../../Flow/Object/Description/Create.js';
+import { CreateDescription } from '../../../Flow/Object/Description/Create.js';
 import { log } from '../../../Common/Log.js';
 import { flowManager } from '../../../Common/Flow/Manager.js';
 import { executeWithContext } from '../../../Common/ExecutionContextHelpers.js';
@@ -84,7 +84,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
             .step()
             .prompt(async(ctx: StepContext) => {
                 try {
-                    const desc = await createDescription(ctx.state.refType, ctx.state.refUid, ctx.state.text);
+                    const desc = await CreateDescription(ctx.state.refType, ctx.state.refUid, ctx.state.text);
                     await (ctx.interaction as ChatInputCommandInteraction).followUp({
                         content: `Description ${desc.uid} created for ${ctx.state.refType} ${ctx.state.refUid}.`,
                         flags: MessageFlags.Ephemeral,

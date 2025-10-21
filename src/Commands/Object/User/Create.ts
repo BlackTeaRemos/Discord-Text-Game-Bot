@@ -8,7 +8,7 @@ import {
     ModalSubmitInteraction,
     MessageFlags,
 } from 'discord.js';
-import { createUser } from '../../../Flow/Object/User/Create.js';
+import { CreateUser } from '../../../Flow/Object/User/Create.js';
 import { flowManager } from '../../../Common/Flow/Manager.js';
 import { executeWithContext } from '../../../Common/ExecutionContextHelpers.js';
 import type { ExecutionContext } from '../../../Domain/index.js';
@@ -32,12 +32,12 @@ export const data = new SlashCommandSubcommandBuilder()
 export const permissionTokens: TokenSegmentInput[][] = [[`object`, `user`, `create`]];
 
 export async function execute(interaction: ChatInputCommandInteraction) {
-    await executeWithContext(interaction, async (flowManager, executionContext) => {
+    await executeWithContext(interaction, async(flowManager, executionContext) => {
         // Start interactive flow: ask for Discord ID via modal, then create user
         await flowManager
             .builder(interaction.user.id, interaction as any, { discordId: `` }, executionContext)
             .step(`user_id_modal`)
-            .prompt(async (ctx: StepContext) => {
+            .prompt(async(ctx: StepContext) => {
                 const modal = new ModalBuilder()
                     .setCustomId(`user_id_modal`)
                     .setTitle(`Register User`)
@@ -52,7 +52,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
                     );
                 await (ctx.interaction as ChatInputCommandInteraction).showModal(modal);
             })
-            .onInteraction(async (ctx: StepContext, interaction: any) => {
+            .onInteraction(async(ctx: StepContext, interaction: any) => {
                 if (interaction.isModalSubmit()) {
                     const id = interaction.fields.getTextInputValue(`discordId`).trim();
                     ctx.state.discordId = id;
@@ -63,8 +63,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
             })
             .next()
             .step()
-            .prompt(async (ctx: StepContext) => {
-                const user = await createUser(ctx.state.discordId!);
+            .prompt(async(ctx: StepContext) => {
+                const user = await CreateUser(ctx.state.discordId!);
                 await (ctx.interaction as ChatInputCommandInteraction).followUp({
                     content: `User ${user.uid} (${user.discord_id}) created.`,
                     flags: MessageFlags.Ephemeral,

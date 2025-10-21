@@ -19,7 +19,7 @@ export interface Description {
  * @param uid Optional UID; if not provided, a new one is generated
  * @returns The created description properties
  */
-export async function createDescription(
+export async function CreateDescription(
     refType: `organization` | `game` | `user`,
     refUid: string,
     text: string,

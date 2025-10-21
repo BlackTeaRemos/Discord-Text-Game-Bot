@@ -11,7 +11,7 @@ import { commands, commandsReady } from '../Commands/index.js';
  * @param client {Client} - The Discord.js client instance
  * @returns {Promise<void>} - Resolves when setup is complete
  */
-export async function onReady(client: Client): Promise<void> {
+export async function OnReady(client: Client): Promise<void> {
     log.info(`Bot is ready as ${client.user?.tag}`, `Ready`);
 
     // Diagnostic: list registered application commands (global and guild)
@@ -22,9 +22,11 @@ export async function onReady(client: Client): Promise<void> {
             // Fetch existing global commands
             const global = await application.commands.fetch();
             log.info(
-                `Global commands (${global.size}): ${[...global.values()].map(c => {
-                    return `/${c.name}`;
-                }).join(`, `)}`,
+                `Global commands (${global.size}): ${[...global.values()]
+                    .map(c => {
+                        return `/${c.name}`;
+                    })
+                    .join(`, `)}`,
                 `Ready`,
             );
             // Ensure command loader has completed, then propagate loaded commands globally
@@ -35,7 +37,7 @@ export async function onReady(client: Client): Promise<void> {
                 });
                 const registered = await application.commands.set(data);
                 log.info(`Registered ${registered.size} global commands`, `Ready`);
-            } catch(err) {
+            } catch (err) {
                 log.error(
                     `Failed to register global commands`,
                     err instanceof Error ? err.message : String(err),
@@ -43,7 +45,7 @@ export async function onReady(client: Client): Promise<void> {
                 );
             }
         }
-    } catch(err) {
+    } catch (err) {
         log.warning(`Failed to fetch global commands: ${err instanceof Error ? err.message : String(err)}`, `Ready`);
     }
 }

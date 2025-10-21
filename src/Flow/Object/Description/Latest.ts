@@ -19,7 +19,7 @@ export interface VersionedDescription {
  * @param refUid reference uid
  * @param orgUid organization uid
  */
-export async function getLatestDescription(
+export async function GetLatestDescription(
     refType: `organization` | `game` | `user`,
     refUid: string,
     orgUid: string,

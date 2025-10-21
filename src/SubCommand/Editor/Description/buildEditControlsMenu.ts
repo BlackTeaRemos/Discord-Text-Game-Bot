@@ -5,7 +5,7 @@ import { StringSelectMenuBuilder } from 'discord.js';
  * @param state any Flow state to determine current mode
  * @returns StringSelectMenuBuilder The ready-to-use select menu
  */
-export function buildEditControlsMenu(state: any): StringSelectMenuBuilder {
+export function BuildEditControlsMenu(state: any): StringSelectMenuBuilder {
     const mode = state.editMode ?? `replace`;
     const menu = new StringSelectMenuBuilder()
         .setCustomId(`desc_edit_session`)

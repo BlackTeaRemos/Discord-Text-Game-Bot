@@ -2,7 +2,7 @@ import { ActionRowBuilder, MessageFlags, StringSelectMenuBuilder } from 'discord
 import type { ChatInputCommandInteraction } from 'discord.js';
 import type { FlowBuilder } from '../../Common/Flow/Builder.js';
 import type { StepContext } from '../../Common/Flow/Types.js';
-import { getUserOrganizations } from '../../Flow/Command/Description/getUserOrganizations.js';
+import { GetUserOrganizations } from '../../Flow/Command/Description/GetUserOrganizations.js';
 import type { TaskFlowState } from './TaskFlowState.js';
 
 function buildOrganizationOptions(orgs: Array<{ uid: string; name: string }>): Array<{ label: string; value: string }> {
@@ -31,7 +31,7 @@ export function registerTaskOrganizationStep(
         .prompt(async (ctx: StepContext<TaskFlowState>) => {
             ctx.state.baseInteraction = interaction;
             await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-            const orgs = await getUserOrganizations(interaction.user.id);
+            const orgs = await GetUserOrganizations(interaction.user.id);
             if (orgs.length === 0) {
                 await interaction.editReply({ content: `You are not linked to any organization.` });
                 await ctx.cancel();

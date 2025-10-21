@@ -1,5 +1,5 @@
 import { EmbedBuilder } from 'discord.js';
-import { chunkString } from './chunkString.js';
+import { ChunkString } from './ChunkString.js';
 
 /**
  * Build Discord embeds for a description preview handling Discord character limits.
@@ -8,7 +8,7 @@ import { chunkString } from './chunkString.js';
  * @param isPublic boolean Visibility flag
  * @returns { embeds: EmbedBuilder[]; truncated: boolean }
  */
-export function buildDescriptionEmbeds(
+export function BuildDescriptionEmbeds(
     text: string,
     version: number,
     isPublic: boolean,
@@ -22,7 +22,7 @@ export function buildDescriptionEmbeds(
         working = working.slice(0, MAX_TOTAL_CHARACTERS);
         truncated = true;
     }
-    const parts: string[] = chunkString(working, MAX_PER_EMBED);
+    const parts: string[] = ChunkString(working, MAX_PER_EMBED);
     const embeds = parts.map((p: string, idx: number) => {
         const note = truncated && idx === parts.length - 1 ? `\n\nPreview trimmed due to Discord limits.` : ``;
         return new EmbedBuilder()

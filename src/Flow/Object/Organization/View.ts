@@ -23,7 +23,7 @@ export interface OrganizationWithMembers {
  * @param uid Organization UID to lookup
  * @returns Organization with members or null if not found
  */
-export async function getOrganizationWithMembers(uid: string): Promise<OrganizationWithMembers | null> {
+export async function GetOrganizationWithMembers(uid: string): Promise<OrganizationWithMembers | null> {
     const session = await neo4jClient.GetSession(`READ`);
     try {
         const query = `

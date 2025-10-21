@@ -10,7 +10,7 @@ import {
 import { log } from '../../Common/Log.js';
 // Permission UI is an interactive helper; flows should not import UI directly.
 // Interactive permission requests live under SubCommand so commands can decide when to prompt.
-import { requestPermissionFromAdmin } from '../../SubCommand/Permission/PermissionUI.js';
+import { RequestPermissionFromAdmin } from '../../SubCommand/Permission/PermissionUI.js';
 
 export interface CommandPermissionResult {
     allowed: boolean;
@@ -29,7 +29,7 @@ export interface ResolveCommandPermissionOptions {
     skipApproval?: boolean;
 }
 
-export async function resolveCommandPermission(
+export async function ResolveCommandPermission(
     options: ResolveCommandPermissionOptions,
 ): Promise<CommandPermissionResult> {
     const { interaction, templates, context = {}, logSource, action = `command` } = options;
@@ -56,7 +56,7 @@ export async function resolveCommandPermission(
     // interactive approval UI when needed.
     const outcome = await resolve(templates, {
         context: baseContext,
-        member: await getMember(interaction, logSource, action),
+        member: await GetMember(interaction, logSource, action),
         // Do not provide requestApproval delegate here: keep flow non-interactive
         skipApproval: true,
     });
@@ -76,7 +76,7 @@ export async function resolveCommandPermission(
     };
 }
 
-async function getMember(
+async function GetMember(
     interaction: ChatInputCommandInteraction,
     logSource: string,
     action: string,
@@ -93,7 +93,7 @@ async function getMember(
             `resolveCommandPermission`,
         );
         return member;
-    } catch (error) {
+    } catch(error) {
         log.warning(
             `${logSource}: failed to fetch guild member for action=${action} reason=${String(error)}`,
             logSource,

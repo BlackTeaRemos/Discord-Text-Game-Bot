@@ -16,7 +16,7 @@ export interface Factory {
  * @param prefix UID prefix
  * @returns generated UID string
  */
-export function generateFactoryUid(prefix: string): string {
+export function GenerateFactoryUid(prefix: string): string {
     return `${prefix}_${randomUUID().replace(/-/g, ``)}`;
 }
 
@@ -28,7 +28,7 @@ export function generateFactoryUid(prefix: string): string {
  * @param uid Optional UID; if not provided, a new one is generated
  * @returns The created or updated factory properties
  */
-export async function createFactory(
+export async function CreateFactory(
     type: string,
     organizationUid: string,
     description: string,
@@ -36,7 +36,7 @@ export async function createFactory(
 ): Promise<Factory> {
     const session = await neo4jClient.GetSession(`WRITE`);
     try {
-        const factoryUid = uid || generateFactoryUid(`factory`);
+        const factoryUid = uid || GenerateFactoryUid(`factory`);
         const query = `
             MATCH (o:Organization { uid: $orgUid })
             MERGE (f:Factory { uid: $factoryUid })

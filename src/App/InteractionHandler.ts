@@ -64,7 +64,7 @@ export function createInteractionHandler(options: { loadedCommands: Record<strin
                 ),
                 userId: interaction.user.id,
                 guildId: interaction.guildId ?? undefined,
-                getMember: async () => {
+                getMember: async() => {
                     return interaction.guild ? await interaction.guild.members.fetch(interaction.user.id) : null;
                 },
             };
@@ -97,7 +97,7 @@ export function createInteractionHandler(options: { loadedCommands: Record<strin
 
             // Execute the command
             await command.execute(interaction);
-        } catch (err: any) {
+        } catch(err: any) {
             // Centralized error handler for permission denials and execution errors
             try {
                 log.error(`Interaction handler error for /${interaction.commandName}: ${String(err)}`, `Boot`);

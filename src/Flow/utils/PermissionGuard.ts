@@ -74,7 +74,7 @@ async function __getMember(
     }
     try {
         return await interaction.guild.members.fetch(interaction.user.id);
-    } catch (error) {
+    } catch(error) {
         log.warning(`Failed to fetch guild member: ${String(error)}`, `PermissionGuard`, `ensureCommandPermission`);
         return null;
     }

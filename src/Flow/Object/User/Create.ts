@@ -5,7 +5,7 @@ import { neo4jClient } from '../../../Setup/Neo4j.js';
  * Create a User node in Neo4j with the given Discord ID.
  * If a user with the same Discord ID exists, returns existing UID.
  */
-export async function createUser(discordId: string): Promise<{ uid: string; discord_id: string }> {
+export async function CreateUser(discordId: string): Promise<{ uid: string; discord_id: string }> {
     const session = await neo4jClient.GetSession(`WRITE`);
     try {
         // Generate a unique UID for the user

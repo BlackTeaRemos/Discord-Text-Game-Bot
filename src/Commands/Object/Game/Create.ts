@@ -8,15 +8,15 @@ import {
     TextInputStyle,
     MessageFlags,
 } from 'discord.js';
-import { createGame } from '../../../Flow/Object/Game/Create.js';
-import { uploadGameImage } from '../../../Flow/Object/Game/Upload.js';
+import { CreateGame } from '../../../Flow/Object/Game/Create.js';
+import { UploadGameImage } from '../../../Flow/Object/Game/Upload.js';
 import { flowManager } from '../../../Common/Flow/Manager.js';
 import type { FlowStep } from '../../../Common/Flow/Types.js';
 import type { Interaction } from 'discord.js';
 import { executeWithContext } from '../../../Common/ExecutionContextHelpers.js';
 import type { ExecutionContext } from '../../../Domain/index.js';
 import { resolveGameCreatePermissions } from '../../../Flow/Command/GameCreateFlow.js';
-import { requestPermissionFromAdmin } from '../../../SubCommand/Permission/PermissionUI.js';
+import { RequestPermissionFromAdmin } from '../../../SubCommand/Permission/PermissionUI.js';
 import { GrantForever } from '../../../Common/permission/index.js';
 
 interface FlowState {
@@ -43,12 +43,12 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     if (!serverId) {
         return interaction.reply({ content: `This command must be used in a server.`, flags: MessageFlags.Ephemeral });
     }
-    await executeWithContext(interaction, async (flowManager, executionContext) => {
+    await executeWithContext(interaction, async(flowManager, executionContext) => {
         // Start guided flow using builder pattern
         await flowManager
             .builder(interaction.user.id, interaction as Interaction, { serverId }, executionContext)
             .step(`game_name_modal`)
-            .prompt(async (ctx: StepContext) => {
+            .prompt(async(ctx: StepContext) => {
                 const modal = new ModalBuilder()
                     .setCustomId(`game_name_modal`)
                     .setTitle(`Set Game Name`)
@@ -63,7 +63,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
                     );
                 await (ctx.interaction as ChatInputCommandInteraction).showModal(modal);
             })
-            .onInteraction(async (ctx: StepContext, interaction: any) => {
+            .onInteraction(async(ctx: StepContext, interaction: any) => {
                 if (interaction.isModalSubmit()) {
                     const name = interaction.fields.getTextInputValue(`gameName`).trim();
                     ctx.state.gameName = name;
@@ -74,13 +74,13 @@ export async function execute(interaction: ChatInputCommandInteraction) {
             })
             .next()
             .step()
-            .prompt(async (ctx: StepContext) => {
+            .prompt(async(ctx: StepContext) => {
                 await (ctx.interaction as ChatInputCommandInteraction).followUp({
                     content: `Please send an image attachment or type \`skip\`.`,
                     flags: MessageFlags.Ephemeral,
                 });
             })
-            .onMessage(async (ctx: StepContext, message: any) => {
+            .onMessage(async(ctx: StepContext, message: any) => {
                 const content = message.content.trim().toLowerCase();
                 if (content === `skip`) {
                     ctx.state.imageUrl = ``;
@@ -91,7 +91,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
                 if (attachment) {
                     const resp = await fetch(attachment.url);
                     const buf = Buffer.from(await resp.arrayBuffer());
-                    const url = await uploadGameImage(
+                    const url = await UploadGameImage(
                         `game-images`,
                         `${ctx.userId}_${Date.now()}_${attachment.name}`,
                         buf,
@@ -105,7 +105,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
             })
             .next()
             .step()
-            .prompt(async (ctx: StepContext) => {
+            .prompt(async(ctx: StepContext) => {
                 const baseInteraction = ctx.interaction as ChatInputCommandInteraction;
                 const permission = await resolveGameCreatePermissions(baseInteraction, {
                     serverId: ctx.state.serverId,
@@ -115,7 +115,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
                         try {
                             await baseInteraction.deferReply({ ephemeral: true });
                         } catch {}
-                        const decision = await requestPermissionFromAdmin(baseInteraction, {
+                        const decision = await RequestPermissionFromAdmin(baseInteraction, {
                             tokens: permission.tokens,
                             reason: permission.reason,
                         });
@@ -138,7 +138,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
                         return;
                     }
                 }
-                const g = await createGame(
+                const g = await CreateGame(
                     ctx.state.gameName!,
                     ctx.state.imageUrl || ``,
                     ctx.state.serverId,

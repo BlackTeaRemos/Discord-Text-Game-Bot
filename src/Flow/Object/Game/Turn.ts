@@ -5,7 +5,7 @@ import { neo4jClient } from '../../../Setup/Neo4j.js';
  * @param serverId Discord server ID
  * @returns Game properties or null if not found
  */
-export async function getGameForServer(
+export async function GetGameForServer(
     serverId: string,
 ): Promise<{ uid: string; name: string; image: string; parameters: Record<string, any> } | null> {
     const session = await neo4jClient.GetSession(`READ`);
@@ -45,7 +45,7 @@ export async function getGameForServer(
  * @param gameUid Game UID
  * @param newTurn New turn number
  */
-export async function updateGameTurn(gameUid: string, newTurn: number): Promise<void> {
+export async function UpdateGameTurn(gameUid: string, newTurn: number): Promise<void> {
     const session = await neo4jClient.GetSession(`WRITE`);
     try {
         await session.run(

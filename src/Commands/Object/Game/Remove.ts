@@ -1,5 +1,5 @@
 import { SlashCommandSubcommandBuilder, ChatInputCommandInteraction, MessageFlags } from 'discord.js';
-import { removeGame } from '../../../Flow/Object/Game/Remove.js';
+import { RemoveGame } from '../../../Flow/Object/Game/Remove.js';
 import { log } from '../../../Common/Log.js';
 import { createCommandContext } from '../../../Common/ExecutionContextHelpers.js';
 import type { TokenSegmentInput } from '../../../Common/permission/index.js';
@@ -18,7 +18,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
     const uid = interaction.options.getString(`uid`, true).trim();
     try {
-        const deleted = await removeGame(uid);
+        const deleted = await RemoveGame(uid);
         if (!deleted) {
             return await ctx.reply({ content: `Game not found`, flags: MessageFlags.Ephemeral });
         }

@@ -8,7 +8,7 @@ import { neo4jClient } from '../../../Setup/Neo4j.js';
  * @param version number Version to load
  * @returns Promise<{ text: string; version: number; isPublic: boolean } | null>
  */
-export async function getVersion(
+export async function GetVersion(
     refType: `organization` | `game` | `user`,
     refUid: string,
     orgUid: string,

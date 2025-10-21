@@ -65,7 +65,7 @@ async function __FinalizeTaskCreation(
 export function registerTaskCreateStep(builder: FlowBuilder<TaskFlowState>): FlowBuilder<TaskFlowState> {
     return builder
         .step(`task_create`, `task_create`)
-        .prompt(async (ctx: StepContext<TaskFlowState>) => {
+        .prompt(async(ctx: StepContext<TaskFlowState>) => {
             if (ctx.state.action !== `create`) {
                 await ctx.advance();
                 return;
@@ -82,7 +82,7 @@ export function registerTaskCreateStep(builder: FlowBuilder<TaskFlowState>): Flo
                 components: [],
             });
         })
-        .onMessage(async (ctx: StepContext<TaskFlowState>, message) => {
+        .onMessage(async(ctx: StepContext<TaskFlowState>, message) => {
             if (ctx.state.action !== `create`) {
                 return false;
             }
@@ -124,7 +124,7 @@ export function registerTaskCreateStep(builder: FlowBuilder<TaskFlowState>): Flo
             });
             return false;
         })
-        .onInteraction(async (ctx: StepContext<TaskFlowState>, interaction) => {
+        .onInteraction(async(ctx: StepContext<TaskFlowState>, interaction) => {
             if (ctx.state.action !== `create`) {
                 return false;
             }

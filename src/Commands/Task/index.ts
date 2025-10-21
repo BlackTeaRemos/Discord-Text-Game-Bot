@@ -8,7 +8,7 @@ export const data = new SlashCommandBuilder().setName(`task`).setDescription(`Ma
 export const permissionTokens: TokenSegmentInput[][] = [[`task`]];
 
 export async function execute(interaction: ChatInputCommandInteraction): Promise<void> {
-    await executeWithContext(interaction, async (flowManager, executionContext) => {
+    await executeWithContext(interaction, async(flowManager, executionContext) => {
         await startTaskFlow(flowManager, interaction, executionContext);
     });
 }

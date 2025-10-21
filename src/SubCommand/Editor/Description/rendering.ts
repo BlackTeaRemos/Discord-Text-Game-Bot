@@ -8,12 +8,12 @@ const RENDER_LOG_SOURCE = `SubCommand/Editor/Description/rendering`;
 
 export type DescriptionStepContext = StepContext<any>;
 
-function errorToMessage(error: unknown): string {
+function ErrorToMessage(error: unknown): string {
     const raw = error instanceof Error ? error.message : typeof error === `string` ? error : String(error);
     return raw.length > 300 ? `${raw.slice(0, 297)}...` : raw;
 }
 
-export function resolveBaseInteraction(ctx: DescriptionStepContext): ChatInputCommandInteraction | undefined {
+export function ResolveBaseInteraction(ctx: DescriptionStepContext): ChatInputCommandInteraction | undefined {
     const stored = ctx.recall?.(`root`, `interaction`);
     if (stored) {
         return stored as ChatInputCommandInteraction;
@@ -24,11 +24,11 @@ export function resolveBaseInteraction(ctx: DescriptionStepContext): ChatInputCo
     return undefined;
 }
 
-export async function renderDescription(
+export async function RenderDescription(
     ctx: DescriptionStepContext,
     options: { content?: string; embeds?: EmbedBuilder[] },
 ) {
-    const base = resolveBaseInteraction(ctx);
+    const base = ResolveBaseInteraction(ctx);
     if (!base) {
         return;
     }
@@ -40,7 +40,7 @@ export async function renderDescription(
             await base.editReply(payload);
         }
     } catch(error) {
-        const message = errorToMessage(error);
+        const message = ErrorToMessage(error);
         log.error(`renderDescription failed: ${message}`, RENDER_LOG_SOURCE, `renderDescription`);
         const fallbackMessage = options.content
             ? `${options.content}\nPreview unavailable. Reason: ${message}`
@@ -54,7 +54,7 @@ export async function renderDescription(
             }
         } catch(secondaryError) {
             log.error(
-                `renderDescription fallback failed: ${errorToMessage(secondaryError)}`,
+                `renderDescription fallback failed: ${ErrorToMessage(secondaryError)}`,
                 RENDER_LOG_SOURCE,
                 `renderDescription`,
             );
@@ -62,11 +62,11 @@ export async function renderDescription(
     }
 }
 
-export async function renderControls(
+export async function RenderControls(
     ctx: DescriptionStepContext,
     options: { content?: string; components?: ActionRowBuilder<StringSelectMenuBuilder>[] },
 ) {
-    const base = resolveBaseInteraction(ctx);
+    const base = ResolveBaseInteraction(ctx);
     if (!base) {
         return;
     }
@@ -79,7 +79,7 @@ export async function renderControls(
             return;
         } catch(error) {
             log.warning(
-                `renderControls edit failed for message ${storedId}: ${errorToMessage(error)}`,
+                `renderControls edit failed for message ${storedId}: ${ErrorToMessage(error)}`,
                 RENDER_LOG_SOURCE,
                 `renderControls`,
             );
@@ -91,7 +91,7 @@ export async function renderControls(
             (rootSnapshot.data as Record<string, unknown>).controlsMessageId = message.id;
         }
     } catch(error) {
-        const message = errorToMessage(error);
+        const message = ErrorToMessage(error);
         log.error(`renderControls failed: ${message}`, RENDER_LOG_SOURCE, `renderControls`);
         try {
             const fallback = await base.followUp({
@@ -103,7 +103,7 @@ export async function renderControls(
             }
         } catch(secondaryError) {
             log.error(
-                `renderControls fallback failed: ${errorToMessage(secondaryError)}`,
+                `renderControls fallback failed: ${ErrorToMessage(secondaryError)}`,
                 RENDER_LOG_SOURCE,
                 `renderControls`,
             );

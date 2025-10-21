@@ -9,12 +9,12 @@ import {
     MessageFlags,
     StringSelectMenuBuilder,
 } from 'discord.js';
-import { createFactory } from '../../../Flow/Object/Building/Create.js';
+import { CreateFactory } from '../../../Flow/Object/Building/Create.js';
 import { log } from '../../../Common/Log.js';
 import { executeWithContext } from '../../../Common/ExecutionContextHelpers.js';
 import type { ExecutionContext } from '../../../Domain/index.js';
 import { resolve, type TokenSegmentInput } from '../../../Common/permission/index.js';
-import { getUserOrganizations } from '../../../Flow/Command/Description/getUserOrganizations.js';
+import { GetUserOrganizations } from '../../../Flow/Command/Description/GetUserOrganizations.js';
 
 interface FlowState {
     type: string;
@@ -50,7 +50,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
             .step(`factory_select_org`)
             .prompt(async (ctx: StepContext) => {
                 await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-                const orgs = await getUserOrganizations(interaction.user.id);
+                const orgs = await GetUserOrganizations(interaction.user.id);
                 if (orgs.length === 0) {
                     await interaction.editReply({
                         content: `You are not linked to any organization. Cannot create factory.`,
@@ -63,10 +63,12 @@ export async function execute(interaction: ChatInputCommandInteraction) {
                     return;
                 }
                 const options = orgs
-                    .map(org => ({
-                        label: org.name.slice(0, 50),
-                        value: org.uid,
-                    }))
+                    .map(org => {
+                        return {
+                            label: org.name.slice(0, 50),
+                            value: org.uid,
+                        };
+                    })
                     .slice(0, 25);
                 const menu = new StringSelectMenuBuilder()
                     .setCustomId(`factory_select_org`)
@@ -140,9 +142,11 @@ export async function execute(interaction: ChatInputCommandInteraction) {
                     await baseInteraction.deferReply({ flags: MessageFlags.Ephemeral });
                 }
                 const member = baseInteraction.guild
-                    ? await baseInteraction.guild.members.fetch(baseInteraction.user.id).catch(() => null)
+                    ? await baseInteraction.guild.members.fetch(baseInteraction.user.id).catch(() => {
+                          return null;
+                      })
                     : null;
-                const permissionResult = await resolve(['']);
+                const permissionResult = await resolve([``]);
                 if (!permissionResult.success) {
                     const denialReason = permissionResult.detail.reason ?? `Permission denied.`;
                     await baseInteraction.followUp({
@@ -152,7 +156,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
                     return;
                 }
                 try {
-                    const factory = await createFactory(
+                    const factory = await CreateFactory(
                         ctx.state.type,
                         ctx.state.orgUid,
                         ctx.state.desc,

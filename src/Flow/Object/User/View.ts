@@ -14,7 +14,7 @@ export interface ViewUser {
 /**
  * Retrieve all users from the database, ordered by name
  */
-export async function listUsers(): Promise<ViewUser[]> {
+export async function ListUsers(): Promise<ViewUser[]> {
     const session = await neo4jClient.GetSession(`READ`);
     try {
         const res = await session.run(
@@ -44,7 +44,7 @@ export async function listUsers(): Promise<ViewUser[]> {
  * @param discordId The Discord user ID to lookup
  * @returns The user properties or null if not found
  */
-export async function getUserByDiscordId(discordId: string): Promise<ViewUser | null> {
+export async function GetUserByDiscordId(discordId: string): Promise<ViewUser | null> {
     const session = await neo4jClient.GetSession(`READ`);
     try {
         const res = await session.run(
@@ -75,7 +75,7 @@ export async function getUserByDiscordId(discordId: string): Promise<ViewUser | 
  * @param uid The UID to lookup
  * @returns The user properties or null if not found
  */
-export async function getUserByUid(uid: string): Promise<ViewUser | null> {
+export async function GetUserByUid(uid: string): Promise<ViewUser | null> {
     const session = await neo4jClient.GetSession(`READ`);
     try {
         const res = await session.run(

@@ -1,5 +1,5 @@
 import type { ChatInputCommandInteraction } from 'discord.js';
-import { resolveCommandPermission, type CommandPermissionResult } from './PermissionResolver.js';
+import { ResolveCommandPermission, type CommandPermissionResult } from './PermissionResolver.js';
 
 /**
  * Context used when resolving game creation permissions.
@@ -23,7 +23,7 @@ export async function resolveGameCreatePermissions(
     interaction: ChatInputCommandInteraction,
     context: GameCreatePermissionContext,
 ): Promise<GameCreatePermissionResult> {
-    return resolveCommandPermission({
+    return ResolveCommandPermission({
         interaction,
         templates: [`object:game:create:{serverId}`, `object:game:create`],
         context: { serverId: context.serverId },

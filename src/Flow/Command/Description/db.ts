@@ -1,5 +1,5 @@
-export { listVersions } from './listVersions.js';
-export { getVersion } from './getVersion.js';
-export { togglePublic } from './togglePublic.js';
-export { listObjectsForType } from './listObjectsForType.js';
-export { listUserOrgs } from './listUserOrgs.js';
+export { ListVersions as listVersions } from './ListVersions.js';
+export { GetVersion as getVersion } from './GetVersion.js';
+export { TogglePublic as togglePublic } from './TogglePublic.js';
+export { ListObjectsForType as listObjectsForType } from './ListObjectsForType.js';
+export { ListUserOrgs as listUserOrgs } from './ListUserOrgs.js';

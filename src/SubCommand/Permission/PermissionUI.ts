@@ -21,7 +21,7 @@ import {
  * Note: This is a prototype. In production code this should store requests in DB and use a robust
  * interactive component handler instead of an in-memory collector.
  */
-export async function requestPermissionFromAdmin(
+export async function RequestPermissionFromAdmin(
     interaction: ChatInputCommandInteraction,
     options: { tokens: PermissionToken[]; reason?: string },
     timeoutMs = 5 * 60 * 1000,
@@ -70,7 +70,7 @@ export async function requestPermissionFromAdmin(
     try {
         // Try channel first (some channel types may not expose send in typings)
         msg = await (interaction.channel as any).send({ content: `${admin}`, embeds: [embed], components: [row] });
-    } catch (err) {
+    } catch(err) {
         try {
             // Fallback to DM the selected admin
             msg = await admin.send({
@@ -78,7 +78,7 @@ export async function requestPermissionFromAdmin(
                 embeds: [embed],
                 components: [row],
             });
-        } catch (err2) {
+        } catch(err2) {
             return `no_admin`;
         }
     }
@@ -102,7 +102,7 @@ export async function requestPermissionFromAdmin(
             return `approve_forever`;
         }
         return `deny`;
-    } catch (err) {
+    } catch(err) {
         // Timeout or other error
         try {
             await msg.edit({ content: `${admin} (no response)`, components: [] });

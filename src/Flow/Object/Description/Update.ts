@@ -12,7 +12,7 @@ export interface CreatedVersion {
  * Create a new version of a description under the given org scope.
  * Properties captured: creator (discord id), createdAt timestamp, version auto-increment.
  */
-export async function createDescriptionVersion(
+export async function CreateDescriptionVersion(
     refType: `organization` | `game` | `user`,
     refUid: string,
     orgUid: string,

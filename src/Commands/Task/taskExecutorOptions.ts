@@ -1,4 +1,4 @@
-import { getOrganizationWithMembers } from '../../Flow/Object/Organization/View.js';
+import { GetOrganizationWithMembers } from '../../Flow/Object/Organization/View.js';
 
 export const EXECUTOR_UNASSIGNED_VALUE = `__unassigned`;
 
@@ -34,7 +34,7 @@ export async function buildExecutorOptions(
     addOption(`Assign to me`, requesterDiscordId);
 
     try {
-        const organization = await getOrganizationWithMembers(organizationUid);
+        const organization = await GetOrganizationWithMembers(organizationUid);
         const members = organization?.users ?? [];
         for (const member of members) {
             const discordId = String(member.discord_id ?? ``);

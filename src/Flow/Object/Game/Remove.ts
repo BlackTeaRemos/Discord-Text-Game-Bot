@@ -5,7 +5,7 @@ import { neo4jClient } from '../../../Setup/Neo4j.js';
  * @param uid Game UID
  * @returns true if deleted, false if not found
  */
-export async function removeGame(uid: string): Promise<boolean> {
+export async function RemoveGame(uid: string): Promise<boolean> {
     const session = await neo4jClient.GetSession(`WRITE`);
     try {
         const query = `

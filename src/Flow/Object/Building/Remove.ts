@@ -7,7 +7,7 @@ import { neo4jClient } from '../../../Setup/Neo4j.js';
  * @example
  * const orgUid = await getFactoryOrganizationUid('factory_123');
  */
-export async function getFactoryOrganizationUid(uid: string): Promise<string | null> {
+export async function GetFactoryOrganizationUid(uid: string): Promise<string | null> {
     const session = await neo4jClient.GetSession(`READ`);
     try {
         const query = `
@@ -27,7 +27,7 @@ export async function getFactoryOrganizationUid(uid: string): Promise<string | n
  * @param uid Factory UID
  * @returns true if deleted, false if not found
  */
-export async function removeFactory(uid: string): Promise<boolean> {
+export async function RemoveFactory(uid: string): Promise<boolean> {
     const session = await neo4jClient.GetSession(`WRITE`);
     try {
         const query = `

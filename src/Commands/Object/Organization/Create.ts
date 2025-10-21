@@ -9,7 +9,7 @@ import {
     MessageFlags,
 } from 'discord.js';
 import { log } from '../../../Common/Log.js';
-import { createOrganization, generateUid } from '../../../Flow/Object/Organization/Create.js';
+import { CreateOrganization, GenerateUid } from '../../../Flow/Object/Organization/Create.js';
 import { flowManager } from '../../../Common/Flow/Manager.js';
 import { executeWithContext } from '../../../Common/ExecutionContextHelpers.js';
 import type { ExecutionContext } from '../../../Domain/index.js';
@@ -85,7 +85,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
             .step()
             .prompt(async(ctx: StepContext) => {
                 try {
-                    const org = await createOrganization(
+                    const org = await CreateOrganization(
                         ctx.state.name!,
                         ctx.state.friendly || ctx.state.name!,
                         ctx.state.uid,

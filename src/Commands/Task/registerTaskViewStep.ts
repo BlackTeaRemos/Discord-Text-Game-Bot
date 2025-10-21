@@ -4,7 +4,7 @@ import type { StepContext } from '../../Common/Flow/Types.js';
 import { FetchTasksForViewer } from '../../Flow/Task/FetchTasksForViewer.js';
 import { neo4jClient } from '../../Setup/Neo4j.js';
 import { resolve } from '../../Common/permission/index.js';
-import { requestPermissionFromAdmin } from '../../SubCommand/Permission/PermissionUI.js';
+import { RequestPermissionFromAdmin } from '../../SubCommand/Permission/PermissionUI.js';
 import type { TaskFlowState } from './TaskFlowState.js';
 import { DEFAULT_TASK_STATUSES } from '../../Domain/Task.js';
 import type { TaskListItem } from '../../Domain/Task.js';
@@ -37,7 +37,7 @@ function makeStatusButtonId(status: string): string {
 export function registerTaskViewStep(builder: FlowBuilder<TaskFlowState>): FlowBuilder<TaskFlowState> {
     return builder
         .step(TASK_VIEW_SELECT_ID, `task_view`)
-        .prompt(async (ctx: StepContext<TaskFlowState>) => {
+        .prompt(async(ctx: StepContext<TaskFlowState>) => {
             const action = ctx.state.action;
             if (action !== `view_mine` && action !== `view_org`) {
                 await ctx.advance();
@@ -59,7 +59,7 @@ export function registerTaskViewStep(builder: FlowBuilder<TaskFlowState>): FlowB
                     context: { commandName: `task`, organizationUid: orgUid, userId: base.user.id },
                     member,
                     requestApproval: payload => {
-                        return requestPermissionFromAdmin(base, payload);
+                        return RequestPermissionFromAdmin(base, payload);
                     },
                 });
                 if (!resolution.success) {
@@ -123,7 +123,7 @@ export function registerTaskViewStep(builder: FlowBuilder<TaskFlowState>): FlowB
                 components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(select)],
             });
         })
-        .onInteraction(async (ctx: StepContext<TaskFlowState>, choice) => {
+        .onInteraction(async(ctx: StepContext<TaskFlowState>, choice) => {
             if (!choice.isStringSelectMenu() || choice.customId !== TASK_VIEW_SELECT_ID) {
                 return false;
             }
@@ -143,7 +143,7 @@ export function registerTaskViewStep(builder: FlowBuilder<TaskFlowState>): FlowB
         })
         .next()
         .step([TASK_STATUS_BUTTON_ID, TASK_ASSIGN_BUTTON_ID, TASK_CLOSE_BUTTON_ID], `task_selected_action`)
-        .prompt(async (ctx: StepContext<TaskFlowState>) => {
+        .prompt(async(ctx: StepContext<TaskFlowState>) => {
             if (!ctx.state.selectedTaskId || !ctx.state.latestTask) {
                 await ctx.advance();
                 return;
@@ -183,7 +183,7 @@ export function registerTaskViewStep(builder: FlowBuilder<TaskFlowState>): FlowB
                 components: [buttons],
             });
         })
-        .onInteraction(async (ctx: StepContext<TaskFlowState>, interaction) => {
+        .onInteraction(async(ctx: StepContext<TaskFlowState>, interaction) => {
             if (!interaction.isButton()) {
                 return false;
             }
@@ -210,7 +210,7 @@ export function registerTaskViewStep(builder: FlowBuilder<TaskFlowState>): FlowB
         })
         .next()
         .step(`task_status_btn_*`, `task_status`)
-        .prompt(async (ctx: StepContext<TaskFlowState>) => {
+        .prompt(async(ctx: StepContext<TaskFlowState>) => {
             if (!ctx.state.awaitingStatus || ctx.state.action !== `status`) {
                 await ctx.advance();
                 return;
@@ -231,7 +231,9 @@ export function registerTaskViewStep(builder: FlowBuilder<TaskFlowState>): FlowB
                 return status.length > 0;
             });
             // Store the valid status buttons for validation during interaction.
-            const statusButtonIds = statuses.map(s => makeStatusButtonId(s));
+            const statusButtonIds = statuses.map(s => {
+                return makeStatusButtonId(s);
+            });
             ctx.remember(`statusButtonIds`, statusButtonIds);
             // Status buttons allow direct selection without multi-step interaction.
             const statusButtons: ButtonBuilder[] = statuses.map(status => {
@@ -254,7 +256,7 @@ export function registerTaskViewStep(builder: FlowBuilder<TaskFlowState>): FlowB
                 components: rows,
             });
         })
-        .onInteraction(async (ctx: StepContext<TaskFlowState>, interaction) => {
+        .onInteraction(async(ctx: StepContext<TaskFlowState>, interaction) => {
             if (!interaction.isButton()) {
                 return false;
             }
@@ -298,7 +300,7 @@ export function registerTaskViewStep(builder: FlowBuilder<TaskFlowState>): FlowB
         })
         .next()
         .step([TASK_ASSIGN_BUTTON_ID, TASK_ASSIGN_SELECT_ID], `task_assign`)
-        .prompt(async (ctx: StepContext<TaskFlowState>) => {
+        .prompt(async(ctx: StepContext<TaskFlowState>) => {
             if (!ctx.state.awaitingAssignment || ctx.state.action !== `assign`) {
                 await ctx.advance();
                 return;
@@ -332,7 +334,7 @@ export function registerTaskViewStep(builder: FlowBuilder<TaskFlowState>): FlowB
                 components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(menu)],
             });
         })
-        .onInteraction(async (ctx: StepContext<TaskFlowState>, interaction) => {
+        .onInteraction(async(ctx: StepContext<TaskFlowState>, interaction) => {
             if (!interaction.isStringSelectMenu() || interaction.customId !== TASK_ASSIGN_SELECT_ID) {
                 return false;
             }

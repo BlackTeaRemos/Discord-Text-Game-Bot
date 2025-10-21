@@ -1,4 +1,4 @@
-export function uniqueSelectOptions<T extends { value: string }>(options: T[], max = 25): T[] {
+export function UniqueSelectOptions<T extends { value: string }>(options: T[], max = 25): T[] {
     const seen = new Set<string>();
     const out: T[] = [];
     for (const o of options) {

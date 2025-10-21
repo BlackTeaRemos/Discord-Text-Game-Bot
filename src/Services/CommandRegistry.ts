@@ -194,7 +194,7 @@ export class CommandRegistry {
                     userId: ctx.userId,
                     guildId: ctx.guildId ?? undefined,
                     executionContext: ctx.executionContext,
-                    getMember: async () => {
+                    getMember: async() => {
                         if (opts?.member) {
                             return opts.member;
                         }
@@ -221,8 +221,8 @@ export class CommandRegistry {
 
                 const inputs: PermissionTokenInput[] = tokens.length
                     ? tokens.map(t => {
-                          return [...t];
-                      })
+                        return [...t];
+                    })
                     : [`command:${mod.meta.id}`];
 
                 // Build a minimal member-like object when none provided so permanent grants can be checked
@@ -269,7 +269,7 @@ export class CommandRegistry {
             }
 
             return await mod.execute(ctx);
-        } catch (err: any) {
+        } catch(err: any) {
             return { ok: false, error: err?.message || `UNKNOWN_ERROR` };
         }
     }

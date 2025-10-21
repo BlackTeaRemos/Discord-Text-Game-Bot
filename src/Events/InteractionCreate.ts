@@ -9,7 +9,7 @@ import { flowManager } from '../Common/Flow/Manager.js';
  * @example
  * client.on('interactionCreate', onInteractionCreate);
  */
-export async function onInteractionCreate(interaction: Interaction): Promise<void> {
+export async function OnInteractionCreate(interaction: Interaction): Promise<void> {
     log.info(
         `Interaction received: type=${interaction.type}, id=${interaction.id}, user=${interaction.user?.tag}`,
         `Interaction`,
@@ -17,7 +17,7 @@ export async function onInteractionCreate(interaction: Interaction): Promise<voi
 
     try {
         await flowManager.onInteraction(interaction);
-    } catch(error) {
+    } catch (error) {
         log.error(`Flow manager failed to process interaction ${interaction.id}: ${(error as Error).message}`, `Flow`);
     }
 }

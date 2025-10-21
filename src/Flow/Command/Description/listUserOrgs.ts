@@ -5,7 +5,7 @@ import { neo4jClient } from '../../../Setup/Neo4j.js';
  * @param discordId string Discord id of the user
  * @returns Promise<Array<{ uid: string; name: string }>>
  */
-export async function listUserOrgs(discordId: string) {
+export async function ListUserOrgs(discordId: string) {
     const session = await neo4jClient.GetSession(`READ`);
     try {
         const res = await session.run(

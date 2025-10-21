@@ -5,7 +5,7 @@
  * @param input string Input to apply
  * @returns string Resulting text
  */
-export function applyEdit(current: string, mode: `append` | `remove` | `replace`, input: string): string {
+export function ApplyEdit(current: string, mode: `append` | `remove` | `replace`, input: string): string {
     switch (mode) {
         case `append`:
             return current + (input ? `\n${input}` : ``);

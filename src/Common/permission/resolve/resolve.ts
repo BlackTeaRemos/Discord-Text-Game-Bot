@@ -77,7 +77,7 @@ export async function Resolve(
                 reason: evaluation.reason ?? `Permission denied`,
             },
         };
-    } catch (error) {
+    } catch(error) {
         log.error(`doEnsure failed: ${String(error)}`, `Permission.doEnsure`);
         return {
             success: false,

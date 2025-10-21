@@ -17,7 +17,7 @@ export interface Game {
  * @param prefix UID prefix
  * @returns generated UID string
  */
-export function generateGameUid(prefix: string): string {
+export function GenerateGameUid(prefix: string): string {
     return `${prefix}_${randomUUID().replace(/-/g, ``)}`;
 }
 
@@ -30,7 +30,7 @@ export function generateGameUid(prefix: string): string {
  * @param parameters Optional parameters JSON; defaults to { currentTurn: 1 }
  * @returns The created game properties
  */
-export async function createGame(
+export async function CreateGame(
     name: string,
     image: string,
     serverId: string,
@@ -46,7 +46,7 @@ export async function createGame(
         if (checkResult.records.length > 0) {
             throw new Error(`Game with this name already exists in the server`);
         }
-        const gameUid = uid || generateGameUid(`game`);
+        const gameUid = uid || GenerateGameUid(`game`);
         const gameParams = parameters || { currentTurn: 1 };
         const paramEntries = Object.entries(gameParams);
         const query = `
