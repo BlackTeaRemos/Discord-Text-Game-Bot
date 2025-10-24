@@ -1,8 +1,8 @@
 import type { GameCreateStepContext } from '../../../../Flow/Object/Game/CreateTypes.js';
-import { recallBaseInteraction } from '../../../../Flow/Object/Game/CreateTypes.js';
 import { log } from '../../../../Common/Log.js';
 import { GameCreateFlowConstants } from '../../../../Flow/Object/Game/CreateState.js';
 import { BuildGamePreviewEmbed } from './BuildGamePreviewEmbed.js';
+import { RecallInteraction } from './RecallInteraction.js';
 
 /**
  * Render or update the preview embed message.
@@ -10,7 +10,7 @@ import { BuildGamePreviewEmbed } from './BuildGamePreviewEmbed.js';
  * @returns Promise<void> Resolves after the preview is shown. @example await RenderPreview(ctx)
  */
 export async function RenderPreview(ctx: GameCreateStepContext): Promise<void> {
-    const base = recallBaseInteraction(ctx);
+    const base = RecallInteraction(ctx);
     if (!base) {
         return;
     }

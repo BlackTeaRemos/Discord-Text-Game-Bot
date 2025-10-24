@@ -33,3 +33,5 @@ Group related operations under same entity folder. Create new action file when o
 ### Separation of Concerns
 
 Command handlers manage user interaction and Discord API. Flow contains business rules and data operations. Keep these boundaries clear.
+
+Flow modules must never import from `discord.js` or depend on Discord interactions. Commands and SubCommands translate Discord payloads into plain data before invoking Flow logic.

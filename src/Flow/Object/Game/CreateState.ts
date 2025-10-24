@@ -1,5 +1,3 @@
-import type { ChatInputCommandInteraction } from 'discord.js';
-
 /**
  * Track runtime data for the interactive game creation flow.
  * @property serverId string Discord guild identifier hosting the command. @example "123456789012345678"
@@ -47,14 +45,3 @@ export const GameCreateFlowConstants = {
     imageBucket: `game-images`,
 } as const;
 
-/**
- * Persisted data collected when kicking off the flow.
- * @property flowManagerId string Discord user id owning the flow. @example "123456789012345678"
- * @property interaction ChatInputCommandInteraction Slash command interaction used to bootstrap.
- * @property state GameCreateFlowState Initialized mutable state reference.
- */
-export interface GameCreateFlowBootstrap {
-    flowManagerId: string;
-    interaction: ChatInputCommandInteraction;
-    state: GameCreateFlowState;
-}

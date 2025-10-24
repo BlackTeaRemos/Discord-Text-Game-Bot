@@ -1,4 +1,3 @@
-import type { ActionRowBuilder, ButtonBuilder, ChatInputCommandInteraction, StringSelectMenuBuilder } from 'discord.js';
 import type { StepContext } from '../../../Common/Flow/Types.js';
 import type { GameCreateFlowState } from './CreateState.js';
 
@@ -20,19 +19,10 @@ export interface GameCreateRenderers {
     RenderControls: (
         ctx: GameCreateStepContext,
         content: string,
-        components?: Array<ActionRowBuilder<ButtonBuilder | StringSelectMenuBuilder>>,
+        components?: unknown,
     ) => Promise<void>;
 }
 /* eslint-enable no-unused-vars */
-
-/**
- * Recall helper for retrieving the root chat command interaction from flow memory.
- * @param ctx GameCreateStepContext Current flow step context. @example const base = recallBaseInteraction(ctx)
- * @returns ChatInputCommandInteraction | undefined Stored interaction instance.
- */
-export function recallBaseInteraction(ctx: GameCreateStepContext): ChatInputCommandInteraction | undefined {
-    return ctx.recall<ChatInputCommandInteraction | undefined>(`root`, `interaction`);
-}
 
 /**
  * Recall helper for retrieving renderer callbacks registered by the command layer.

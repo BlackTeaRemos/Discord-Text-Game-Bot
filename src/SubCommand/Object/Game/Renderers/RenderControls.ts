@@ -1,9 +1,9 @@
 import { ActionRowBuilder, ButtonBuilder, MessageFlags, StringSelectMenuBuilder } from 'discord.js';
 import type { GameCreateStepContext } from '../../../../Flow/Object/Game/CreateTypes.js';
-import { recallBaseInteraction } from '../../../../Flow/Object/Game/CreateTypes.js';
 import { log } from '../../../../Common/Log.js';
 import { GameCreateFlowConstants } from '../../../../Flow/Object/Game/CreateState.js';
 import { BuildControlRows } from './BuildControlRows.js';
+import { RecallInteraction } from './RecallInteraction.js';
 
 /**
  * Render or update the control panel message with optional custom components.
@@ -17,7 +17,7 @@ export async function RenderControls(
     content: string,
     components?: Array<ActionRowBuilder<ButtonBuilder | StringSelectMenuBuilder>>,
 ): Promise<void> {
-    const base = recallBaseInteraction(ctx);
+    const base = RecallInteraction(ctx);
     if (!base) {
         return;
     }
