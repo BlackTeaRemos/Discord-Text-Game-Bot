@@ -15,6 +15,7 @@ import { GetGame } from '../Flow/Object/Game/View.js';
 import { ResolveViewPermissions } from '../Flow/Command/ViewFlow.js';
 import { RequestPermissionFromAdmin } from '../SubCommand/Permission/PermissionUI.js';
 import { GrantForever } from '../Common/permission/index.js';
+import { PrepareOrganizationPrompt } from '../SubCommand/Prompt/Organization.js';
 
 export const data = new SlashCommandBuilder().setName(`view`).setDescription(`Interactive view of stored objects`);
 export const permissionTokens = `command:view`;
@@ -47,11 +48,11 @@ function uniqueSelectOptions<T extends { value: string }>(options: T[], max = 25
 }
 
 export async function execute(interaction: ChatInputCommandInteraction) {
-    await executeWithContext(interaction, async(flowManager, executionContext) => {
+    await executeWithContext(interaction, async (flowManager, executionContext) => {
         await flowManager
             .builder(interaction.user.id, interaction, {} as State, executionContext)
             .step(`select_type`)
-            .prompt(async(ctx: any) => {
+            .prompt(async (ctx: any) => {
                 const options = uniqueSelectOptions(getSupportedTypes());
                 const select = new StringSelectMenuBuilder()
                     .setCustomId(`select_type`)
@@ -62,7 +63,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
                     components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(select)],
                 });
             })
-            .onInteraction(async(ctx: any, interaction: any) => {
+            .onInteraction(async (ctx: any, interaction: any) => {
                 if (!interaction.isStringSelectMenu()) {
                     return false;
                 }
@@ -72,7 +73,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
             })
             .next()
             .step(`select_object`)
-            .prompt(async(ctx: any) => {
+            .prompt(async (ctx: any) => {
                 const type = ctx.state.type!;
 
                 let records: Array<{ uid: string; label: string }> = [];
@@ -112,12 +113,12 @@ export async function execute(interaction: ChatInputCommandInteraction) {
                     await (ctx.interaction as ChatInputCommandInteraction).editReply({
                         components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(select)],
                     });
-                } catch(err) {
+                } catch (err) {
                     log.error(`Failed to editReply for select_object`, String(err), `ViewCommand`);
                     throw err;
                 }
             })
-            .onInteraction(async(ctx: any, interaction: any) => {
+            .onInteraction(async (ctx: any, interaction: any) => {
                 if (!interaction.isStringSelectMenu()) {
                     return false;
                 }
@@ -127,53 +128,35 @@ export async function execute(interaction: ChatInputCommandInteraction) {
             })
             .next()
             .step(`select_view_org`)
-            .prompt(async(ctx: any) => {
+            .prompt(async (ctx: any) => {
                 // For objects that support descriptions, select organization per rules
                 const describable = [`game`, `organization`, `user`, `building`];
                 if (!describable.includes(ctx.state.type)) {
                     await ctx.advance();
                     return;
                 }
-                const session = await neo4jClient.GetSession(`READ`);
-                try {
-                    const res = await session.run(
-                        `MATCH (u:User { discord_id: $discordId })-[:BELONGS_TO]->(o:Organization) RETURN o.uid AS uid, o.name AS name`,
-                        { discordId: (interaction as ChatInputCommandInteraction).user.id },
-                    );
-                    const orgs = res.records.map((r: any) => {
-                        return {
-                            uid: String(r.get(`uid`)),
-                            name: String(r.get(`name`)),
-                        };
-                    });
-                    if (orgs.length === 0) {
-                        // No orgs: use public/general later by passing empty orgUid
-                        ctx.state.orgUid = ``;
-                        await ctx.advance();
-                        return;
-                    }
-                    if (orgs.length === 1) {
-                        ctx.state.orgUid = orgs[0].uid;
-                        await ctx.advance();
-                        return;
-                    }
-                    const orgOptions: Array<{ label: string; value: string }> = uniqueSelectOptions(
-                        orgs.map((o: { uid: string; name: string }) => {
-                            return { label: o.name.slice(0, 50), value: o.uid };
-                        }),
-                    );
-                    const select = new StringSelectMenuBuilder()
-                        .setCustomId(`select_view_org`)
-                        .setPlaceholder(`Select organization context for description`)
-                        .addOptions(orgOptions);
-                    await (interaction as ChatInputCommandInteraction).editReply({
-                        components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(select)],
-                    });
-                } finally {
-                    await session.close();
+                const prompt = await PrepareOrganizationPrompt({
+                    userId: (interaction as ChatInputCommandInteraction).user.id,
+                    customId: `select_view_org`,
+                    placeholder: `Select organization context for description`,
+                    promptMessage: `Select organization context for description`,
+                });
+                if (prompt.status === `empty`) {
+                    // No orgs: use public/general later by passing empty orgUid
+                    ctx.state.orgUid = ``;
+                    await ctx.advance();
+                    return;
                 }
+                if (prompt.status === `auto` && prompt.organization) {
+                    ctx.state.orgUid = prompt.organization.uid;
+                    await ctx.advance();
+                    return;
+                }
+                await (interaction as ChatInputCommandInteraction).editReply({
+                    components: prompt.components ?? [],
+                });
             })
-            .onInteraction(async(ctx: any, interaction: any) => {
+            .onInteraction(async (ctx: any, interaction: any) => {
                 if (!interaction.isStringSelectMenu()) {
                     return false;
                 }
@@ -183,7 +166,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
             })
             .next()
             .step(`show_details`)
-            .prompt(async(ctx: any) => {
+            .prompt(async (ctx: any) => {
                 const type = ctx.state.type!;
                 const id = ctx.state.id!;
                 const baseInteraction = ctx.interaction as ChatInputCommandInteraction;
@@ -233,7 +216,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
                         embeds: [embed],
                         flags: MessageFlags.Ephemeral,
                     });
-                } catch(err) {
+                } catch (err) {
                     log.error(`Failed to followUp in show_details`, String(err), `ViewCommand`);
                     throw err;
                 }

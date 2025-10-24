@@ -1,7 +1,7 @@
-import { FormatPermissionToken } from '../Tokens.js';
 import { ResolveTokens } from './ResolveTokens.js';
 import type { PermissionToken } from '../types.js';
 import type { TokenResolveContext } from './types.js';
+import { FormatPermissionToken } from '../FormatPermissionToken.js';
 
 export function CollectEnsureTokens(
     templates: Array<string | import('../types.js').TokenSegmentInput[]> = [],

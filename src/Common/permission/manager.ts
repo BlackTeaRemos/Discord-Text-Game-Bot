@@ -1,10 +1,10 @@
 import type { GuildMember } from 'discord.js';
-import { BuildPermissionEmitter, EvaluateToken } from './Emitter.js';
+import { BuildPermissionEmitter } from './Emitter.js';
 import { HasPermanentGrant } from './Store.js';
 import type { PermissionCheckResult, PermissionState, PermissionTokenInput, PermissionsObject } from './types.js';
 import { NormalizeToken } from './NormalizeToken.js';
-import { FormatPermissionToken } from './formatPermissionToken.js';
-
+import { FormatPermissionToken } from './FormatPermissionToken.js';
+import { EvaluateToken } from './EvaluateToken.js';
 /**
  * Translates a permission state into a standardized permission check result.
  * @param state PermissionState Evaluated permission state (example: 'once').
@@ -98,7 +98,7 @@ export async function CheckPermission(
             missing: missing.length ? missing : undefined,
             reason: missing.length ? `Token(s) not defined` : undefined,
         };
-    } catch(err: any) {
+    } catch (err: any) {
         return { allowed: false, reason: `Permission check error: ${String(err)}` };
     }
 }

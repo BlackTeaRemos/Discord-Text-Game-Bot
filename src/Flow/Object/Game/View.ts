@@ -1,5 +1,5 @@
 import { neo4jClient } from '../../../Setup/Neo4j.js';
-import { Game } from './Create.js';
+import { Game } from './CreateRecord.js';
 
 /**
  * Retrieve a Game node by UID along with its server reference.

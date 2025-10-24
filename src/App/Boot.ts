@@ -2,7 +2,7 @@ import { EventEmitter } from 'events';
 import { Client, GatewayIntentBits, Events } from 'discord.js';
 import { log } from '../Common/Log.js';
 import type { ConfigService } from '../Services/ConfigService.js';
-import { createInteractionHandler } from './InteractionHandler.js';
+import { CreateInteractionHandler } from './InteractionHandler.js';
 
 /**
  * Boot helper: loads config, creates and logs-in a Discord client, and registers application commands.
@@ -45,7 +45,7 @@ export async function bootDiscordClient(options: {
 
     // Command registration happens once the client is ready
     let didReady = false;
-    const handleReady = async() => {
+    const handleReady = async () => {
         if (didReady) {
             return;
         }
@@ -70,7 +70,7 @@ export async function bootDiscordClient(options: {
                         `output`,
                         `Registered ${registeredGuild.size ?? commandData.length} guild commands to guild ${config.discordGuildId}.`,
                     );
-                } catch(err) {
+                } catch (err) {
                     eventBus.emit(`output`, `Guild command registration failed: ${String(err)}`);
                 }
             } else {
@@ -80,11 +80,11 @@ export async function bootDiscordClient(options: {
                         `output`,
                         `Registered ${registeredGlobal.size ?? commandData.length} global commands.`,
                     );
-                } catch(err) {
+                } catch (err) {
                     eventBus.emit(`output`, `Global command registration failed: ${String(err)}`);
                 }
             }
-        } catch(err) {
+        } catch (err) {
             eventBus.emit(`output`, `Command registration failed in ready handler: ${String(err)}`);
         }
     };
@@ -96,7 +96,7 @@ export async function bootDiscordClient(options: {
     eventBus.emit(`output`, `Discord.js client logged in.`);
 
     // Extracted interaction handler for clarity
-    const interactionHandler = createInteractionHandler({ loadedCommands });
+    const interactionHandler = CreateInteractionHandler({ loadedCommands });
     client.on(`interactionCreate`, interactionHandler);
 
     // ensure we return the client and config as before

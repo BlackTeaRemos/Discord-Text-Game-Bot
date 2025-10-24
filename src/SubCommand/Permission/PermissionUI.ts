@@ -7,12 +7,8 @@ import {
     EmbedBuilder,
     Colors,
 } from 'discord.js';
-import {
-    FormatPermissionToken,
-    GrantForever,
-    type PermissionDecision,
-    type PermissionToken,
-} from '../../Common/permission/index.js';
+import { GrantForever, type PermissionDecision, type PermissionToken } from '../../Common/permission/index.js';
+import { FormatPermissionToken } from '../../Common/permission/FormatPermissionToken.js';
 
 /**
  * Send an approval request to a random administrator in the guild and wait for their response.
@@ -70,7 +66,7 @@ export async function RequestPermissionFromAdmin(
     try {
         // Try channel first (some channel types may not expose send in typings)
         msg = await (interaction.channel as any).send({ content: `${admin}`, embeds: [embed], components: [row] });
-    } catch(err) {
+    } catch (err) {
         try {
             // Fallback to DM the selected admin
             msg = await admin.send({
@@ -78,7 +74,7 @@ export async function RequestPermissionFromAdmin(
                 embeds: [embed],
                 components: [row],
             });
-        } catch(err2) {
+        } catch (err2) {
             return `no_admin`;
         }
     }
@@ -102,7 +98,7 @@ export async function RequestPermissionFromAdmin(
             return `approve_forever`;
         }
         return `deny`;
-    } catch(err) {
+    } catch (err) {
         // Timeout or other error
         try {
             await msg.edit({ content: `${admin} (no response)`, components: [] });

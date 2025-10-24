@@ -1,19 +1,20 @@
 import { MessageFlags } from 'discord.js';
 import { log } from '../Common/Log.js';
+import { createExecutionContext } from '../Domain/index.js';
 import {
     resolveTokens as resolvePermission,
-    FormatPermissionToken,
     type PermissionToken,
     type TokenSegmentInput,
     GrantForever,
     resolve,
 } from '../Common/permission/index.js';
+import { FormatPermissionToken } from '../Common/permission/FormatPermissionToken.js';
 
 /**
  * Factory for Discord interaction handler focused on chat input commands.
  * Replaces direct permission checks with `resolve` that asks admins and throws on denial.
  */
-export function createInteractionHandler(options: { loadedCommands: Record<string, any> }) {
+export function CreateInteractionHandler(options: { loadedCommands: Record<string, any> }) {
     const { loadedCommands } = options;
 
     return async function handleInteraction(interaction: any) {
@@ -26,6 +27,9 @@ export function createInteractionHandler(options: { loadedCommands: Record<strin
         }
 
         try {
+            // Always attach a fresh ExecutionContext for this command invocation
+            (interaction as any).executionContext = createExecutionContext(interaction.id);
+
             const member = interaction.guild ? await interaction.guild.members.fetch(interaction.user.id) : null;
 
             // Resolve permission token templates for this command.
@@ -64,7 +68,7 @@ export function createInteractionHandler(options: { loadedCommands: Record<strin
                 ),
                 userId: interaction.user.id,
                 guildId: interaction.guildId ?? undefined,
-                getMember: async() => {
+                getMember: async () => {
                     return interaction.guild ? await interaction.guild.members.fetch(interaction.user.id) : null;
                 },
             };
@@ -97,7 +101,7 @@ export function createInteractionHandler(options: { loadedCommands: Record<strin
 
             // Execute the command
             await command.execute(interaction);
-        } catch(err: any) {
+        } catch (err: any) {
             // Centralized error handler for permission denials and execution errors
             try {
                 log.error(`Interaction handler error for /${interaction.commandName}: ${String(err)}`, `Boot`);

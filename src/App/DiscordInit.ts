@@ -6,7 +6,7 @@ import { DiscordService } from '../Discord.js';
  * Initializes the DiscordService and wires app-specific event handling.
  * Accepts a small setter callback to store the found `cmd-` channel id in the caller.
  */
-export function initDiscord(options: {
+export function InitDiscord(options: {
     eventBus: EventEmitter;
     client: Client;
     config: any;
@@ -21,7 +21,7 @@ export function initDiscord(options: {
 
     const discord = new DiscordService(client, config.discordGuildId, config.discordCategoryId, config.discordToken);
 
-    eventBus.on(`discord:ready`, async(_client, category, channels) => {
+    eventBus.on(`discord:ready`, async (_client, category, channels) => {
         eventBus.emit(`output`, `Connected to Discord API.`);
         eventBus.emit(`output`, `Category: ${category.name} (#${category.id})`);
         eventBus.emit(`output`, `Found ${channels.length} folder(s):`);
@@ -39,7 +39,7 @@ export function initDiscord(options: {
                 } else {
                     eventBus.emit(`output`, `  (No messages)`);
                 }
-            } catch(err) {
+            } catch (err) {
                 eventBus.emit(`output`, `[DiscordInit]   Failed to fetch messages: ${err}`);
             }
 

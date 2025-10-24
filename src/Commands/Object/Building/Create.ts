@@ -7,14 +7,13 @@ import {
     ActionRowBuilder,
     ModalSubmitInteraction,
     MessageFlags,
-    StringSelectMenuBuilder,
 } from 'discord.js';
 import { CreateFactory } from '../../../Flow/Object/Building/Create.js';
 import { log } from '../../../Common/Log.js';
 import { executeWithContext } from '../../../Common/ExecutionContextHelpers.js';
 import type { ExecutionContext } from '../../../Domain/index.js';
 import { resolve, type TokenSegmentInput } from '../../../Common/permission/index.js';
-import { GetUserOrganizations } from '../../../Flow/Command/Description/GetUserOrganizations.js';
+import { PrepareOrganizationPrompt, ResolveOrganizationName } from '../../../SubCommand/Prompt/Organization.js';
 
 interface FlowState {
     type: string;
@@ -50,33 +49,28 @@ export async function execute(interaction: ChatInputCommandInteraction) {
             .step(`factory_select_org`)
             .prompt(async (ctx: StepContext) => {
                 await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-                const orgs = await GetUserOrganizations(interaction.user.id);
-                if (orgs.length === 0) {
+                const prompt = await PrepareOrganizationPrompt({
+                    userId: interaction.user.id,
+                    customId: `factory_select_org`,
+                    placeholder: `Select organization`,
+                    promptMessage: `Choose organization to continue.`,
+                    emptyMessage: `You are not linked to any organization. Cannot create factory.`,
+                });
+                if (prompt.status === `empty`) {
                     await interaction.editReply({
-                        content: `You are not linked to any organization. Cannot create factory.`,
+                        content: prompt.message ?? `You are not linked to any organization. Cannot create factory.`,
+                        components: [],
                     });
                     return;
                 }
-                if (orgs.length === 1) {
-                    ctx.state.orgUid = orgs[0].uid;
-                    ctx.state.orgName = orgs[0].name;
+                if (prompt.status === `auto` && prompt.organization) {
+                    ctx.state.orgUid = prompt.organization.uid;
+                    ctx.state.orgName = prompt.organization.name;
                     return;
                 }
-                const options = orgs
-                    .map(org => {
-                        return {
-                            label: org.name.slice(0, 50),
-                            value: org.uid,
-                        };
-                    })
-                    .slice(0, 25);
-                const menu = new StringSelectMenuBuilder()
-                    .setCustomId(`factory_select_org`)
-                    .setPlaceholder(`Select organization`)
-                    .addOptions(options as any);
                 await interaction.editReply({
-                    content: `Choose organization to continue.`,
-                    components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(menu)],
+                    content: prompt.message ?? `Choose organization to continue.`,
+                    components: prompt.components ?? [],
                 });
             })
             .onInteraction(async (ctx: StepContext, select: any) => {
@@ -84,10 +78,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
                     return false;
                 }
                 ctx.state.orgUid = select.values[0];
-                const match = select.component.options?.find((option: any) => {
-                    return option.value === select.values[0];
-                });
-                ctx.state.orgName = match?.label || select.values[0];
+                ctx.state.orgName =
+                    (await ResolveOrganizationName(interaction.user.id, select.values[0])) || select.values[0];
                 await select.deferUpdate();
                 return true;
             })

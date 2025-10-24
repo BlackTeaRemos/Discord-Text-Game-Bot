@@ -1,6 +1,5 @@
 export {
     CheckPermission as checkPermission,
-    FormatPermissionToken as formatPermissionToken,
     GrantForever as grantForever,
     resolve,
 } from '../../Common/permission/index.js';

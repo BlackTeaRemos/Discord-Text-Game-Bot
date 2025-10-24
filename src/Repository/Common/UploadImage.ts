@@ -1,4 +1,4 @@
-import minioClient from '../../minio.js';
+import minioClient from '../../Flow/minio.js';
 
 /**
  * Uploads a buffer as an object in MinIO and returns the public URL
@@ -8,7 +8,7 @@ import minioClient from '../../minio.js';
  * @param contentType MIME type, e.g. 'image/png'
  * @returns URL string
  */
-export async function UploadGameImage(
+export async function UploadImage(
     bucket: string,
     objectName: string,
     buffer: Buffer,

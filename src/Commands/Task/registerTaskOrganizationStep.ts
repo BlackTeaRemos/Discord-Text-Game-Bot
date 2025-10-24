@@ -1,26 +1,9 @@
-import { ActionRowBuilder, MessageFlags, StringSelectMenuBuilder } from 'discord.js';
+import { MessageFlags } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 import type { FlowBuilder } from '../../Common/Flow/Builder.js';
 import type { StepContext } from '../../Common/Flow/Types.js';
-import { GetUserOrganizations } from '../../Flow/Command/Description/GetUserOrganizations.js';
 import type { TaskFlowState } from './TaskFlowState.js';
-
-function buildOrganizationOptions(orgs: Array<{ uid: string; name: string }>): Array<{ label: string; value: string }> {
-    const seen = new Set<string>();
-    const options: Array<{ label: string; value: string }> = [];
-    for (const org of orgs) {
-        const value = String(org.uid ?? ``).trim();
-        if (!value || seen.has(value)) {
-            continue;
-        }
-        seen.add(value);
-        options.push({ label: org.name.slice(0, 50), value });
-        if (options.length >= 25) {
-            break;
-        }
-    }
-    return options;
-}
+import { PrepareOrganizationPrompt, ResolveOrganizationName } from '../../SubCommand/Prompt/Organization.js';
 
 export function registerTaskOrganizationStep(
     builder: FlowBuilder<TaskFlowState>,
@@ -31,26 +14,30 @@ export function registerTaskOrganizationStep(
         .prompt(async (ctx: StepContext<TaskFlowState>) => {
             ctx.state.baseInteraction = interaction;
             await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-            const orgs = await GetUserOrganizations(interaction.user.id);
-            if (orgs.length === 0) {
-                await interaction.editReply({ content: `You are not linked to any organization.` });
+            const prompt = await PrepareOrganizationPrompt({
+                userId: interaction.user.id,
+                customId: `task_select_org`,
+                placeholder: `Select organization`,
+                promptMessage: `Choose organization to continue.`,
+                emptyMessage: `You are not linked to any organization.`,
+            });
+            if (prompt.status === `empty`) {
+                await interaction.editReply({
+                    content: prompt.message ?? `You are not linked to any organization.`,
+                    components: [],
+                });
                 await ctx.cancel();
                 return;
             }
-            if (orgs.length === 1) {
-                ctx.state.organizationUid = orgs[0].uid;
-                ctx.state.organizationName = orgs[0].name;
+            if (prompt.status === `auto` && prompt.organization) {
+                ctx.state.organizationUid = prompt.organization.uid;
+                ctx.state.organizationName = prompt.organization.name;
                 await ctx.advance();
                 return;
             }
-            const options = buildOrganizationOptions(orgs);
-            const menu = new StringSelectMenuBuilder()
-                .setCustomId(`task_select_org`)
-                .setPlaceholder(`Select organization`)
-                .addOptions(options as any);
             await interaction.editReply({
-                content: `Choose organization to continue.`,
-                components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(menu)],
+                content: prompt.message ?? `Choose organization to continue.`,
+                components: prompt.components ?? [],
             });
         })
         .onInteraction(async (ctx: StepContext<TaskFlowState>, select) => {
@@ -58,10 +45,8 @@ export function registerTaskOrganizationStep(
                 return false;
             }
             ctx.state.organizationUid = select.values[0];
-            const match = select.component.options?.find(option => {
-                return option.value === select.values[0];
-            });
-            ctx.state.organizationName = match?.label || select.values[0];
+            ctx.state.organizationName =
+                (await ResolveOrganizationName(interaction.user.id, select.values[0])) ?? select.values[0];
             await select.deferUpdate();
             return true;
         })

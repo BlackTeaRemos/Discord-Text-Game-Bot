@@ -18,7 +18,7 @@ import { OnMessageCreate } from './Events/MessageCreate.js';
 import { commands as loadedCommands, commandsReady } from './Commands/index.js';
 import { flowManager } from './Common/Flow/Manager.js';
 import { bootDiscordClient } from './App/Boot.js';
-import { initDiscord } from './App/DiscordInit.js';
+import { InitDiscord } from './App/DiscordInit.js';
 
 // Supported log levels with numeric severity (lower is more verbose)
 const LOG_LEVELS = { debug: 0, info: 1, warn: 2, error: 3 } as const;
@@ -107,7 +107,7 @@ export class DiscordApp {
             this._client = client;
 
             // Initialize the higher-level DiscordService and wire additional listeners
-            const discord = initDiscord({
+            const discord = InitDiscord({
                 eventBus: this.eventBus,
                 client: client,
                 config,
@@ -168,7 +168,7 @@ export class DiscordApp {
             return;
         }
 
-        const discord = initDiscord({
+        const discord = InitDiscord({
             eventBus: this.eventBus,
             client: this._client,
             config,

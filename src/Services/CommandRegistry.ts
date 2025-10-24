@@ -10,11 +10,11 @@ import {
 import {
     CheckPermission,
     resolveTokens as resolvePermission,
-    FormatPermissionToken,
     type PermissionTokenInput,
     type PermissionsObject,
 } from '../Common/permission/index.js';
 import type { GuildMember } from 'discord.js';
+import { FormatPermissionToken } from '../Common/permission/FormatPermissionToken.js';
 
 /** Error thrown when attempting to register a duplicate command id. */
 export class DuplicateCommandError extends Error {
@@ -194,7 +194,7 @@ export class CommandRegistry {
                     userId: ctx.userId,
                     guildId: ctx.guildId ?? undefined,
                     executionContext: ctx.executionContext,
-                    getMember: async() => {
+                    getMember: async () => {
                         if (opts?.member) {
                             return opts.member;
                         }
@@ -221,8 +221,8 @@ export class CommandRegistry {
 
                 const inputs: PermissionTokenInput[] = tokens.length
                     ? tokens.map(t => {
-                        return [...t];
-                    })
+                          return [...t];
+                      })
                     : [`command:${mod.meta.id}`];
 
                 // Build a minimal member-like object when none provided so permanent grants can be checked
@@ -269,7 +269,7 @@ export class CommandRegistry {
             }
 
             return await mod.execute(ctx);
-        } catch(err: any) {
+        } catch (err: any) {
             return { ok: false, error: err?.message || `UNKNOWN_ERROR` };
         }
     }

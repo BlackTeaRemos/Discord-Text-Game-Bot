@@ -32,15 +32,18 @@ export function createCommandContext(
     interaction: ChatInputCommandInteraction,
     correlationId?: string,
 ): CommandExecutionContext {
-    const executionContext = createExecutionContext(correlationId);
+    // Use the execution context that the interaction handler attaches (always present)
+    const executionContext = (interaction as any).executionContext as CommandExecutionContext;
 
     return {
         guildId: interaction.guildId || ``,
         userId: interaction.user.id,
         channelId: interaction.channelId,
-        options: Object.fromEntries(interaction.options.data.map(option => {
-            return [option.name, option.value];
-        })),
+        options: Object.fromEntries(
+            interaction.options.data.map(option => {
+                return [option.name, option.value];
+            }),
+        ),
         reply: async message => {
             // Use reply for initial response, followUp for subsequent or deferred
             const isInitial = !interaction.replied && !interaction.deferred;
@@ -90,7 +93,7 @@ export async function executeWithContext(
     flowBuilderFn: (flowManager: any, executionContext: any) => Promise<void>,
     correlationId?: string,
 ): Promise<void> {
-    const executionContext = createExecutionContext(correlationId);
-
+    // The interaction handler guarantees an executionContext is attached
+    const executionContext = (interaction as any).executionContext as CommandExecutionContext;
     await flowBuilderFn(flowManager, executionContext);
 }

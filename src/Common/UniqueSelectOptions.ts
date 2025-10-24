@@ -1,3 +1,9 @@
+// Utility functions for Discord select menus
+
+/**
+ * Ensures select menu options have unique values and fit Discord constraints (max 25 options).
+ * Filters out empty values, removes duplicates, and limits to the specified maximum.
+ */
 export function UniqueSelectOptions<T extends { value: string }>(options: T[], max = 25): T[] {
     const seen = new Set<string>();
     const out: T[] = [];
@@ -5,7 +11,7 @@ export function UniqueSelectOptions<T extends { value: string }>(options: T[], m
         const v = (o.value ?? ``).toString();
         if (!v) {
             continue;
-        }
+        } // skip empty values
         if (seen.has(v)) {
             continue;
         }

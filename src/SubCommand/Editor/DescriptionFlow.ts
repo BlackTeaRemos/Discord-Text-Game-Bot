@@ -10,17 +10,11 @@ import { WithTruncationNote } from './Description/WithTruncationNote.js';
 import { ApplyEdit } from '../../Flow/Command/Description/ApplyEdit.js';
 import { BuildEditControlsContent } from './Description/BuildEditControlsContent.js';
 import { BuildEditControlsMenu } from './Description/BuildEditControlsMenu.js';
-import { UniqueSelectOptions } from '../../Flow/Command/Description/Helpers.js';
-import {
-    listVersions,
-    getVersion,
-    togglePublic,
-    listObjectsForType,
-    getUserOrganizations,
-} from '../../Flow/Command/Description/db.js';
+import { listVersions, getVersion, togglePublic, listObjectsForType } from '../../Flow/Command/Description/db.js';
 import { GetUserOrganizations } from '../../Flow/Command/Description/GetUserOrganizations.js';
 import { GetLatestDescription } from '../../Flow/Object/Description/Latest.js';
 import { CreateDescriptionVersion } from '../../Flow/Object/Description/Update.js';
+import { UniqueSelectOptions } from '../../Common/UniqueSelectOptions.js';
 
 /**
  * Internal state carried across the description creation flow.
@@ -126,7 +120,7 @@ export async function StartDescriptionCreateFlow(
         .next()
         .step(`desc_select_org`)
         .prompt(async (ctx: DescriptionStepContext) => {
-            const orgs = await getUserOrganizations(interaction.user.id);
+            const orgs = await GetUserOrganizations(interaction.user.id);
             if (orgs.length === 0) {
                 await RenderDescription(ctx, {
                     content: `You do not belong to any organization. Description creation cancelled.`,
@@ -145,7 +139,7 @@ export async function StartDescriptionCreateFlow(
                 .setPlaceholder(`Select organization for this description`)
                 .addOptions(
                     UniqueSelectOptions(
-                        orgs.map(o => {
+                        orgs.map((o: any) => {
                             return { label: o.name.slice(0, 50), value: o.uid };
                         }),
                     ) as any,
