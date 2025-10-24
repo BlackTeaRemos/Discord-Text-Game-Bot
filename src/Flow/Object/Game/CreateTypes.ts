@@ -16,11 +16,7 @@ export type GameCreateStepContext = StepContext<GameCreateFlowState>;
 export interface GameCreateRenderers {
     BuildControlsContent: (state: GameCreateFlowState) => string;
     RenderPreview: (ctx: GameCreateStepContext) => Promise<void>;
-    RenderControls: (
-        ctx: GameCreateStepContext,
-        content: string,
-        components?: unknown,
-    ) => Promise<void>;
+    RenderControls: (ctx: GameCreateStepContext, content: string, components?: unknown) => Promise<void>;
 }
 /* eslint-enable no-unused-vars */
 
