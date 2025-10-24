@@ -16,7 +16,7 @@ PascalCase for all files except `index.ts`. Names describe primary purpose or op
 
 ### Function Naming
 
-camelCase verbs starting with action word. Function names match or derive from file purpose. One primary function per file. Function overloads and interface-based function parameters are permitted.
+UpperCamelCase verbs starting with action word. Function names match or derive from file purpose. One primary function per file. Function overloads and interface-based function parameters are permitted.
 
 ### Helper Functions
 
