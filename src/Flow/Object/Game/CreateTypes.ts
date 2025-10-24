@@ -9,15 +9,15 @@ export type GameCreateStepContext = StepContext<GameCreateFlowState>;
 
 /**
  * Shared renderer callbacks used by the command layer to render Discord UI components.
- * @property buildControlsContent (state) => string Generates control content string. @example renderers.buildControlsContent(state)
- * @property renderPreview (ctx) => Promise<void> Renders or updates the preview embed. @example await renderers.renderPreview(ctx)
- * @property renderControls (ctx, content, components?) => Promise<void> Renders or updates the control panel. @example await renderers.renderControls(ctx, 'Ready')
+ * @property BuildControlsContent (state) => string Generates control content string. @example renderers.BuildControlsContent(state)
+ * @property RenderPreview (ctx) => Promise<void> Renders or updates the preview embed. @example await renderers.RenderPreview(ctx)
+ * @property RenderControls (ctx, content, components?) => Promise<void> Renders or updates the control panel. @example await renderers.RenderControls(ctx, 'Ready')
  */
 /* eslint-disable no-unused-vars */
 export interface GameCreateRenderers {
-    buildControlsContent: (state: GameCreateFlowState) => string;
-    renderPreview: (ctx: GameCreateStepContext) => Promise<void>;
-    renderControls: (
+    BuildControlsContent: (state: GameCreateFlowState) => string;
+    RenderPreview: (ctx: GameCreateStepContext) => Promise<void>;
+    RenderControls: (
         ctx: GameCreateStepContext,
         content: string,
         components?: Array<ActionRowBuilder<ButtonBuilder | StringSelectMenuBuilder>>,

@@ -8,7 +8,7 @@ import { RenderControls } from './Renderers/RenderControls.js';
  * @returns GameCreateRenderers Renderer bundle consumed by the game creation flow. @example const renderers = gameCreateRenderers
  */
 export const gameCreateRenderers: GameCreateRenderers = {
-    buildControlsContent: BuildControlsContent,
-    renderPreview: RenderPreview,
-    renderControls: RenderControls,
+    BuildControlsContent,
+    RenderPreview,
+    RenderControls,
 };

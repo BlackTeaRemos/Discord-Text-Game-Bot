@@ -40,7 +40,7 @@ export async function finalizeGameCreation(
         log.error(`Renderers missing for game create flow`, GameCreateFlowConstants.logSource, `finalizeGameCreation`);
     }
     if (renderers) {
-        await renderers.renderControls(ctx, `Checking permissions before creating the game...`);
+        await renderers.RenderControls(ctx, `Checking permissions before creating the game...`);
     }
 
     const permission = await resolveGameCreatePermissions(base, { serverId: ctx.state.serverId });
@@ -55,7 +55,7 @@ export async function finalizeGameCreation(
             }
             if (decision !== `approve_once` && decision !== `approve_forever`) {
                 if (renderers) {
-                    await renderers.renderControls(
+                    await renderers.RenderControls(
                         ctx,
                         `Permission request denied or timed out. Adjust details or cancel.`,
                     );
@@ -65,7 +65,7 @@ export async function finalizeGameCreation(
         } else {
             const reason = permission.reason ?? `Permission denied for game creation.`;
             if (renderers) {
-                await renderers.renderControls(ctx, `${reason} Adjust details or cancel.`);
+                await renderers.RenderControls(ctx, `${reason} Adjust details or cancel.`);
             }
             return false;
         }
@@ -77,15 +77,15 @@ export async function finalizeGameCreation(
             description: ctx.state.description,
         });
         if (renderers) {
-            await renderers.renderPreview(ctx);
-            await renderers.renderControls(ctx, `Game created: ${created.uid} '${created.name}'.`);
+            await renderers.RenderPreview(ctx);
+            await renderers.RenderControls(ctx, `Game created: ${created.uid} '${created.name}'.`);
         }
         await ctx.cancel();
         return true;
     } catch (error) {
         log.error(`Game creation failed: ${String(error)}`, GameCreateFlowConstants.logSource, `finalizeGameCreation`);
         if (renderers) {
-            await renderers.renderControls(ctx, `Game creation failed: ${String(error)}.`);
+            await renderers.RenderControls(ctx, `Game creation failed: ${String(error)}.`);
         }
         return false;
     }

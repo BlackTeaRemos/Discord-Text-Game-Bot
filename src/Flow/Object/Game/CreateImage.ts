@@ -7,11 +7,11 @@ import { UploadImage } from '../../../Repository/Common/UploadImage.js';
 
 /**
  * Process an image attachment or URL provided while updating the game preview.
- * @param ctx GameCreateStepContext Flow state context. @example await processImageInput(ctx, message)
+ * @param ctx GameCreateStepContext Flow state context. @example await ProcessImageInput(ctx, message)
  * @param message Message Incoming Discord message from the user.
  * @returns Promise<boolean> True when the image update succeeds.
  */
-export async function processImageInput(ctx: GameCreateStepContext, message: Message): Promise<boolean> {
+export async function ProcessImageInput(ctx: GameCreateStepContext, message: Message): Promise<boolean> {
     const content = message.content?.trim();
     const attachment = message.attachments.first();
     if (attachment) {
@@ -25,7 +25,7 @@ export async function processImageInput(ctx: GameCreateStepContext, message: Mes
         ctx.state.uploadInProgress = true;
         const renderers = recallRenderers(ctx);
         if (renderers) {
-            await renderers.renderControls(ctx, renderers.buildControlsContent(ctx.state));
+            await renderers.RenderControls(ctx, renderers.BuildControlsContent(ctx.state));
         }
         try {
             const response = await fetch(attachment.url);
@@ -44,7 +44,7 @@ export async function processImageInput(ctx: GameCreateStepContext, message: Mes
             log.error(
                 `Failed to upload image: ${String(error)}`,
                 GameCreateFlowConstants.logSource,
-                `processImageInput`,
+                `ProcessImageInput`,
             );
             await message.reply(`Uploading the image failed. Try again or paste a direct URL.`);
             return false;
