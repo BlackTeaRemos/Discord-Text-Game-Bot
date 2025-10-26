@@ -1,11 +1,5 @@
-import {
-    SlashCommandBuilder,
-    ActionRowBuilder,
-    ChatInputCommandInteraction,
-    StringSelectMenuBuilder,
-    MessageFlags,
-    EmbedBuilder,
-} from 'discord.js';
+import { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, MessageFlags, EmbedBuilder } from 'discord.js';
+import type { ChatInputCommandInteraction } from 'discord.js';
 import { flowManager } from '../Common/Flow/Manager.js';
 import { executeWithContext } from '../Common/ExecutionContextHelpers.js';
 import { getSupportedTypes } from '../Common/Flow/ObjectRegistry.js';
@@ -16,6 +10,7 @@ import { ResolveViewPermissions } from '../Flow/Command/ViewFlow.js';
 import { RequestPermissionFromAdmin } from '../SubCommand/Permission/PermissionUI.js';
 import { GrantForever } from '../Common/Permission/index.js';
 import { PrepareOrganizationPrompt } from '../SubCommand/Prompt/Organization.js';
+import type { InteractionExecutionContextCarrier } from '../Common/Type/Interaction.js';
 
 export const data = new SlashCommandBuilder().setName(`view`).setDescription(`Interactive view of stored objects`);
 export const permissionTokens = `command:view`;
@@ -47,7 +42,9 @@ function uniqueSelectOptions<T extends { value: string }>(options: T[], max = 25
     return out;
 }
 
-export async function execute(interaction: ChatInputCommandInteraction) {
+export async function execute(
+    interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
+) {
     await executeWithContext(interaction, async (flowManager, executionContext) => {
         await flowManager
             .builder(interaction.user.id, interaction, {} as State, executionContext)

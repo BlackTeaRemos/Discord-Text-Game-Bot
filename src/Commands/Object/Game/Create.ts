@@ -1,18 +1,12 @@
-import {
-    ChatInputCommandInteraction,
-    Colors,
-    EmbedBuilder,
-    Message,
-    MessageFlags,
-    SlashCommandSubcommandBuilder,
-} from 'discord.js';
-import type { ExecutionContext } from '../../../Domain/Command.js';
+import { Colors, EmbedBuilder, MessageFlags, SlashCommandSubcommandBuilder } from 'discord.js';
+import type { ChatInputCommandInteraction } from 'discord.js';
 import { createGameCreateState } from '../../../Flow/Object/Game/Create.js';
 import { GameCreateFlowConstants } from '../../../Flow/Object/Game/CreateState.js';
 import { BuildGamePreviewEmbed } from '../../../SubCommand/Object/Game/Renderers/BuildGamePreviewEmbed.js';
 import { BuildControlsContent } from '../../../SubCommand/Object/Game/Renderers/BuildControlsContent.js';
 import { BuildControlRows } from '../../../SubCommand/Object/Game/Renderers/BuildControlRows.js';
 import { AwaitTextInput } from '../../../SubCommand/Prompt/TextAsync.js';
+import type { InteractionExecutionContextCarrier } from '../../../Common/Type/Interaction.js';
 
 export const data = new SlashCommandSubcommandBuilder()
     .setName(`create`)
@@ -22,10 +16,12 @@ export const permissionTokens = `object:game:create`;
 
 /**
  * Show a basic game preview embed before starting the interactive flow.
- * @param interaction ChatInputCommandInteraction Discord interaction used to reply. @example await execute(interaction)
+ * @param interaction InteractionExecutionContextCarrier<ChatInputCommandInteraction> Discord interaction used to reply with execution context hydrated. @example await execute(interaction)
  * @returns Promise<void> Resolves after the preview embed is sent. @example await execute(interaction)
  */
-export async function execute(interaction: ChatInputCommandInteraction): Promise<void> {
+export async function execute(
+    interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
+): Promise<void> {
     const serverId = interaction.guildId;
     if (!serverId) {
         throw new Error(`This command must be used in a server.`);
@@ -45,7 +41,7 @@ export async function execute(interaction: ChatInputCommandInteraction): Promise
         flags: MessageFlags.Ephemeral,
     });
 
-    const previewMessage = (await interaction.fetchReply()) as Message;
+    const previewMessage = await interaction.fetchReply();
     state.previewMessageId = previewMessage.id;
 
     const controlsContent = BuildControlsContent(state);
@@ -58,22 +54,17 @@ export async function execute(interaction: ChatInputCommandInteraction): Promise
 
     state.controlsMessageId = controlsMessage.id;
 
-    const executionContext = (interaction as any).executionContext as ExecutionContext | undefined;
-    if (executionContext) {
-        const bucket = executionContext.shared.objectGameCreate ?? {};
-        bucket.state = state;
-        bucket.previewMessageId = state.previewMessageId;
-        bucket.controlsMessageId = state.controlsMessageId;
-        executionContext.shared.objectGameCreate = bucket;
-    }
+    const bucket = interaction.executionContext.shared.objectGameCreate ?? {};
+    bucket.state = state;
+    bucket.previewMessageId = state.previewMessageId;
+    bucket.controlsMessageId = state.controlsMessageId;
+    interaction.executionContext.shared.objectGameCreate = bucket;
 
     state.awaitingName = true;
-    if (state.controlsMessageId) {
-        await interaction.webhook.editMessage(state.controlsMessageId, {
-            content: BuildControlsContent(state),
-            components: BuildControlRows(state),
-        });
-    }
+    await interaction.webhook.editMessage(state.controlsMessageId, {
+        content: BuildControlsContent(state),
+        components: BuildControlRows(state),
+    });
 
     try {
         const newName = await AwaitTextInput({
@@ -84,26 +75,20 @@ export async function execute(interaction: ChatInputCommandInteraction): Promise
             cancelWords: [`cancel`],
         });
         state.gameName = newName;
-        if (state.previewMessageId) {
-            await interaction.webhook.editMessage(state.previewMessageId, {
-                content: `Preview how your game will appear once created.`,
-                embeds: [BuildGamePreviewEmbed(state)],
-            });
-        }
+        await interaction.webhook.editMessage(state.previewMessageId, {
+            content: `Preview how your game will appear once created.`,
+            embeds: [BuildGamePreviewEmbed(state)],
+        });
     } finally {
         state.awaitingName = false;
-        if (state.controlsMessageId) {
-            await interaction.webhook.editMessage(state.controlsMessageId, {
-                content: BuildControlsContent(state),
-                components: BuildControlRows(state),
-            });
-        }
-        if (executionContext) {
-            const bucket = executionContext.shared.objectGameCreate ?? {};
-            bucket.state = state;
-            bucket.previewMessageId = state.previewMessageId;
-            bucket.controlsMessageId = state.controlsMessageId;
-            executionContext.shared.objectGameCreate = bucket;
-        }
+        await interaction.webhook.editMessage(state.controlsMessageId, {
+            content: BuildControlsContent(state),
+            components: BuildControlRows(state),
+        });
+        const finalBucket = interaction.executionContext.shared.objectGameCreate ?? {};
+        finalBucket.state = state;
+        finalBucket.previewMessageId = state.previewMessageId;
+        finalBucket.controlsMessageId = state.controlsMessageId;
+        interaction.executionContext.shared.objectGameCreate = finalBucket;
     }
 }

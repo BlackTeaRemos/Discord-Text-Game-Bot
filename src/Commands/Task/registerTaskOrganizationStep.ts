@@ -4,10 +4,11 @@ import type { FlowBuilder } from '../../Common/Flow/Builder.js';
 import type { StepContext } from '../../Common/Flow/Types.js';
 import type { TaskFlowState } from './TaskFlowState.js';
 import { PrepareOrganizationPrompt, ResolveOrganizationName } from '../../SubCommand/Prompt/Organization.js';
+import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
 
 export function registerTaskOrganizationStep(
     builder: FlowBuilder<TaskFlowState>,
-    interaction: ChatInputCommandInteraction,
+    interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
 ): FlowBuilder<TaskFlowState> {
     return builder
         .step(`task_select_org`, `task_org`)

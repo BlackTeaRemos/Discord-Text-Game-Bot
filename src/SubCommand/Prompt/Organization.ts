@@ -67,11 +67,11 @@ export async function PrepareOrganizationPrompt(options: OrganizationPromptOptio
         .setCustomId(options.customId)
         .setPlaceholder(options.placeholder ?? `Select organization`)
         .addOptions(
-            selection.orgs.slice(0, limit).map((org): { label: string; value: string } => {
+            selection.orgs.slice(0, limit).map(org => {
                 return {
                     label: org.name.slice(0, 100),
                     value: org.uid,
-                };
+                } as any;
             }),
         );
     return {
@@ -90,7 +90,7 @@ export async function PrepareOrganizationPrompt(options: OrganizationPromptOptio
  */
 export async function ResolveOrganizationName(userId: string, organizationUid: string): Promise<string | undefined> {
     const selection = await GetOrganizationSelection(userId);
-    const match = selection.orgs.find((org): boolean => {
+    const match = selection.orgs.find(org => {
         return org.uid === organizationUid;
     });
     return match?.name;

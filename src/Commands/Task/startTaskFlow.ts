@@ -6,10 +6,11 @@ import { registerTaskOrganizationStep } from './RegisterTaskOrganizationStep.js'
 import { registerTaskActionMenuStep } from './RegisterTaskActionMenuStep.js';
 import { registerTaskCreateStep } from './RegisterTaskCreateStep.js';
 import { registerTaskViewStep } from './RegisterTaskViewStep.js';
+import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
 
 export async function startTaskFlow(
     flowManager: FlowManager,
-    interaction: ChatInputCommandInteraction,
+    interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
     executionContext?: ExecutionContext,
 ): Promise<void> {
     const builder = flowManager.builder<TaskFlowState>(interaction.user.id, interaction, {}, executionContext);

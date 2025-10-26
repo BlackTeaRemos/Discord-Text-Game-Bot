@@ -1,20 +1,17 @@
-import {
-    SlashCommandBuilder,
-    ChatInputCommandInteraction,
-    SlashCommandSubcommandBuilder,
-    MessageFlags,
-} from 'discord.js';
+import { SlashCommandBuilder, SlashCommandSubcommandBuilder, MessageFlags } from 'discord.js';
+import type { ChatInputCommandInteraction } from 'discord.js';
 import { readdirSync, lstatSync } from 'fs';
 import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { log } from '../../Common/Log.js';
 import type { TokenSegmentInput } from '../../Common/Permission/index.js';
+import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
 
 // Removed createRequire; using dynamic import for ESM modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-type Handler = (interaction: ChatInputCommandInteraction) => Promise<void>;
+type Handler = (interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>) => Promise<void>;
 const handlers: Record<string, Handler> = {};
 
 /** Root command for 'object' with dynamic subcommand groups */
@@ -60,7 +57,9 @@ await (async () => {
 })();
 
 /** Dispatch to the appropriate handler based on group and subcommand */
-export async function execute(interaction: ChatInputCommandInteraction) {
+export async function execute(
+    interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
+) {
     const groupRaw = interaction.options.getSubcommandGroup(false) ?? ``;
     const subRaw = interaction.options.getSubcommand(true) ?? ``;
     const group = groupRaw.toLowerCase();
@@ -86,7 +85,9 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     }
 }
 
-export const permissionTokens = async (interaction: ChatInputCommandInteraction): Promise<TokenSegmentInput[][]> => {
+export const permissionTokens = async (
+    interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
+): Promise<TokenSegmentInput[][]> => {
     const groupRaw = interaction.options.getSubcommandGroup(false) ?? ``;
     const subRaw = interaction.options.getSubcommand(true) ?? ``;
     const group = groupRaw.toLowerCase();

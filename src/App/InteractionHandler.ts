@@ -28,7 +28,7 @@ export function CreateInteractionHandler(options: { loadedCommands: Record<strin
 
         try {
             // Always attach a fresh ExecutionContext for this command invocation
-            (interaction as any).executionContext = createExecutionContext(interaction.id);
+            interaction.executionContext = createExecutionContext(interaction.id);
 
             const member = interaction.guild ? await interaction.guild.members.fetch(interaction.user.id) : null;
 

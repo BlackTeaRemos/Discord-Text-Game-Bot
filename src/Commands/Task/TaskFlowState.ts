@@ -1,5 +1,6 @@
 import type { ChatInputCommandInteraction } from 'discord.js';
 import type { TaskListItem } from '../../Domain/Task.js';
+import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
 
 export type TaskFlowAction = `create` | `view_mine` | `view_org` | `assign` | `status` | `exit`;
 
@@ -17,5 +18,5 @@ export interface TaskFlowState {
     awaitingStatus?: boolean;
     awaitingAssignment?: boolean;
     latestTask?: TaskListItem;
-    baseInteraction?: ChatInputCommandInteraction;
+    baseInteraction?: InteractionExecutionContextCarrier<ChatInputCommandInteraction>;
 }

@@ -1,6 +1,5 @@
 import {
     SlashCommandSubcommandBuilder,
-    ChatInputCommandInteraction,
     ModalBuilder,
     TextInputBuilder,
     TextInputStyle,
@@ -8,12 +7,14 @@ import {
     ModalSubmitInteraction,
     MessageFlags,
 } from 'discord.js';
+import type { ChatInputCommandInteraction } from 'discord.js';
 import { CreateDescription } from '../../../Flow/Object/Description/Create.js';
 import { log } from '../../../Common/Log.js';
 import { flowManager } from '../../../Common/Flow/Manager.js';
 import { executeWithContext } from '../../../Common/ExecutionContextHelpers.js';
 import type { ExecutionContext } from '../../../Domain/index.js';
 import type { TokenSegmentInput } from '../../../Common/Permission/index.js';
+import type { InteractionExecutionContextCarrier } from '../../../Common/Type/Interaction.js';
 
 interface FlowState {
     refType: `organization` | `game` | `user`;
@@ -24,7 +25,7 @@ interface FlowState {
 type StepContext = {
     state: FlowState;
     executionContext?: ExecutionContext;
-    interaction: ChatInputCommandInteraction;
+    interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>;
     userId: string;
 };
 
@@ -34,7 +35,9 @@ export const data = new SlashCommandSubcommandBuilder()
 
 export const permissionTokens: TokenSegmentInput[][] = [[`object`, `description`, `create`]];
 
-export async function execute(interaction: ChatInputCommandInteraction) {
+export async function execute(
+    interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
+) {
     await executeWithContext(interaction, async (flowManager, executionContext) => {
         // Interactive flow: collect refType, refUid, and description text
         await flowManager

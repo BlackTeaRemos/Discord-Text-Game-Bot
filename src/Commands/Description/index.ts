@@ -1,7 +1,9 @@
-import { SlashCommandBuilder, ChatInputCommandInteraction, MessageFlags } from 'discord.js';
+import { SlashCommandBuilder, MessageFlags } from 'discord.js';
+import type { ChatInputCommandInteraction } from 'discord.js';
 import { executeWithContext } from '../../Common/ExecutionContextHelpers.js';
 import { StartInteractiveDescriptionEditor } from '../../SubCommand/Editor/DescriptionEditor.js';
 import type { TokenSegmentInput } from '../../Common/Permission/index.js';
+import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
 
 export const data = new SlashCommandBuilder()
     .setName(`description`)
@@ -12,7 +14,9 @@ export const data = new SlashCommandBuilder()
 
 export const permissionTokens: TokenSegmentInput[][] = [[`description`]];
 
-export async function execute(interaction: ChatInputCommandInteraction) {
+export async function execute(
+    interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
+) {
     const sub = interaction.options.getSubcommand();
     if (sub !== `create`) {
         await interaction.reply({ content: `Unsupported subcommand`, flags: MessageFlags.Ephemeral });

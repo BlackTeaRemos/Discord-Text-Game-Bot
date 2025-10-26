@@ -1,11 +1,8 @@
-import {
-    SlashCommandBuilder,
-    ChatInputCommandInteraction,
-    ApplicationCommandOptionType,
-    MessageFlags,
-} from 'discord.js';
+import { SlashCommandBuilder, ApplicationCommandOptionType, MessageFlags } from 'discord.js';
+import type { ChatInputCommandInteraction } from 'discord.js';
 import { createCommandContext } from '../../Common/ExecutionContextHelpers.js';
 import type { TokenSegmentInput } from '../../Common/Permission/index.js';
+import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
 
 // Diagnostic: list commands built by loader
 
@@ -18,7 +15,9 @@ export const data = new SlashCommandBuilder()
 
 export const permissionTokens = `diagnostic:tree`;
 
-export async function execute(interaction: ChatInputCommandInteraction) {
+export async function execute(
+    interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
+) {
     const ctx = createCommandContext(interaction);
     const sub = interaction.options.getSubcommand(true);
     if (sub === `tree`) {

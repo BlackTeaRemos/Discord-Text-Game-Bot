@@ -1,12 +1,8 @@
-import {
-    SlashCommandSubcommandBuilder,
-    ChatInputCommandInteraction,
-    StringSelectMenuBuilder,
-    ActionRowBuilder,
-    MessageFlags,
-} from 'discord.js';
+import { SlashCommandSubcommandBuilder, StringSelectMenuBuilder, ActionRowBuilder, MessageFlags } from 'discord.js';
+import type { ChatInputCommandInteraction } from 'discord.js';
 import { executeWithContext } from '../../../Common/ExecutionContextHelpers.js';
 import type { TokenSegmentInput } from '../../../Common/Permission/index.js';
+import type { InteractionExecutionContextCarrier } from '../../../Common/Type/Interaction.js';
 
 export const data = new SlashCommandSubcommandBuilder()
     .setName(`flow-demo`)
@@ -23,7 +19,9 @@ interface FlowState {
  * Example command demonstrating how to use ExecutionContext with FlowManager
  * to avoid recomputation across multiple flow steps.
  */
-export async function execute(interaction: ChatInputCommandInteraction) {
+export async function execute(
+    interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
+) {
     await executeWithContext(interaction, async (flowManager, executionContext) => {
         await flowManager
             .builder(interaction.user.id, interaction, {} as FlowState, executionContext)

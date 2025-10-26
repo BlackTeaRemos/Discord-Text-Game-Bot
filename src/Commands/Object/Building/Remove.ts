@@ -1,8 +1,10 @@
-import { SlashCommandSubcommandBuilder, ChatInputCommandInteraction, MessageFlags } from 'discord.js';
+import { SlashCommandSubcommandBuilder, MessageFlags } from 'discord.js';
+import type { ChatInputCommandInteraction } from 'discord.js';
 import { RemoveFactory, GetFactoryOrganizationUid } from '../../../Flow/Object/Building/Remove.js';
 import { log } from '../../../Common/Log.js';
 import { createCommandContext } from '../../../Common/ExecutionContextHelpers.js';
 import { resolve, type TokenSegmentInput } from '../../../Common/Permission/index.js';
+import type { InteractionExecutionContextCarrier } from '../../../Common/Type/Interaction.js';
 
 export const data = new SlashCommandSubcommandBuilder()
     .setName(`remove`)
@@ -13,7 +15,9 @@ export const data = new SlashCommandSubcommandBuilder()
 
 export const permissionTokens: TokenSegmentInput[][] = [[`object`, `building`, `remove`]];
 
-export async function execute(interaction: ChatInputCommandInteraction) {
+export async function execute(
+    interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
+) {
     const ctx = createCommandContext(interaction);
 
     const uid = interaction.options.getString(`uid`, true).trim();
