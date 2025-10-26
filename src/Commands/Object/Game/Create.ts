@@ -1,122 +1,113 @@
-import { ChatInputCommandInteraction, MessageFlags, SlashCommandSubcommandBuilder } from 'discord.js';
+import {
+    ChatInputCommandInteraction,
+    Colors,
+    EmbedBuilder,
+    Message,
+    MessageFlags,
+    SlashCommandSubcommandBuilder,
+} from 'discord.js';
+import type { ExecutionContext } from '../../../Domain/Command.js';
 import { createGameCreateState } from '../../../Flow/Object/Game/Create.js';
-import { FinalizeGameCreation } from '../../../Flow/Object/Game/CreateFinalize.js';
-import { SetGameImageUrl } from '../../../Flow/Object/Game/CreateImage.js';
-import { resolveGameCreatePermissions } from '../../../Flow/Command/GameCreateFlow.js';
-import { RequestPermissionFromAdmin } from '../../../SubCommand/Permission/PermissionUI.js';
+import { GameCreateFlowConstants } from '../../../Flow/Object/Game/CreateState.js';
+import { BuildGamePreviewEmbed } from '../../../SubCommand/Object/Game/Renderers/BuildGamePreviewEmbed.js';
+import { BuildControlsContent } from '../../../SubCommand/Object/Game/Renderers/BuildControlsContent.js';
+import { BuildControlRows } from '../../../SubCommand/Object/Game/Renderers/BuildControlRows.js';
+import { AwaitTextInput } from '../../../SubCommand/Prompt/TextAsync.js';
 
 export const data = new SlashCommandSubcommandBuilder()
     .setName(`create`)
-    .setDescription(`Create a new game immediately using provided details`)
-    .addStringOption(option => {
-        return option
-            .setName(`name`)
-            .setDescription(`Optional default game name to prefill in the editor`)
-            .setMaxLength(100)
-            .setRequired(false);
-    })
-    .addStringOption(option => {
-        return option
-            .setName(`description`)
-            .setDescription(`Optional short description shown on the game overview`)
-            .setMaxLength(1024)
-            .setRequired(false);
-    })
-    .addStringOption(option => {
-        return option
-            .setName(`image_url`)
-            .setDescription(`Direct URL of the preview image (http/https)`)
-            .setMaxLength(512)
-            .setRequired(false);
-    });
+    .setDescription(`Preview a new game before completing creation`);
 
 export const permissionTokens = `object:game:create`;
 
 /**
- * Create a game record using command parameters without interactive modals.
- * @param interaction ChatInputCommandInteraction Slash subcommand interaction from Discord. @example await execute(interaction)
- * @returns Promise<void> Resolves after the game is created or an error message is sent. @example await execute(interaction)
+ * Show a basic game preview embed before starting the interactive flow.
+ * @param interaction ChatInputCommandInteraction Discord interaction used to reply. @example await execute(interaction)
+ * @returns Promise<void> Resolves after the preview embed is sent. @example await execute(interaction)
  */
 export async function execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const serverId = interaction.guildId;
     if (!serverId) {
-        await interaction.reply({ content: `This command must be used in a server.`, flags: MessageFlags.Ephemeral });
-        return;
-    }
-    const nameOption = interaction.options.getString(`name`)?.trim() || undefined;
-    const descriptionOption = interaction.options.getString(`description`)?.trim() || undefined;
-    const imageOption = interaction.options.getString(`image_url`)?.trim() || undefined;
-
-    if (imageOption && !/^https?:\/\//i.test(imageOption)) {
-        await interaction.reply({ content: `Image URL must start with http or https.`, flags: MessageFlags.Ephemeral });
-        return;
+        throw new Error(`This command must be used in a server.`);
     }
 
-    const permission = await resolveGameCreatePermissions(interaction, { serverId });
-    if (!permission.allowed) {
-        if (permission.requiresApproval) {
-            const tokens = permission.tokens ?? [];
-            if (tokens.length === 0) {
-                await interaction.reply({
-                    content: `Approval required but no permission tokens were supplied. Contact an administrator.`,
-                    flags: MessageFlags.Ephemeral,
-                });
-                return;
-            }
-            const decision = await RequestPermissionFromAdmin(interaction, {
-                tokens,
-                reason: permission.reason,
-            });
-            if (decision === `approve_once` || decision === `approve_forever`) {
-                // continue
-            } else if (decision === `timeout`) {
-                await interaction.reply({
-                    content: `No administrator responded in time. Try again later.`,
-                    flags: MessageFlags.Ephemeral,
-                });
-                return;
-            } else if (decision === `no_admin`) {
-                await interaction.reply({
-                    content: `No eligible administrator could be contacted. Ask an admin to review permissions.`,
-                    flags: MessageFlags.Ephemeral,
-                });
-                return;
-            } else {
-                await interaction.reply({
-                    content: `Permission request was denied. Adjust details or contact an administrator.`,
-                    flags: MessageFlags.Ephemeral,
-                });
-                return;
-            }
-        } else {
-            const reason = permission.reason ?? `Permission denied for game creation.`;
-            await interaction.reply({ content: reason, flags: MessageFlags.Ephemeral });
-            return;
-        }
-    }
-
-    const state = createGameCreateState({ serverId, defaultName: nameOption });
-    if (nameOption) {
-        state.gameName = nameOption;
-    }
-    if (descriptionOption) {
-        state.description = descriptionOption;
-    }
-    if (imageOption) {
-        SetGameImageUrl(state, imageOption);
-    }
-
-    const result = await FinalizeGameCreation(state);
-    if (!result.success || !result.game) {
-        await interaction.reply({
-            content: `Game creation failed: ${result.error ?? `Unknown error.`}`,
-            flags: MessageFlags.Ephemeral,
-        });
-        return;
-    }
+    const state = createGameCreateState({ serverId });
+    const embed = new EmbedBuilder()
+        .setColor(Colors.Blurple)
+        .setTitle(`# New Game Preview`)
+        .setDescription(`Describe the experience your players should expect.`)
+        .setFooter({ text: `Server ${serverId}` })
+        .setImage(GameCreateFlowConstants.defaultImageUrl);
 
     await interaction.reply({
-        content: `Game created with uid ${result.game.uid} and name '${result.game.name}'.`,
+        content: `Preview how your game will appear once created.`,
+        embeds: [embed],
         flags: MessageFlags.Ephemeral,
     });
+
+    const previewMessage = (await interaction.fetchReply()) as Message;
+    state.previewMessageId = previewMessage.id;
+
+    const controlsContent = BuildControlsContent(state);
+    const controlRows = BuildControlRows(state);
+    const controlsMessage = await interaction.followUp({
+        content: controlsContent,
+        components: controlRows,
+        flags: MessageFlags.Ephemeral,
+    });
+
+    state.controlsMessageId = controlsMessage.id;
+
+    const executionContext = (interaction as any).executionContext as ExecutionContext | undefined;
+    const persistState = () => {
+        if (!executionContext) {
+            return;
+        }
+        const bucket = executionContext.shared.objectGameCreate ?? {};
+        bucket.state = state;
+        bucket.previewMessageId = state.previewMessageId;
+        bucket.controlsMessageId = state.controlsMessageId;
+        executionContext.shared.objectGameCreate = bucket;
+    };
+
+    const renderControls = async () => {
+        if (!state.controlsMessageId) {
+            return;
+        }
+        await interaction.webhook.editMessage(state.controlsMessageId, {
+            content: BuildControlsContent(state),
+            components: BuildControlRows(state),
+        });
+    };
+
+    const renderPreview = async () => {
+        if (!state.previewMessageId) {
+            return;
+        }
+        await interaction.webhook.editMessage(state.previewMessageId, {
+            content: `Preview how your game will appear once created.`,
+            embeds: [BuildGamePreviewEmbed(state)],
+        });
+    };
+
+    persistState();
+
+    state.awaitingName = true;
+    await renderControls();
+
+    try {
+        const newName = await AwaitTextInput({
+            interaction,
+            prompt: `Send the game title you want to use. Type **cancel** to keep the current name.`,
+            minLength: 1,
+            maxLength: 100,
+            cancelWords: [`cancel`],
+        });
+        state.gameName = newName;
+        await renderPreview();
+    } finally {
+        state.awaitingName = false;
+        await renderControls();
+        persistState();
+    }
 }

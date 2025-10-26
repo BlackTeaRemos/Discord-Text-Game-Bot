@@ -18,6 +18,7 @@ export const ERROR_CODES = {
     NOT_FOUND: `NOT_FOUND`,
     CONFLICT: `CONFLICT`,
     INTERNAL_ERROR: `INTERNAL_ERROR`,
+    PERMISSION_APPROVAL_ERROR: `PERMISSION_APPROVAL_ERROR`,
 } as const;
 
 /** Union type of all known error code string literals. */
@@ -94,5 +95,23 @@ export class ConflictError extends AppError {
 export class InternalError extends AppError {
     constructor(message: string, details?: Record<string, any>, cause?: unknown) {
         super(ERROR_CODES.INTERNAL_ERROR, message, details, cause);
+    }
+}
+
+/** PermissionApprovalError indicates an interactive approval was rejected or failed. */
+export class PermissionApprovalError extends AppError {
+    /** Safe-to-display text that was shown to the user. */
+    public readonly displayMessage: string;
+    /** Structured log metadata for tracing approval failures. */
+    public readonly logContext?: Record<string, any>;
+
+    /**
+     * @param displayMessage string - Message already reported to the requesting user (example: 'Administrator denied the request.').
+     * @param logContext Record<string,any>|undefined - Additional context for logging (example: { guildId: '123', reason: 'deny' }).
+     */
+    constructor(displayMessage: string, logContext?: Record<string, any>) {
+        super(ERROR_CODES.PERMISSION_APPROVAL_ERROR, displayMessage, logContext);
+        this.displayMessage = displayMessage;
+        this.logContext = logContext;
     }
 }

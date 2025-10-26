@@ -6,9 +6,11 @@ import {
     PermissionsBitField,
     EmbedBuilder,
     Colors,
+    MessageFlags,
 } from 'discord.js';
 import { GrantForever, type PermissionDecision, type PermissionToken } from '../../Common/permission/index.js';
 import { FormatPermissionToken } from '../../Common/permission/FormatPermissionToken.js';
+import { PermissionApprovalError } from '../../Common/Errors.js';
 
 /**
  * Send an approval request to a random administrator in the guild and wait for their response.
@@ -16,15 +18,30 @@ import { FormatPermissionToken } from '../../Common/permission/FormatPermissionT
  *
  * Note: This is a prototype. In production code this should store requests in DB and use a robust
  * interactive component handler instead of an in-memory collector.
+ * @throws PermissionApprovalError When the approval cannot be completed (denied, timeout, delivery failure).
  */
 export async function RequestPermissionFromAdmin(
     interaction: ChatInputCommandInteraction,
     options: { tokens: PermissionToken[]; reason?: string },
     timeoutMs = 5 * 60 * 1000,
 ): Promise<PermissionDecision> {
+    const respondToUser = async (message: string): Promise<void> => {
+        if (interaction.replied || interaction.deferred) {
+            await interaction.followUp({ content: message, flags: MessageFlags.Ephemeral });
+        } else {
+            await interaction.reply({ content: message, flags: MessageFlags.Ephemeral });
+        }
+    };
+
     const guild = interaction.guild;
     if (!guild) {
-        return `no_admin`;
+        const message = `Unable to locate the server context for approval. Try again from within the guild.`;
+        await respondToUser(message);
+        throw new PermissionApprovalError(message, {
+            reason: `missing_guild`,
+            interactionId: interaction.id,
+            userId: interaction.user.id,
+        });
     }
 
     // Fetch all members and find administrators (exclude bots)
@@ -34,7 +51,13 @@ export async function RequestPermissionFromAdmin(
     });
 
     if (!admins || admins.size === 0) {
-        return `no_admin`;
+        const message = `No eligible administrator could be contacted. Ask an admin to review permissions.`;
+        await respondToUser(message);
+        throw new PermissionApprovalError(message, {
+            reason: `no_admin`,
+            guildId: guild.id,
+            userId: interaction.user.id,
+        });
     }
 
     // Pick a random admin
@@ -75,7 +98,13 @@ export async function RequestPermissionFromAdmin(
                 components: [row],
             });
         } catch (err2) {
-            return `no_admin`;
+            const message = `Failed to deliver approval request to an administrator.`;
+            await respondToUser(message);
+            throw new PermissionApprovalError(message, {
+                reason: `delivery_failed`,
+                guildId: guild.id,
+                userId: interaction.user.id,
+            });
         }
     }
 
@@ -97,12 +126,29 @@ export async function RequestPermissionFromAdmin(
             GrantForever(guild.id, interaction.user.id, options.tokens[0] ?? `unknown`);
             return `approve_forever`;
         }
-        return `deny`;
+        const message = `Administrator denied the permission request.`;
+        await respondToUser(message);
+        throw new PermissionApprovalError(message, {
+            reason: `deny`,
+            guildId: guild.id,
+            userId: interaction.user.id,
+            adminId: admin.id,
+        });
     } catch (err) {
         // Timeout or other error
         try {
             await msg.edit({ content: `${admin} (no response)`, components: [] });
         } catch {}
-        return `timeout`;
+        if (err instanceof PermissionApprovalError) {
+            throw err;
+        }
+        const message = `No administrator responded in time. Try again later.`;
+        await respondToUser(message);
+        throw new PermissionApprovalError(message, {
+            reason: `timeout`,
+            guildId: guild.id,
+            userId: interaction.user.id,
+            adminId: admin.id,
+        });
     }
 }

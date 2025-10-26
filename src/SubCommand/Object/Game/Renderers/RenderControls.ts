@@ -12,17 +12,14 @@ import { RecallInteraction } from './RecallInteraction.js';
  * @param components ActionRowBuilder<ButtonBuilder | StringSelectMenuBuilder>[] Optional component override list. @example await RenderControls(ctx, 'Ready', customRows)
  * @returns Promise<void> Resolves once the control message is sent. @example await RenderControls(ctx, 'Ready')
  */
-export async function RenderControls(
-    ctx: GameCreateStepContext,
-    content: string,
-    components?: Array<ActionRowBuilder<ButtonBuilder | StringSelectMenuBuilder>>,
-): Promise<void> {
+export async function RenderControls(ctx: GameCreateStepContext, content: string, components?: unknown): Promise<void> {
     const base = RecallInteraction(ctx);
     if (!base) {
         return;
     }
     const rows =
-        components ?? (BuildControlRows(ctx.state) as Array<ActionRowBuilder<ButtonBuilder | StringSelectMenuBuilder>>);
+        (components as Array<ActionRowBuilder<ButtonBuilder | StringSelectMenuBuilder>> | undefined) ??
+        (BuildControlRows(ctx.state) as Array<ActionRowBuilder<ButtonBuilder | StringSelectMenuBuilder>>);
     const payload = {
         content,
         components: rows,

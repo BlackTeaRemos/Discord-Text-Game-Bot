@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction } from 'discord.js';
-import { CommandExecutionContext, createExecutionContext } from '../Domain/index.js';
+import type { CommandExecutionContext, ExecutionContext } from '../Domain/index.js';
 import { flowManager } from './Flow/Manager.js';
 
 /**
@@ -33,7 +33,8 @@ export function createCommandContext(
     correlationId?: string,
 ): CommandExecutionContext {
     // Use the execution context that the interaction handler attaches (always present)
-    const executionContext = (interaction as any).executionContext as CommandExecutionContext;
+    // The object attached to the interaction is an ExecutionContext implementation.
+    const executionContext = (interaction as any).executionContext as ExecutionContext;
 
     return {
         guildId: interaction.guildId || ``,
@@ -93,7 +94,9 @@ export async function executeWithContext(
     flowBuilderFn: (flowManager: any, executionContext: any) => Promise<void>,
     correlationId?: string,
 ): Promise<void> {
-    // The interaction handler guarantees an executionContext is attached
-    const executionContext = (interaction as any).executionContext as CommandExecutionContext;
+    // The interaction handler guarantees an executionContext is attached. Use the concrete
+    // ExecutionContext type for flow builder usage (flows expect ExecutionContext, not
+    // the command-layer wrapper type).
+    const executionContext = (interaction as any).executionContext as ExecutionContext;
     await flowBuilderFn(flowManager, executionContext);
 }

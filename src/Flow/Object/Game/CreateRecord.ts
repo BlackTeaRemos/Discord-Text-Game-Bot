@@ -59,7 +59,7 @@ export async function CreateGame(
             MERGE (game:Game { uid: $uid })
             SET game.name = $name, game.image = $image, game.server_id = $serverId
             MERGE (server)-[:HAS_GAME]->(game)
-            WITH game
+            WITH game, server
             UNWIND $paramEntries AS entry
             MERGE (game)-[:HAS_PARAMETER]->(param:Parameter { key: entry[0], value: entry[1] })
             RETURN game, server.id AS serverId`;

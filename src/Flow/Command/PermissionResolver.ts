@@ -1,6 +1,5 @@
 import type { ChatInputCommandInteraction, GuildMember } from 'discord.js';
 import {
-    GrantForever,
     resolve,
     type PermissionDecision,
     type PermissionToken,
@@ -8,9 +7,6 @@ import {
     type TokenResolveContext,
 } from '../../Common/permission/index.js';
 import { log } from '../../Common/Log.js';
-// Permission UI is an interactive helper; flows should not import UI directly.
-// Interactive permission requests live under SubCommand so commands can decide when to prompt.
-import { RequestPermissionFromAdmin } from '../../SubCommand/Permission/PermissionUI.js';
 
 export interface CommandPermissionResult {
     allowed: boolean;
@@ -93,7 +89,7 @@ async function GetMember(
             `resolveCommandPermission`,
         );
         return member;
-    } catch(error) {
+    } catch (error) {
         log.warning(
             `${logSource}: failed to fetch guild member for action=${action} reason=${String(error)}`,
             logSource,
