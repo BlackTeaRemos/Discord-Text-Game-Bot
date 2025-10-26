@@ -10,7 +10,7 @@ import { DEFAULT_TASK_STATUSES } from '../../Domain/Task.js';
 import type { TaskListItem } from '../../Domain/Task.js';
 import { UpdateTaskStatus } from '../../Flow/Task/UpdateTaskStatus.js';
 import { AssignTaskExecutor } from '../../Flow/Task/AssignTaskExecutor.js';
-import { buildExecutorOptions, resolveExecutorSelection } from './taskExecutorOptions.js';
+import { buildExecutorOptions, resolveExecutorSelection } from './TaskExecutorOptions.js';
 
 const TASK_VIEW_SELECT_ID = `task_view_select`;
 const TASK_SELECTED_ACTION_ID = `task_selected_action`;
@@ -37,7 +37,7 @@ function makeStatusButtonId(status: string): string {
 export function registerTaskViewStep(builder: FlowBuilder<TaskFlowState>): FlowBuilder<TaskFlowState> {
     return builder
         .step(TASK_VIEW_SELECT_ID, `task_view`)
-        .prompt(async(ctx: StepContext<TaskFlowState>) => {
+        .prompt(async (ctx: StepContext<TaskFlowState>) => {
             const action = ctx.state.action;
             if (action !== `view_mine` && action !== `view_org`) {
                 await ctx.advance();
@@ -123,7 +123,7 @@ export function registerTaskViewStep(builder: FlowBuilder<TaskFlowState>): FlowB
                 components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(select)],
             });
         })
-        .onInteraction(async(ctx: StepContext<TaskFlowState>, choice) => {
+        .onInteraction(async (ctx: StepContext<TaskFlowState>, choice) => {
             if (!choice.isStringSelectMenu() || choice.customId !== TASK_VIEW_SELECT_ID) {
                 return false;
             }
@@ -143,7 +143,7 @@ export function registerTaskViewStep(builder: FlowBuilder<TaskFlowState>): FlowB
         })
         .next()
         .step([TASK_STATUS_BUTTON_ID, TASK_ASSIGN_BUTTON_ID, TASK_CLOSE_BUTTON_ID], `task_selected_action`)
-        .prompt(async(ctx: StepContext<TaskFlowState>) => {
+        .prompt(async (ctx: StepContext<TaskFlowState>) => {
             if (!ctx.state.selectedTaskId || !ctx.state.latestTask) {
                 await ctx.advance();
                 return;
@@ -183,7 +183,7 @@ export function registerTaskViewStep(builder: FlowBuilder<TaskFlowState>): FlowB
                 components: [buttons],
             });
         })
-        .onInteraction(async(ctx: StepContext<TaskFlowState>, interaction) => {
+        .onInteraction(async (ctx: StepContext<TaskFlowState>, interaction) => {
             if (!interaction.isButton()) {
                 return false;
             }
@@ -210,7 +210,7 @@ export function registerTaskViewStep(builder: FlowBuilder<TaskFlowState>): FlowB
         })
         .next()
         .step(`task_status_btn_*`, `task_status`)
-        .prompt(async(ctx: StepContext<TaskFlowState>) => {
+        .prompt(async (ctx: StepContext<TaskFlowState>) => {
             if (!ctx.state.awaitingStatus || ctx.state.action !== `status`) {
                 await ctx.advance();
                 return;
@@ -256,7 +256,7 @@ export function registerTaskViewStep(builder: FlowBuilder<TaskFlowState>): FlowB
                 components: rows,
             });
         })
-        .onInteraction(async(ctx: StepContext<TaskFlowState>, interaction) => {
+        .onInteraction(async (ctx: StepContext<TaskFlowState>, interaction) => {
             if (!interaction.isButton()) {
                 return false;
             }
@@ -300,7 +300,7 @@ export function registerTaskViewStep(builder: FlowBuilder<TaskFlowState>): FlowB
         })
         .next()
         .step([TASK_ASSIGN_BUTTON_ID, TASK_ASSIGN_SELECT_ID], `task_assign`)
-        .prompt(async(ctx: StepContext<TaskFlowState>) => {
+        .prompt(async (ctx: StepContext<TaskFlowState>) => {
             if (!ctx.state.awaitingAssignment || ctx.state.action !== `assign`) {
                 await ctx.advance();
                 return;
@@ -334,7 +334,7 @@ export function registerTaskViewStep(builder: FlowBuilder<TaskFlowState>): FlowB
                 components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(menu)],
             });
         })
-        .onInteraction(async(ctx: StepContext<TaskFlowState>, interaction) => {
+        .onInteraction(async (ctx: StepContext<TaskFlowState>, interaction) => {
             if (!interaction.isStringSelectMenu() || interaction.customId !== TASK_ASSIGN_SELECT_ID) {
                 return false;
             }

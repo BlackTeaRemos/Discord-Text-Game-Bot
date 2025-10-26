@@ -59,41 +59,21 @@ export async function execute(interaction: ChatInputCommandInteraction): Promise
     state.controlsMessageId = controlsMessage.id;
 
     const executionContext = (interaction as any).executionContext as ExecutionContext | undefined;
-    const persistState = () => {
-        if (!executionContext) {
-            return;
-        }
+    if (executionContext) {
         const bucket = executionContext.shared.objectGameCreate ?? {};
         bucket.state = state;
         bucket.previewMessageId = state.previewMessageId;
         bucket.controlsMessageId = state.controlsMessageId;
         executionContext.shared.objectGameCreate = bucket;
-    };
+    }
 
-    const renderControls = async () => {
-        if (!state.controlsMessageId) {
-            return;
-        }
+    state.awaitingName = true;
+    if (state.controlsMessageId) {
         await interaction.webhook.editMessage(state.controlsMessageId, {
             content: BuildControlsContent(state),
             components: BuildControlRows(state),
         });
-    };
-
-    const renderPreview = async () => {
-        if (!state.previewMessageId) {
-            return;
-        }
-        await interaction.webhook.editMessage(state.previewMessageId, {
-            content: `Preview how your game will appear once created.`,
-            embeds: [BuildGamePreviewEmbed(state)],
-        });
-    };
-
-    persistState();
-
-    state.awaitingName = true;
-    await renderControls();
+    }
 
     try {
         const newName = await AwaitTextInput({
@@ -104,10 +84,26 @@ export async function execute(interaction: ChatInputCommandInteraction): Promise
             cancelWords: [`cancel`],
         });
         state.gameName = newName;
-        await renderPreview();
+        if (state.previewMessageId) {
+            await interaction.webhook.editMessage(state.previewMessageId, {
+                content: `Preview how your game will appear once created.`,
+                embeds: [BuildGamePreviewEmbed(state)],
+            });
+        }
     } finally {
         state.awaitingName = false;
-        await renderControls();
-        persistState();
+        if (state.controlsMessageId) {
+            await interaction.webhook.editMessage(state.controlsMessageId, {
+                content: BuildControlsContent(state),
+                components: BuildControlRows(state),
+            });
+        }
+        if (executionContext) {
+            const bucket = executionContext.shared.objectGameCreate ?? {};
+            bucket.state = state;
+            bucket.previewMessageId = state.previewMessageId;
+            bucket.controlsMessageId = state.controlsMessageId;
+            executionContext.shared.objectGameCreate = bucket;
+        }
     }
 }

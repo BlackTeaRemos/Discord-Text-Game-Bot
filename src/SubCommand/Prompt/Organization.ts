@@ -1,5 +1,5 @@
 import { ActionRowBuilder, StringSelectMenuBuilder } from 'discord.js';
-import { GetOrganizationSelection } from '../../Flow/Command/Description/GetUserOrganizations.js';
+import { GetOrganizationSelection } from '../../Flow/Command/Description/getUserOrganizations.js';
 
 /**
  * States returned when preparing an organization selection prompt.
@@ -67,11 +67,11 @@ export async function PrepareOrganizationPrompt(options: OrganizationPromptOptio
         .setCustomId(options.customId)
         .setPlaceholder(options.placeholder ?? `Select organization`)
         .addOptions(
-            selection.orgs.slice(0, limit).map(org => {
+            selection.orgs.slice(0, limit).map((org): { label: string; value: string } => {
                 return {
                     label: org.name.slice(0, 100),
                     value: org.uid,
-                } as any;
+                };
             }),
         );
     return {
@@ -90,7 +90,7 @@ export async function PrepareOrganizationPrompt(options: OrganizationPromptOptio
  */
 export async function ResolveOrganizationName(userId: string, organizationUid: string): Promise<string | undefined> {
     const selection = await GetOrganizationSelection(userId);
-    const match = selection.orgs.find(org => {
+    const match = selection.orgs.find((org): boolean => {
         return org.uid === organizationUid;
     });
     return match?.name;

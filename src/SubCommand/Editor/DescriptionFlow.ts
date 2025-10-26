@@ -7,11 +7,11 @@ import type { StepContext } from '../../Common/Flow/Types.js';
 import { RenderDescription, RenderControls, ResolveBaseInteraction } from './Description/Rendering.js';
 import { BuildDescriptionEmbeds } from './Description/BuildDescriptionEmbeds.js';
 import { WithTruncationNote } from './Description/WithTruncationNote.js';
-import { ApplyEdit } from '../../Flow/Command/Description/ApplyEdit.js';
+import { ApplyEdit } from '../../Flow/Command/Description/applyEdit.js';
 import { BuildEditControlsContent } from './Description/BuildEditControlsContent.js';
 import { BuildEditControlsMenu } from './Description/BuildEditControlsMenu.js';
-import { listVersions, getVersion, togglePublic, listObjectsForType } from '../../Flow/Command/Description/db.js';
-import { GetUserOrganizations } from '../../Flow/Command/Description/GetUserOrganizations.js';
+import { listVersions, getVersion, togglePublic, listObjectsForType } from '../../Flow/Command/Description/Db.js';
+import { GetUserOrganizations } from '../../Flow/Command/Description/getUserOrganizations.js';
 import { GetLatestDescription } from '../../Flow/Object/Description/Latest.js';
 import { CreateDescriptionVersion } from '../../Flow/Object/Description/Update.js';
 import { UniqueSelectOptions } from '../../Common/UniqueSelectOptions.js';
@@ -226,8 +226,8 @@ export async function StartDescriptionCreateFlow(
                 case `version`: {
                     const versions = await listVersions(ctx.state.targetType!, ctx.state.targetUid!, ctx.state.orgUid!);
                     const versionOptions = UniqueSelectOptions(
-                        versions.map(v => {
-                            return { label: `v${v}`, value: String(v) };
+                        versions.map((version: number) => {
+                            return { label: `v${version}`, value: String(version) };
                         }),
                     );
                     const select = new StringSelectMenuBuilder()

@@ -2,10 +2,10 @@ import type { ChatInputCommandInteraction } from 'discord.js';
 import type { FlowManager } from '../../Common/Flow/Manager.js';
 import type { ExecutionContext } from '../../Domain/Command.js';
 import type { TaskFlowState } from './TaskFlowState.js';
-import { registerTaskOrganizationStep } from './registerTaskOrganizationStep.js';
-import { registerTaskActionMenuStep } from './registerTaskActionMenuStep.js';
-import { registerTaskCreateStep } from './registerTaskCreateStep.js';
-import { registerTaskViewStep } from './registerTaskViewStep.js';
+import { registerTaskOrganizationStep } from './RegisterTaskOrganizationStep.js';
+import { registerTaskActionMenuStep } from './RegisterTaskActionMenuStep.js';
+import { registerTaskCreateStep } from './RegisterTaskCreateStep.js';
+import { registerTaskViewStep } from './RegisterTaskViewStep.js';
 
 export async function startTaskFlow(
     flowManager: FlowManager,
