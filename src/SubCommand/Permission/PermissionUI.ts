@@ -8,8 +8,8 @@ import {
     Colors,
     MessageFlags,
 } from 'discord.js';
-import { GrantForever, type PermissionDecision, type PermissionToken } from '../../Common/permission/index.js';
-import { FormatPermissionToken } from '../../Common/permission/FormatPermissionToken.js';
+import { GrantForever, type PermissionDecision, type PermissionToken } from '../../Common/Permission/index.js';
+import { FormatPermissionToken } from '../../Common/Permission/FormatPermissionToken.js';
 import { PermissionApprovalError } from '../../Common/Errors.js';
 
 /**

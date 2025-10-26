@@ -6,7 +6,7 @@ import {
     MessageFlags,
 } from 'discord.js';
 import { executeWithContext } from '../../../Common/ExecutionContextHelpers.js';
-import type { TokenSegmentInput } from '../../../Common/permission/index.js';
+import type { TokenSegmentInput } from '../../../Common/Permission/index.js';
 
 export const data = new SlashCommandSubcommandBuilder()
     .setName(`flow-demo`)
@@ -24,13 +24,13 @@ interface FlowState {
  * to avoid recomputation across multiple flow steps.
  */
 export async function execute(interaction: ChatInputCommandInteraction) {
-    await executeWithContext(interaction, async(flowManager, executionContext) => {
+    await executeWithContext(interaction, async (flowManager, executionContext) => {
         await flowManager
             .builder(interaction.user.id, interaction, {} as FlowState, executionContext)
             .step(`select_option`)
-            .prompt(async(ctx: { state: FlowState; executionContext?: any }) => {
+            .prompt(async (ctx: { state: FlowState; executionContext?: any }) => {
                 // Step 1: Cache some expensive computation that might be needed later
-                const expensiveData = await ctx.executionContext?.getOrCompute(`expensive-guild-data`, async() => {
+                const expensiveData = await ctx.executionContext?.getOrCompute(`expensive-guild-data`, async () => {
                     // Simulate expensive operation (e.g., database query)
                     await new Promise(resolve => {
                         return setTimeout(resolve, 50);
@@ -61,7 +61,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
                     components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(select)],
                 });
             })
-            .onInteraction(async(ctx: { state: FlowState; executionContext?: any }, interaction: any) => {
+            .onInteraction(async (ctx: { state: FlowState; executionContext?: any }, interaction: any) => {
                 if (!interaction.isStringSelectMenu()) {
                     return false;
                 }
@@ -71,7 +71,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
             })
             .next()
             .step(`show_results`)
-            .prompt(async(ctx: { state: FlowState; executionContext?: any }) => {
+            .prompt(async (ctx: { state: FlowState; executionContext?: any }) => {
                 ctx.executionContext.shared.stepCount = 2;
 
                 // Step 2: Use cached data from step 1 and add more caching
@@ -81,7 +81,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
                 const userInfo = await ctx.executionContext?.getOrCompute(
                     `user-info-${interaction.user.id}`,
-                    async() => {
+                    async () => {
                         // Another expensive operation
                         await new Promise(resolve => {
                             return setTimeout(resolve, 30);

@@ -3,7 +3,7 @@ import type { FlowBuilder } from '../../Common/Flow/Builder.js';
 import type { StepContext } from '../../Common/Flow/Types.js';
 import { FetchTasksForViewer } from '../../Flow/Task/FetchTasksForViewer.js';
 import { neo4jClient } from '../../Setup/Neo4j.js';
-import { resolve } from '../../Common/permission/index.js';
+import { resolve } from '../../Common/Permission/index.js';
 import { RequestPermissionFromAdmin } from '../../SubCommand/Permission/PermissionUI.js';
 import type { TaskFlowState } from './TaskFlowState.js';
 import { DEFAULT_TASK_STATUSES } from '../../Domain/Task.js';

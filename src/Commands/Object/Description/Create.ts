@@ -13,7 +13,7 @@ import { log } from '../../../Common/Log.js';
 import { flowManager } from '../../../Common/Flow/Manager.js';
 import { executeWithContext } from '../../../Common/ExecutionContextHelpers.js';
 import type { ExecutionContext } from '../../../Domain/index.js';
-import type { TokenSegmentInput } from '../../../Common/permission/index.js';
+import type { TokenSegmentInput } from '../../../Common/Permission/index.js';
 
 interface FlowState {
     refType: `organization` | `game` | `user`;
@@ -35,12 +35,12 @@ export const data = new SlashCommandSubcommandBuilder()
 export const permissionTokens: TokenSegmentInput[][] = [[`object`, `description`, `create`]];
 
 export async function execute(interaction: ChatInputCommandInteraction) {
-    await executeWithContext(interaction, async(flowManager, executionContext) => {
+    await executeWithContext(interaction, async (flowManager, executionContext) => {
         // Interactive flow: collect refType, refUid, and description text
         await flowManager
             .builder(interaction.user.id, interaction as any, { refType: ``, refUid: ``, text: `` }, executionContext)
             .step(`desc_modal`)
-            .prompt(async(ctx: StepContext) => {
+            .prompt(async (ctx: StepContext) => {
                 const modal = new ModalBuilder()
                     .setCustomId(`desc_modal`)
                     .setTitle(`New Description`)
@@ -69,7 +69,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
                     );
                 await (ctx.interaction as ChatInputCommandInteraction).showModal(modal);
             })
-            .onInteraction(async(ctx: StepContext, interaction: any) => {
+            .onInteraction(async (ctx: StepContext, interaction: any) => {
                 if (interaction.isModalSubmit()) {
                     const fields = interaction.fields;
                     ctx.state.refType = fields.getTextInputValue(`refType`) as `organization` | `game` | `user`;
@@ -82,14 +82,14 @@ export async function execute(interaction: ChatInputCommandInteraction) {
             })
             .next()
             .step()
-            .prompt(async(ctx: StepContext) => {
+            .prompt(async (ctx: StepContext) => {
                 try {
                     const desc = await CreateDescription(ctx.state.refType, ctx.state.refUid, ctx.state.text);
                     await (ctx.interaction as ChatInputCommandInteraction).followUp({
                         content: `Description ${desc.uid} created for ${ctx.state.refType} ${ctx.state.refUid}.`,
                         flags: MessageFlags.Ephemeral,
                     });
-                } catch(error) {
+                } catch (error) {
                     const msg = error instanceof Error ? error.message : String(error);
                     log.error(`Error creating description`, msg, `createDescription`);
                     await (ctx.interaction as ChatInputCommandInteraction).followUp({

@@ -2,7 +2,7 @@ import { SlashCommandSubcommandBuilder, ChatInputCommandInteraction, MessageFlag
 import { RemoveDescription } from '../../../Flow/Object/Description/Remove.js';
 import { log } from '../../../Common/Log.js';
 import { createCommandContext } from '../../../Common/ExecutionContextHelpers.js';
-import type { TokenSegmentInput } from '../../../Common/permission/index.js';
+import type { TokenSegmentInput } from '../../../Common/Permission/index.js';
 
 export const data = new SlashCommandSubcommandBuilder()
     .setName(`remove`)
@@ -23,7 +23,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
             return await ctx.reply({ content: `Description not found`, flags: MessageFlags.Ephemeral });
         }
         return await ctx.reply({ content: `Description ${uid} removed.`, flags: MessageFlags.Ephemeral });
-    } catch(error) {
+    } catch (error) {
         const msg = error instanceof Error ? error.message : String(error);
         log.error(`Error removing description`, msg, `removeDescription`);
         return await ctx.reply({ content: `Error: ${msg}`, flags: MessageFlags.Ephemeral });

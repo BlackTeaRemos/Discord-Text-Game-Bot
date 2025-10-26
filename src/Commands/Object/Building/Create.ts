@@ -12,7 +12,7 @@ import { CreateFactory } from '../../../Flow/Object/Building/Create.js';
 import { log } from '../../../Common/Log.js';
 import { executeWithContext } from '../../../Common/ExecutionContextHelpers.js';
 import type { ExecutionContext } from '../../../Domain/index.js';
-import { resolve, type TokenSegmentInput } from '../../../Common/permission/index.js';
+import { resolve, type TokenSegmentInput } from '../../../Common/Permission/index.js';
 import { PrepareOrganizationPrompt, ResolveOrganizationName } from '../../../SubCommand/Prompt/Organization.js';
 
 interface FlowState {

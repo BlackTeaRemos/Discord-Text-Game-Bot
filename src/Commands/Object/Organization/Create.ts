@@ -13,7 +13,7 @@ import { CreateOrganization, GenerateUid } from '../../../Flow/Object/Organizati
 import { flowManager } from '../../../Common/Flow/Manager.js';
 import { executeWithContext } from '../../../Common/ExecutionContextHelpers.js';
 import type { ExecutionContext } from '../../../Domain/index.js';
-import type { TokenSegmentInput } from '../../../Common/permission/index.js';
+import type { TokenSegmentInput } from '../../../Common/Permission/index.js';
 
 interface FlowState {
     name: string;
@@ -36,12 +36,12 @@ export const data = new SlashCommandSubcommandBuilder()
 export const permissionTokens: TokenSegmentInput[][] = [[`object`, `organization`, `create`]];
 
 export async function execute(interaction: ChatInputCommandInteraction) {
-    await executeWithContext(interaction, async(flowManager, executionContext) => {
+    await executeWithContext(interaction, async (flowManager, executionContext) => {
         // Interactive flow: collect name, friendly name (optional), and UID (optional)
         await flowManager
             .builder(interaction.user.id, interaction as any, { name: ``, friendly: ``, uid: `` }, executionContext)
             .step(`org_create_modal`)
-            .prompt(async(ctx: StepContext) => {
+            .prompt(async (ctx: StepContext) => {
                 const modal = new ModalBuilder()
                     .setCustomId(`org_create_modal`)
                     .setTitle(`New Organization`)
@@ -70,7 +70,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
                     );
                 await (ctx.interaction as ChatInputCommandInteraction).showModal(modal);
             })
-            .onInteraction(async(ctx: StepContext, interaction: any) => {
+            .onInteraction(async (ctx: StepContext, interaction: any) => {
                 if (interaction.isModalSubmit()) {
                     const fields = interaction.fields;
                     ctx.state.name = fields.getTextInputValue(`name`).trim();
@@ -83,7 +83,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
             })
             .next()
             .step()
-            .prompt(async(ctx: StepContext) => {
+            .prompt(async (ctx: StepContext) => {
                 try {
                     const org = await CreateOrganization(
                         ctx.state.name!,
@@ -94,7 +94,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
                         content: `Organization ${org.uid} '${org.name}' created.`,
                         flags: MessageFlags.Ephemeral,
                     });
-                } catch(error) {
+                } catch (error) {
                     log.error(
                         `Error creating organization`,
                         error instanceof Error ? error.message : String(error),

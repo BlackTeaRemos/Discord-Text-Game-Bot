@@ -1,7 +1,7 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, MessageFlags } from 'discord.js';
 import { executeWithContext } from '../../Common/ExecutionContextHelpers.js';
 import { StartInteractiveDescriptionEditor } from '../../SubCommand/Editor/DescriptionEditor.js';
-import type { TokenSegmentInput } from '../../Common/permission/index.js';
+import type { TokenSegmentInput } from '../../Common/Permission/index.js';
 
 export const data = new SlashCommandBuilder()
     .setName(`description`)
@@ -19,7 +19,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         return;
     }
 
-    await executeWithContext(interaction, async(fm, executionContext) => {
+    await executeWithContext(interaction, async (fm, executionContext) => {
         // Delegate interaction handling to the Editor subcommand which owns the UI flow.
         await StartInteractiveDescriptionEditor(fm, interaction, executionContext);
     });

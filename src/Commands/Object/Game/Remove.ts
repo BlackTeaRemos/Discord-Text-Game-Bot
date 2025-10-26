@@ -2,7 +2,7 @@ import { SlashCommandSubcommandBuilder, ChatInputCommandInteraction, MessageFlag
 import { RemoveGame } from '../../../Flow/Object/Game/Remove.js';
 import { log } from '../../../Common/Log.js';
 import { createCommandContext } from '../../../Common/ExecutionContextHelpers.js';
-import type { TokenSegmentInput } from '../../../Common/permission/index.js';
+import type { TokenSegmentInput } from '../../../Common/Permission/index.js';
 
 export const data = new SlashCommandSubcommandBuilder()
     .setName(`remove`)
@@ -23,7 +23,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
             return await ctx.reply({ content: `Game not found`, flags: MessageFlags.Ephemeral });
         }
         return await ctx.reply({ content: `Game ${uid} removed.`, flags: MessageFlags.Ephemeral });
-    } catch(error) {
+    } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         log.error(`Error removing game`, message, `removeGame`);
         return await ctx.reply({ content: `Error: ${message}`, flags: MessageFlags.Ephemeral });

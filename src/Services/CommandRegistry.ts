@@ -12,9 +12,9 @@ import {
     resolveTokens as resolvePermission,
     type PermissionTokenInput,
     type PermissionsObject,
-} from '../Common/permission/index.js';
+} from '../Common/Permission/index.js';
 import type { GuildMember } from 'discord.js';
-import { FormatPermissionToken } from '../Common/permission/FormatPermissionToken.js';
+import { FormatPermissionToken } from '../Common/Permission/FormatPermissionToken.js';
 
 /** Error thrown when attempting to register a duplicate command id. */
 export class DuplicateCommandError extends Error {

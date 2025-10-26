@@ -8,7 +8,7 @@ import { readdirSync, lstatSync } from 'fs';
 import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { log } from '../../Common/Log.js';
-import type { TokenSegmentInput } from '../../Common/permission/index.js';
+import type { TokenSegmentInput } from '../../Common/Permission/index.js';
 
 // Removed createRequire; using dynamic import for ESM modules
 const __filename = fileURLToPath(import.meta.url);
@@ -20,7 +20,7 @@ const handlers: Record<string, Handler> = {};
 /** Root command for 'object' with dynamic subcommand groups */
 export const data = new SlashCommandBuilder().setName(`object`).setDescription(`Manage graph objects`);
 // Dynamically load and attach subcommand groups for each object type
-await (async() => {
+await (async () => {
     try {
         // Identify group directories under commands/object
         const groups = readdirSync(__dirname).filter(name => {
@@ -54,7 +54,7 @@ await (async() => {
                 return group;
             });
         }
-    } catch(err) {
+    } catch (err) {
         log.error(`Error initializing object command groups`, (err as Error).message, `ObjectCommand`);
     }
 })();
@@ -86,7 +86,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     }
 }
 
-export const permissionTokens = async(interaction: ChatInputCommandInteraction): Promise<TokenSegmentInput[][]> => {
+export const permissionTokens = async (interaction: ChatInputCommandInteraction): Promise<TokenSegmentInput[][]> => {
     const groupRaw = interaction.options.getSubcommandGroup(false) ?? ``;
     const subRaw = interaction.options.getSubcommand(true) ?? ``;
     const group = groupRaw.toLowerCase();

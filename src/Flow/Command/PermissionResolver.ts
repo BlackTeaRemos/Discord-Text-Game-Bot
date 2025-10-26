@@ -5,7 +5,7 @@ import {
     type PermissionToken,
     type TokenSegmentInput,
     type TokenResolveContext,
-} from '../../Common/permission/index.js';
+} from '../../Common/Permission/index.js';
 import { log } from '../../Common/Log.js';
 
 export interface CommandPermissionResult {

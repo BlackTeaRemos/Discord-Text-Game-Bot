@@ -1,6 +1,6 @@
 import { SlashCommandSubcommandBuilder, ChatInputCommandInteraction, MessageFlags } from 'discord.js';
 import { createCommandContext } from '../../../Common/ExecutionContextHelpers.js';
-import type { TokenSegmentInput } from '../../../Common/permission/index.js';
+import type { TokenSegmentInput } from '../../../Common/Permission/index.js';
 
 export const data = new SlashCommandSubcommandBuilder()
     .setName(`context-demo`)
@@ -21,7 +21,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     });
 
     // Simulate an expensive database query that we want to avoid repeating
-    const userData = await ctx.executionContext!.getOrCompute(`user:${ctx.userId}`, async() => {
+    const userData = await ctx.executionContext!.getOrCompute(`user:${ctx.userId}`, async () => {
         // Simulate expensive operation
         await new Promise(resolve => {
             return setTimeout(resolve, 100);
@@ -35,7 +35,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     });
 
     // This second call will use cached data instead of recomputing
-    const userData2 = await ctx.executionContext!.getOrCompute<typeof userData>(`user:${ctx.userId}`, async() => {
+    const userData2 = await ctx.executionContext!.getOrCompute<typeof userData>(`user:${ctx.userId}`, async () => {
         // This function won't be called because data is cached
         throw new Error(`This should not be called!`);
     });

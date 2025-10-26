@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction } from 'discord.js';
-import type { TokenSegmentInput } from '../../Common/permission/index.js';
+import type { TokenSegmentInput } from '../../Common/Permission/index.js';
 import { executeWithContext } from '../../Common/ExecutionContextHelpers.js';
 import { startTaskFlow } from './StartTaskFlow.js';
 

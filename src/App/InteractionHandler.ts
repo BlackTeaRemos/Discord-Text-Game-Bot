@@ -7,8 +7,8 @@ import {
     type TokenSegmentInput,
     GrantForever,
     resolve,
-} from '../Common/permission/index.js';
-import { FormatPermissionToken } from '../Common/permission/FormatPermissionToken.js';
+} from '../Common/Permission/index.js';
+import { FormatPermissionToken } from '../Common/Permission/FormatPermissionToken.js';
 
 /**
  * Factory for Discord interaction handler focused on chat input commands.

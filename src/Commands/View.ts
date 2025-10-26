@@ -14,7 +14,7 @@ import { log } from '../Common/Log.js';
 import { GetGame } from '../Flow/Object/Game/View.js';
 import { ResolveViewPermissions } from '../Flow/Command/ViewFlow.js';
 import { RequestPermissionFromAdmin } from '../SubCommand/Permission/PermissionUI.js';
-import { GrantForever } from '../Common/permission/index.js';
+import { GrantForever } from '../Common/Permission/index.js';
 import { PrepareOrganizationPrompt } from '../SubCommand/Prompt/Organization.js';
 
 export const data = new SlashCommandBuilder().setName(`view`).setDescription(`Interactive view of stored objects`);

@@ -1,5 +1,5 @@
 import { ActionRowBuilder, StringSelectMenuBuilder } from 'discord.js';
-import { GetOrganizationSelection } from '../../Flow/Command/Description/getUserOrganizations.js';
+import { GetOrganizationSelection } from '../../Flow/Command/Description/GetUserOrganizations.js';
 
 /**
  * States returned when preparing an organization selection prompt.

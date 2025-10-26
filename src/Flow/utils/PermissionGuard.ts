@@ -13,7 +13,7 @@ import {
     type TokenResolveContext,
     type TokenSegmentInput,
     type ResolveEnsureOptions,
-} from '../../Common/permission/index.js';
+} from '../../Common/Permission/index.js';
 // Interactive permission UI moved to SubCommand so flows remain UI-free.
 // import { requestPermissionFromAdmin } from '../permission/PermissionUI.js';
 import { log } from '../../Common/Log.js';
@@ -74,7 +74,7 @@ async function __getMember(
     }
     try {
         return await interaction.guild.members.fetch(interaction.user.id);
-    } catch(error) {
+    } catch (error) {
         log.warning(`Failed to fetch guild member: ${String(error)}`, `PermissionGuard`, `ensureCommandPermission`);
         return null;
     }
