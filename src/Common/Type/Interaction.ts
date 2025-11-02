@@ -11,11 +11,10 @@ type InteractionPrototype = Record<PropertyKey, unknown>;
  * Describe a Discord.js interaction that carries an execution context instance.
  * @template TInteraction Interaction type to augment with the execution context.
  */
-export type InteractionExecutionContextCarrier<
-    TInteraction extends DiscordBaseInteraction = DiscordBaseInteraction,
-> = TInteraction & {
-    executionContext: ExecutionContext;
-};
+export type InteractionExecutionContextCarrier<TInteraction extends DiscordBaseInteraction = DiscordBaseInteraction> =
+    TInteraction & {
+        executionContext: ExecutionContext;
+    };
 
 /**
  * Add getters and setters for executionContext onto the supplied prototype.

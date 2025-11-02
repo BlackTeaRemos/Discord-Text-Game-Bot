@@ -14,9 +14,7 @@ export const data = new SlashCommandBuilder()
 
 export const permissionTokens: TokenSegmentInput[][] = [[`description`]];
 
-export async function execute(
-    interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
-) {
+export async function execute(interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>) {
     const sub = interaction.options.getSubcommand();
     if (sub !== `create`) {
         await interaction.reply({ content: `Unsupported subcommand`, flags: MessageFlags.Ephemeral });

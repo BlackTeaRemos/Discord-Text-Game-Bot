@@ -8,35 +8,41 @@ import { GameCreateFlowConstants } from '../../../../Flow/Object/Game/CreateStat
  * @returns ActionRowBuilder<ButtonBuilder>[] Button rows representing UI controls.
  */
 export function BuildControlRows(state: GameCreateFlowState): ActionRowBuilder<ButtonBuilder>[] {
+    const controlsLocked = state.controlsLocked === true;
+    const uploadPaused = state.uploadInProgress === true;
+    const finalizing = state.finalizing === true;
+    const confirmLabel = state.mode === `update` ? `Save changes` : `Create game`;
+    const cancelLabel = state.mode === `update` ? `Cancel update` : `Cancel`;
+
     const primaryRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
             .setCustomId(GameCreateFlowConstants.changeNameId)
             .setLabel(`Change name`)
             .setStyle(ButtonStyle.Primary)
-            .setDisabled(Boolean(state.awaitingName) || state.uploadInProgress === true),
+            .setDisabled(controlsLocked || finalizing || Boolean(state.awaitingName) || uploadPaused),
         new ButtonBuilder()
             .setCustomId(GameCreateFlowConstants.changeDescriptionId)
             .setLabel(`Change description`)
             .setStyle(ButtonStyle.Primary)
-            .setDisabled(Boolean(state.awaitingDescription) || state.uploadInProgress === true),
+            .setDisabled(controlsLocked || finalizing || Boolean(state.awaitingDescription) || uploadPaused),
         new ButtonBuilder()
             .setCustomId(GameCreateFlowConstants.changeImageId)
             .setLabel(`Change image`)
             .setStyle(ButtonStyle.Secondary)
-            .setDisabled(Boolean(state.awaitingImage) || state.uploadInProgress === true),
+            .setDisabled(controlsLocked || finalizing || Boolean(state.awaitingImage) || uploadPaused),
     );
 
     const secondaryRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
             .setCustomId(GameCreateFlowConstants.confirmCreateId)
-            .setLabel(`Create game`)
+            .setLabel(confirmLabel)
             .setStyle(ButtonStyle.Success)
-            .setDisabled(!state.gameName?.trim() || state.uploadInProgress === true),
+            .setDisabled(controlsLocked || finalizing || !state.gameName?.trim() || uploadPaused),
         new ButtonBuilder()
             .setCustomId(GameCreateFlowConstants.cancelCreateId)
-            .setLabel(`Cancel`)
+            .setLabel(cancelLabel)
             .setStyle(ButtonStyle.Secondary)
-            .setDisabled(state.uploadInProgress === true),
+            .setDisabled(controlsLocked || finalizing || uploadPaused),
     );
 
     return [primaryRow, secondaryRow];

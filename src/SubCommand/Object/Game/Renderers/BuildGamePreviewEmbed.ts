@@ -11,13 +11,14 @@ export function BuildGamePreviewEmbed(state: GameCreateFlowState): EmbedBuilder 
     const organization = state.organizationName ?? `Select an organization`;
     const gameName = state.gameName?.trim() ? state.gameName.trim() : `Unnamed game`;
     const description = state.description?.trim() ? state.description.trim() : `No description provided yet.`;
+    const imageUrl = state.imageUrl || GameCreateFlowConstants.defaultImageUrl;
     const embed = new EmbedBuilder()
         .setColor(Colors.Blurple)
         .setAuthor({ name: organization })
         .setTitle(gameName)
         .setDescription(description)
         .setFooter({ text: `Server ${state.serverId}` })
-        .setImage(state.imageUrl || GameCreateFlowConstants.defaultImageUrl);
+        .setThumbnail(imageUrl);
     if (!state.organizationUid) {
         embed.setTimestamp(new Date());
     }

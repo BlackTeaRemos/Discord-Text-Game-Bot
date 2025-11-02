@@ -57,9 +57,7 @@ await (async () => {
 })();
 
 /** Dispatch to the appropriate handler based on group and subcommand */
-export async function execute(
-    interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
-) {
+export async function execute(interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>) {
     const groupRaw = interaction.options.getSubcommandGroup(false) ?? ``;
     const subRaw = interaction.options.getSubcommand(true) ?? ``;
     const group = groupRaw.toLowerCase();

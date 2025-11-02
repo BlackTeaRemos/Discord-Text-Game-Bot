@@ -3,6 +3,7 @@ import {
     resolve,
     type PermissionDecision,
     type PermissionToken,
+    type PermissionsObject,
     type TokenSegmentInput,
     type TokenResolveContext,
 } from '../../Common/Permission/index.js';
@@ -23,12 +24,22 @@ export interface ResolveCommandPermissionOptions {
     logSource: string;
     action?: string;
     skipApproval?: boolean;
+    permissions?: PermissionsObject;
+    member?: GuildMember | null;
 }
 
 export async function ResolveCommandPermission(
     options: ResolveCommandPermissionOptions,
 ): Promise<CommandPermissionResult> {
-    const { interaction, templates, context = {}, logSource, action = `command` } = options;
+    const {
+        interaction,
+        templates,
+        context = {},
+        logSource,
+        action = `command`,
+        permissions,
+        member: providedMember,
+    } = options;
     const baseContext: TokenResolveContext = {
         commandName: interaction.commandName,
         guildId: interaction.guildId ?? undefined,
@@ -50,11 +61,19 @@ export async function ResolveCommandPermission(
     // Flows should not perform interactive approval. Ask ensure to evaluate permissions
     // and indicate whether approval is required. Commands or subcommands should trigger the
     // interactive approval UI when needed.
+    let member: GuildMember | null;
+    if (providedMember !== undefined) {
+        member = providedMember;
+    } else {
+        member = await GetMember(interaction, logSource, action);
+    }
+
     const outcome = await resolve(templates, {
         context: baseContext,
-        member: await GetMember(interaction, logSource, action),
-        // Do not provide requestApproval delegate here: keep flow non-interactive
-        skipApproval: true,
+        member,
+        permissions,
+        // Do not provide requestApproval delegate here: keep flow non-interactive by default
+        skipApproval: options.skipApproval ?? true,
     });
 
     log.info(

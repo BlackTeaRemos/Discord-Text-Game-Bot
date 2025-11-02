@@ -15,9 +15,7 @@ export const data = new SlashCommandSubcommandBuilder()
 
 export const permissionTokens: TokenSegmentInput[][] = [[`object`, `game`, `remove`]];
 
-export async function execute(
-    interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
-) {
+export async function execute(interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>) {
     const ctx = createCommandContext(interaction);
 
     const uid = interaction.options.getString(`uid`, true).trim();

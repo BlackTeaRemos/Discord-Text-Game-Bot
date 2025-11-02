@@ -2,7 +2,6 @@ import type { Message } from 'discord.js';
 import { GameCreateFlowConstants } from '../../Flow/Object/Game/CreateState.js';
 import { recallRenderers, type GameCreateStepContext } from '../../Flow/Object/Game/CreateTypes.js';
 import { log } from '../../Common/Log.js';
-import { UploadImage } from '../../Repository/Common/UploadImage.js';
 
 /**
  * Process an image attachment or URL provided while updating the game preview.
@@ -27,25 +26,17 @@ export async function ProcessImageInput(ctx: GameCreateStepContext, message: Mes
             await renderers.RenderControls(ctx, renderers.BuildControlsContent(ctx.state));
         }
         try {
-            const response = await fetch(attachment.url);
-            const buffer = Buffer.from(await response.arrayBuffer());
-            const objectName = `${ctx.userId}_${Date.now()}_${attachment.name ?? `image`}`;
-            const uploadedUrl = await UploadImage(
-                GameCreateFlowConstants.imageBucket,
-                objectName,
-                buffer,
-                contentType || `application/octet-stream`,
-            );
-            ctx.state.imageUrl = uploadedUrl;
+            const httpsUrl = ensureHttpsUrl(attachment.url);
+            ctx.state.imageUrl = httpsUrl;
             await message.reply(`Image updated for preview.`);
             return true;
         } catch (error) {
             log.error(
-                `Failed to upload image: ${String(error)}`,
+                `Failed to process image: ${String(error)}`,
                 GameCreateFlowConstants.logSource,
                 `ProcessImageInput`,
             );
-            await message.reply(`Uploading the image failed. Try again or paste a direct URL.`);
+            await message.reply(error instanceof Error ? error.message : `Processing the image failed.`);
             return false;
         } finally {
             ctx.state.uploadInProgress = false;
@@ -59,12 +50,26 @@ export async function ProcessImageInput(ctx: GameCreateStepContext, message: Mes
         await message.reply(`Image update cancelled.`);
         return false;
     }
-    const urlLooksValid = /^https?:\/\//i.test(content);
-    if (!urlLooksValid) {
-        await message.reply(`Provide a direct image URL starting with http or https.`);
+    try {
+        const httpsUrl = ensureHttpsUrl(content);
+        ctx.state.imageUrl = httpsUrl;
+    } catch (error) {
+        await message.reply(error instanceof Error ? error.message : `Provide a direct https image URL.`);
         return false;
     }
-    ctx.state.imageUrl = content;
     await message.reply(`Image URL set for preview.`);
     return true;
+}
+
+function ensureHttpsUrl(raw: string): string {
+    let parsed: URL;
+    try {
+        parsed = new URL(raw);
+    } catch {
+        throw new Error(`Provide a valid image URL starting with https.`);
+    }
+    if (parsed.protocol !== `https:`) {
+        throw new Error(`Image URLs must use https.`);
+    }
+    return parsed.toString();
 }

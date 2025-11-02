@@ -14,9 +14,7 @@ export const permissionTokens: TokenSegmentInput[][] = [[`object`, `diagnostic`,
  * Example command demonstrating how to use ExecutionContext to avoid unnecessary recomputation.
  * This simulates expensive operations and shows how caching works.
  */
-export async function execute(
-    interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
-) {
+export async function execute(interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>) {
     const ctx = createCommandContext(interaction);
 
     await ctx.reply({

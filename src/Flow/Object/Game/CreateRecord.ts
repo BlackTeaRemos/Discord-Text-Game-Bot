@@ -8,6 +8,7 @@ import { neo4jClient } from '../../../Setup/Neo4j.js';
  * @property image string Public URL of the game preview image. @example "https://cdn.example/game.png"
  * @property serverId string Discord server id owning the game. @example "123456789012345678"
  * @property parameters Record<string, any> Arbitrary game parameters captured during creation.
+ * @property description string | undefined Last known description associated with the game. @example "Season overview"
  */
 export interface Game {
     uid: string;
@@ -15,6 +16,7 @@ export interface Game {
     image: string;
     serverId: string;
     parameters: Record<string, any>;
+    description?: string;
 }
 
 /**
@@ -69,12 +71,114 @@ export async function CreateGame(
         const gameNode = record.get(`game`);
         const serverIdFromDb = record.get(`serverId`);
         const gameProps = gameNode.properties;
+        const descriptionValue = typeof gameParams.description === `string` ? gameParams.description : undefined;
         return {
             uid: gameProps.uid,
             name: gameProps.name,
             image: gameProps.image,
             serverId: serverIdFromDb,
             parameters: gameParams,
+            description: descriptionValue,
+        };
+    } finally {
+        await session.close();
+    }
+}
+
+export interface UpdateGameOptions {
+    name: string;
+    image: string;
+    parameters?: Record<string, any>;
+}
+
+/**
+ * Update an existing Game node while ensuring server uniqueness and parameter synchronization.
+ * @param uid string Game identifier to update. @example "game_123"
+ * @param options UpdateGameOptions New game properties to persist. @example await UpdateGame('game_123',{ name:'League', image:'https://...' })
+ * @returns Promise<Game> Updated game payload with merged parameters.
+ */
+export async function UpdateGame(uid: string, options: UpdateGameOptions): Promise<Game> {
+    const session = await neo4jClient.GetSession(`WRITE`);
+    try {
+        const existingResult = await session.run(
+            `
+                MATCH (game:Game { uid: $uid })
+                OPTIONAL MATCH (server:Server)-[:HAS_GAME]->(game)
+                OPTIONAL MATCH (game)-[:HAS_PARAMETER]->(param:Parameter)
+                RETURN game, server.id AS serverId, collect(param) AS params
+            `,
+            { uid },
+        );
+
+        if (existingResult.records.length === 0) {
+            throw new Error(`Game not found for update.`);
+        }
+
+        const record = existingResult.records[0];
+        const serverId = (record.get(`serverId`) as string | null) ?? ``;
+        const paramNodes = record.get(`params`) as Array<{ properties: Record<string, unknown> }>;
+        const currentParameters: Record<string, any> = {};
+        for (const node of paramNodes) {
+            if (!node || !node.properties) {
+                continue;
+            }
+            const key = String(node.properties.key ?? ``);
+            if (!key) {
+                continue;
+            }
+            currentParameters[key] = node.properties.value;
+        }
+
+        const conflictResult = await session.run(
+            `
+                MATCH (other:Game { name: $name, server_id: $serverId })
+                WHERE other.uid <> $uid
+                RETURN other LIMIT 1
+            `,
+            { name: options.name, serverId, uid },
+        );
+        if (conflictResult.records.length > 0) {
+            throw new Error(`Game with this name already exists in the server`);
+        }
+
+        const mergedParameters = { ...currentParameters, ...(options.parameters ?? {}) };
+        const paramEntries = Object.entries(mergedParameters);
+
+        const updateResult = await session.run(
+            `
+                MATCH (game:Game { uid: $uid })
+                OPTIONAL MATCH (game)-[rel:HAS_PARAMETER]->(existing:Parameter)
+                DELETE rel, existing
+                WITH game, $paramEntries AS entries
+                SET game.name = $name, game.image = $image
+                FOREACH (entry IN entries |
+                    CREATE (game)-[:HAS_PARAMETER]->(:Parameter { key: entry[0], value: entry[1] })
+                )
+                RETURN game
+            `,
+            {
+                uid,
+                name: options.name,
+                image: options.image,
+                paramEntries,
+            },
+        );
+
+        const updatedNode = updateResult.records[0]?.get(`game`);
+        if (!updatedNode) {
+            throw new Error(`Failed to persist updated game data.`);
+        }
+
+        const descriptionValue =
+            typeof mergedParameters.description === `string` ? mergedParameters.description : undefined;
+
+        return {
+            uid,
+            name: options.name,
+            image: options.image,
+            serverId,
+            parameters: mergedParameters,
+            description: descriptionValue,
         };
     } finally {
         await session.close();

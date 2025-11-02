@@ -16,7 +16,10 @@ export async function RenderPreview(ctx: GameCreateStepContext): Promise<void> {
     }
     const embed = BuildGamePreviewEmbed(ctx.state);
     const payload = {
-        content: `Preview of the game as it will appear after creation.`,
+        content:
+            ctx.state.mode === `update`
+                ? `Preview of the game as it will appear after saving changes.`
+                : `Preview of the game as it will appear after creation.`,
         embeds: [embed],
     };
     try {

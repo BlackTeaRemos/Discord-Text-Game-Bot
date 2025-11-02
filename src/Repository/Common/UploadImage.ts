@@ -1,12 +1,11 @@
-import minioClient from '../../Flow/minio.js';
-
 /**
- * Uploads a buffer as an object in MinIO and returns the public URL
- * @param bucket Bucket name
- * @param objectName Object name (key)
- * @param buffer Data buffer
- * @param contentType MIME type, e.g. 'image/png'
- * @returns URL string
+ * Legacy MinIO uploader kept for backward compatibility.
+ * @deprecated Game preview images now use https URLs provided directly by Discord attachments or user links.
+ * @param bucket Bucket name (unused)
+ * @param objectName Object name (unused)
+ * @param buffer Data buffer (unused)
+ * @param contentType MIME type (unused)
+ * @returns never
  */
 export async function UploadImage(
     bucket: string,
@@ -14,16 +13,5 @@ export async function UploadImage(
     buffer: Buffer,
     contentType: string,
 ): Promise<string> {
-    // Ensure bucket exists
-    const exists = await minioClient.bucketExists(bucket);
-    if (!exists) {
-        await minioClient.makeBucket(bucket);
-    }
-    // Upload object: include size and metadata
-    await minioClient.putObject(bucket, objectName, buffer, buffer.length, {
-        'Content-Type': contentType,
-    });
-    // Return a presigned URL for accessing the object
-    const url = await minioClient.presignedGetObject(bucket, objectName);
-    return url;
+    throw new Error(`UploadImage is deprecated. Provide an https image URL instead.`);
 }

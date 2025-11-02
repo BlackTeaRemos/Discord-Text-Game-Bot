@@ -40,9 +40,7 @@ export const data = new SlashCommandSubcommandBuilder()
 
 export const permissionTokens: TokenSegmentInput[][] = [[`object`, `organization`, `create`]];
 
-export async function execute(
-    interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
-) {
+export async function execute(interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>) {
     await executeWithContext(interaction, async (flowManager, executionContext) => {
         // Interactive flow: collect name, friendly name (optional), and UID (optional)
         await flowManager

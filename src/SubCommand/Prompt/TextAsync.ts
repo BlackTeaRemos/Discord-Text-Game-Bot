@@ -1,6 +1,7 @@
 import { ChatInputCommandInteraction, Message, MessageFlags } from 'discord.js';
 import { ValidateTextInput } from './Text.js';
 import { MAIN_EVENT_BUS } from '../../Events/MainEventBus.js';
+import { log } from '../../Common/Log.js';
 
 /**
  * Configuration for awaiting user-provided text input via Discord messages.
@@ -54,68 +55,91 @@ export async function AwaitTextInput(options: AwaitTextInputOptions): Promise<st
         validator,
     } = options;
 
-    const channel = interaction.channel;
-    if (!channel || !(`isTextBased` in channel) || !channel.isTextBased()) {
-        throw new Error(`Cannot prompt for text input: channel is missing or not text-based.`);
-    }
-
-    const promptResponse = (await (async () => {
-        const payload = { content: prompt, flags: MessageFlags.Ephemeral } as const;
-        if (interaction.replied || interaction.deferred) {
-            return await interaction.followUp(payload);
-        }
-        return await interaction.reply(payload);
-    })()) as Message;
+    const payload = { content: prompt, flags: MessageFlags.Ephemeral } as const;
+    const promptResponse = (await (interaction.replied || interaction.deferred
+        ? interaction.followUp(payload)
+        : interaction.reply(payload))) as Message;
 
     const channelId = interaction.channelId;
-    const deadline = Date.now() + timeoutMs;
+    if (!channelId) {
+        throw new Error(`Unable to determine channel for text input.`);
+    }
 
     const reportIssue = async (message: string): Promise<void> => {
         try {
             await interaction.followUp({ content: message, flags: MessageFlags.Ephemeral });
         } catch {
-            // Follow-up errors are ignored because the original prompt already informed the user.
+            // Ignore follow-up failures; the user already saw the initial prompt.
         }
     };
 
     return await new Promise<string>((resolve, reject) => {
         let timeoutHandle: NodeJS.Timeout | undefined;
+        let settled = false;
 
-        const cleanup = async () => {
+        const cleanup = () => {
             if (timeoutHandle) {
                 clearTimeout(timeoutHandle);
+                timeoutHandle = undefined;
             }
             MAIN_EVENT_BUS.off(`discord:message:raw`, onMessage);
-            try {
-                await promptResponse.delete();
-            } catch {
-                // Prompt cleanup failures are non-critical.
-            }
-        };
-
-        const rejectWith = (error: Error) => {
-            void cleanup().finally(() => {
-                reject(error);
-            });
         };
 
         const resolveWith = async (value: string, sourceMessage: Message) => {
-            await cleanup();
-            try {
-                if (sourceMessage.deletable) {
-                    await sourceMessage.delete();
-                }
-            } catch {
-                // User message cleanup best-effort only.
+            if (settled) {
+                return;
             }
+            settled = true;
+            cleanup();
+
+            try {
+                await interaction.webhook.deleteMessage(promptResponse.id);
+            } catch (error) {
+                log.warning(
+                    `Failed to delete prompt message ${promptResponse.id}: ${error instanceof Error ? error.message : String(error)}`,
+                    `Prompt/TextAsync`,
+                );
+            }
+
+            try {
+                await sourceMessage.delete();
+            } catch (error) {
+                log.warning(
+                    `Failed to delete user response ${sourceMessage.id}: ${error instanceof Error ? error.message : String(error)}`,
+                    `Prompt/TextAsync`,
+                );
+            }
+
             resolve(value);
         };
 
-        const onMessage = async (message: Message) => {
-            if (message.author?.id !== interaction.user.id) {
+        const rejectWith = async (error: Error) => {
+            if (settled) {
                 return;
             }
-            if (message.author.bot) {
+            settled = true;
+            cleanup();
+
+            try {
+                await interaction.webhook.deleteMessage(promptResponse.id);
+            } catch (deleteError) {
+                log.warning(
+                    `Failed to delete prompt message ${promptResponse.id}: ${deleteError instanceof Error ? deleteError.message : String(deleteError)}`,
+                    `Prompt/TextAsync`,
+                );
+            }
+
+            reject(error);
+        };
+
+        const onMessage = async (message: Message) => {
+            if (settled) {
+                return;
+            }
+            if (!message.author || message.author.bot) {
+                return;
+            }
+            if (message.author.id !== interaction.user.id) {
                 return;
             }
             if (message.channelId !== channelId) {
@@ -132,7 +156,7 @@ export async function AwaitTextInput(options: AwaitTextInputOptions): Promise<st
             });
 
             if (validation.status === `cancel`) {
-                rejectWith(new Error(CANCELLATION_ERROR_MESSAGE));
+                await rejectWith(new Error(CANCELLATION_ERROR_MESSAGE));
                 return;
             }
 
@@ -148,9 +172,9 @@ export async function AwaitTextInput(options: AwaitTextInputOptions): Promise<st
 
         timeoutHandle = setTimeout(
             () => {
-                rejectWith(new Error(TIMEOUT_ERROR_MESSAGE));
+                void rejectWith(new Error(TIMEOUT_ERROR_MESSAGE));
             },
-            Math.max(0, deadline - Date.now()),
+            Math.max(0, timeoutMs),
         );
 
         MAIN_EVENT_BUS.on(`discord:message:raw`, onMessage);

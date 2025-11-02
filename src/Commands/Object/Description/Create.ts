@@ -35,9 +35,7 @@ export const data = new SlashCommandSubcommandBuilder()
 
 export const permissionTokens: TokenSegmentInput[][] = [[`object`, `description`, `create`]];
 
-export async function execute(
-    interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
-) {
+export async function execute(interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>) {
     await executeWithContext(interaction, async (flowManager, executionContext) => {
         // Interactive flow: collect refType, refUid, and description text
         await flowManager

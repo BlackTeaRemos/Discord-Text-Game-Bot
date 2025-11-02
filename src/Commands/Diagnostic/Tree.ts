@@ -15,9 +15,7 @@ export const data = new SlashCommandBuilder()
 
 export const permissionTokens = `diagnostic:tree`;
 
-export async function execute(
-    interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
-) {
+export async function execute(interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>) {
     const ctx = createCommandContext(interaction);
     const sub = interaction.options.getSubcommand(true);
     if (sub === `tree`) {

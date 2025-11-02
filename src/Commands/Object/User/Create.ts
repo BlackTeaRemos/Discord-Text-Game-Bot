@@ -32,9 +32,7 @@ export const data = new SlashCommandSubcommandBuilder()
 
 export const permissionTokens: TokenSegmentInput[][] = [[`object`, `user`, `create`]];
 
-export async function execute(
-    interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
-) {
+export async function execute(interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>) {
     await executeWithContext(interaction, async (flowManager, executionContext) => {
         // Start interactive flow: ask for Discord ID via modal, then create user
         await flowManager

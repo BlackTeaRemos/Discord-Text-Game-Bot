@@ -19,9 +19,7 @@ interface FlowState {
  * Example command demonstrating how to use ExecutionContext with FlowManager
  * to avoid recomputation across multiple flow steps.
  */
-export async function execute(
-    interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
-) {
+export async function execute(interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>) {
     await executeWithContext(interaction, async (flowManager, executionContext) => {
         await flowManager
             .builder(interaction.user.id, interaction, {} as FlowState, executionContext)
