@@ -19,7 +19,7 @@
     "@stylistic/eslint-plugin": "^5.4.0",
     "discord.js": "^14.20.0",
     "joi": "^17.13.3",
-    "js-yaml": "^4.1.0",
+    "js-yaml": "^4.1.1",
     "minio": "^8.0.0",
     "neo4j-driver": "^5.23.0",
     "sqlite3": "^5.1.7"
