@@ -1,0 +1,14 @@
+export type { DescriptionScopeType, DescriptionScope, DescriptionObjectReference, DescriptionFlowState, DescriptionEditorFlowOptions, ScopedDescription } from './Types.js';
+export { DESCRIPTION_PAGE_SIZE, CalculatePageCount, GetPageContent } from './Types.js';
+export { GetVisibleScopes } from './GetVisibleScopes.js';
+export type { GetVisibleScopesOptions } from './GetVisibleScopes.js';
+export { GetScopedDescription } from './GetScopedDescription.js';
+export type { GetScopedDescriptionOptions } from './GetScopedDescription.js';
+export { GetPriorityScopedDescription } from './GetPriorityScopedDescription.js';
+export type { GetPriorityScopedDescriptionOptions } from './GetPriorityScopedDescription.js';
+export { SaveScopedDescription } from './SaveScopedDescription.js';
+export type { SaveScopedDescriptionOptions, SaveScopedDescriptionResult } from './SaveScopedDescription.js';
+export { RemoveScopedDescriptionByUid } from './RemoveScopedDescriptionByUid.js';
+export { BuildScopePermissionToken, BuildGlobalScopeToken } from './PermissionToken.js';
+export type { DescriptionPermissionAction } from './PermissionToken.js';
+export { CanViewScope, CanEditScope } from './ScopeAccessCheck.js';

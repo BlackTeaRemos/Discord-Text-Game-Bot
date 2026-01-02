@@ -1,4 +1,3 @@
-import type { ChatInputCommandInteraction, GuildMember } from 'discord.js';
 import {
     resolve,
     type PermissionDecision,
@@ -8,7 +7,16 @@ import {
     type TokenResolveContext,
 } from '../../Common/Permission/index.js';
 import { log } from '../../Common/Log.js';
+import type { IFlowInteractionContext, IFlowMember, FlowMemberProvider } from '../../Common/Type/FlowContext.js';
 
+/**
+ * Result of command permission resolution.
+ * @property allowed boolean Whether the action is permitted (example: true).
+ * @property reason string | undefined Explanation when denied (example: 'No matching grant').
+ * @property tokens PermissionToken[] Resolved permission tokens.
+ * @property decision PermissionDecision | undefined The raw decision from the resolver.
+ * @property requiresApproval boolean | undefined Whether admin approval is needed.
+ */
 export interface CommandPermissionResult {
     allowed: boolean;
     reason?: string;
@@ -17,63 +25,93 @@ export interface CommandPermissionResult {
     requiresApproval?: boolean;
 }
 
+/**
+ * Options for resolving command permissions.
+ * @property context IFlowInteractionContext Extracted interaction data.
+ * @property templates Array<string | TokenSegmentInput[]> Permission token templates.
+ * @property additionalContext Record<string, unknown> | undefined Extra context values.
+ * @property logSource string Logging identifier (example: 'ViewCommand').
+ * @property action string | undefined Action name for logging (example: 'view').
+ * @property skipApproval boolean | undefined Whether to skip approval flow.
+ * @property permissions PermissionsObject | undefined Permissions config object.
+ * @property member IFlowMember | null | undefined Pre-resolved member data.
+ * @property memberProvider FlowMemberProvider | undefined Callback to lazily fetch member.
+ */
 export interface ResolveCommandPermissionOptions {
-    interaction: ChatInputCommandInteraction;
+    context: IFlowInteractionContext;
     templates: Array<string | TokenSegmentInput[]>;
-    context?: Record<string, unknown>;
+    additionalContext?: Record<string, unknown>;
     logSource: string;
     action?: string;
     skipApproval?: boolean;
     permissions?: PermissionsObject;
-    member?: GuildMember | null;
+    member?: IFlowMember | null;
+    memberProvider?: FlowMemberProvider;
 }
 
+/**
+ * Resolve permissions for a command without Discord dependencies.
+ * @param options ResolveCommandPermissionOptions Configuration for resolution.
+ * @returns Promise<CommandPermissionResult> Resolution outcome.
+ * @example
+ * const result = await ResolveCommandPermission({
+ *     context: ExtractFlowContext(interaction),
+ *     templates: ['object:game:view:{guildId}'],
+ *     logSource: 'ViewCommand',
+ * });
+ */
 export async function ResolveCommandPermission(
     options: ResolveCommandPermissionOptions,
 ): Promise<CommandPermissionResult> {
     const {
-        interaction,
+        context,
         templates,
-        context = {},
+        additionalContext = {},
         logSource,
         action = `command`,
         permissions,
         member: providedMember,
+        memberProvider,
     } = options;
+
     const baseContext: TokenResolveContext = {
-        commandName: interaction.commandName,
-        guildId: interaction.guildId ?? undefined,
-        userId: interaction.user.id,
+        commandName: context.commandName,
+        guildId: context.guildId,
+        userId: context.userId,
         options: Object.fromEntries(
-            interaction.options.data.map(o => {
-                return [o.name, o.value];
+            context.options.map(option => {
+                return [option.name, option.value];
             }),
         ),
-        ...context,
+        ...additionalContext,
     };
 
     log.info(
-        `${logSource}: resolving permissions for action=${action} user=${interaction.user.id}`,
+        `${logSource}: resolving permissions for action=${action} user=${context.userId}`,
         logSource,
         `resolveCommandPermission`,
     );
 
-    // Flows should not perform interactive approval. Ask ensure to evaluate permissions
-    // and indicate whether approval is required. Commands or subcommands should trigger the
-    // interactive approval UI when needed.
-    let member: GuildMember | null;
+    let member: IFlowMember | null = null;
     if (providedMember !== undefined) {
         member = providedMember;
-    } else {
-        member = await GetMember(interaction, logSource, action);
+    } else if (memberProvider) {
+        try {
+            member = await memberProvider();
+        } catch(error) {
+            log.warning(
+                `${logSource}: failed to fetch member via provider for action=${action} reason=${String(error)}`,
+                logSource,
+                `resolveCommandPermission`,
+            );
+        }
     }
 
     const outcome = await resolve(templates, {
         context: baseContext,
         member,
         permissions,
-        // Do not provide requestApproval delegate here: keep flow non-interactive by default
-        skipApproval: options.skipApproval ?? true,
+        skipApproval: options.skipApproval ?? false,
     });
 
     log.info(
@@ -90,33 +128,3 @@ export async function ResolveCommandPermission(
         requiresApproval: outcome.detail.requiresApproval,
     };
 }
-
-async function GetMember(
-    interaction: ChatInputCommandInteraction,
-    logSource: string,
-    action: string,
-): Promise<GuildMember | null> {
-    if (!interaction.guild) {
-        log.info(`${logSource}: no guild context for action=${action}`, logSource, `resolveCommandPermission`);
-        return null;
-    }
-    try {
-        const member = await interaction.guild.members.fetch(interaction.user.id);
-        log.info(
-            `${logSource}: fetched guild member ${member.id} for action=${action}`,
-            logSource,
-            `resolveCommandPermission`,
-        );
-        return member;
-    } catch (error) {
-        log.warning(
-            `${logSource}: failed to fetch guild member for action=${action} reason=${String(error)}`,
-            logSource,
-            `resolveCommandPermission`,
-        );
-        return null;
-    }
-}
-
-// requestApprovalWithLogging removed from flow to keep flows UI-free. Interactive approval
-// should be invoked from command handlers via the SubCommand/Permission helper.

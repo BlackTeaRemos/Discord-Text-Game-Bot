@@ -1,8 +1,5 @@
-import type { ChatInputCommandInteraction } from 'discord.js';
-import { MessageFlags } from 'discord.js';
 import { ResolveCommandPermission, type CommandPermissionResult } from './PermissionResolver.js';
-import { PermissionApprovalError } from '../../Common/Errors.js';
-import { RequestPermissionFromAdmin } from '../../SubCommand/Permission/PermissionUI.js';
+import type { IFlowInteractionContext, FlowMemberProvider } from '../../Common/Type/FlowContext.js';
 
 /**
  * Context used when resolving game creation permissions.
@@ -12,72 +9,56 @@ export interface GameCreatePermissionContext {
     serverId: string;
 }
 
-export type GameCreatePermissionResult = CommandPermissionResult;
+/**
+ * Result of game creation permission resolution.
+ * Extends base result with approval requirement status.
+ */
+export interface GameCreatePermissionResult extends CommandPermissionResult {
+    needsAdminApproval: boolean;
+}
 
 /**
- * Resolve permissions for the game creation flow, handling admin approval when required.
- * @param interaction ChatInputCommandInteraction Interaction requesting creation (example: slash command interaction).
- * @param context GameCreatePermissionContext Context describing the target server (example: { serverId: '123' }).
- * @returns Promise<GameCreatePermissionResult> Outcome of permission resolution when access proceeds.
- * @throws PermissionApprovalError When approval is denied, times out, or no administrators are reachable.
- * @example
- * const outcome = await resolveGameCreatePermissions(interaction, { serverId: guildId });
+ * Options for resolving game creation permissions.
+ * @property context IFlowInteractionContext Extracted interaction data.
+ * @property gameContext GameCreatePermissionContext Server context for creation.
+ * @property memberProvider FlowMemberProvider | undefined Callback to lazily fetch member.
  */
-export async function resolveGameCreatePermissions(
-    interaction: ChatInputCommandInteraction,
-    context: GameCreatePermissionContext,
+export interface ResolveGameCreatePermissionsOptions {
+    context: IFlowInteractionContext;
+    gameContext: GameCreatePermissionContext;
+    memberProvider?: FlowMemberProvider;
+}
+
+/**
+ * Resolve permissions for game creation without performing UI actions.
+ * Command layer handles user responses and admin approval UI when needsAdminApproval is true.
+ * @param options ResolveGameCreatePermissionsOptions Configuration for resolution.
+ * @returns Promise<GameCreatePermissionResult> Outcome indicating whether access is granted or approval needed.
+ * @example
+ * const outcome = await ResolveGameCreatePermissions({
+ *     context: ExtractFlowContext(interaction),
+ *     gameContext: { serverId: guildId },
+ * });
+ * if (!outcome.allowed && outcome.needsAdminApproval) {
+ *     // Command layer handles admin approval UI
+ * }
+ */
+export async function ResolveGameCreatePermissions(
+    options: ResolveGameCreatePermissionsOptions,
 ): Promise<GameCreatePermissionResult> {
-    const respondToUser = async (message: string): Promise<void> => {
-        if (interaction.replied || interaction.deferred) {
-            await interaction.followUp({ content: message, flags: MessageFlags.Ephemeral });
-        } else {
-            await interaction.reply({ content: message, flags: MessageFlags.Ephemeral });
-        }
-    };
+    const { context, gameContext, memberProvider } = options;
 
     const outcome = await ResolveCommandPermission({
-        interaction,
+        context,
         templates: [`object:game:create:{serverId}`, `object:game:create`],
-        context: { serverId: context.serverId },
+        additionalContext: { serverId: gameContext.serverId },
         logSource: `GameCreateFlow`,
-        action: `object:game:create:${context.serverId}`,
-    });
-
-    if (outcome.allowed) {
-        return outcome;
-    }
-
-    if (!outcome.requiresApproval) {
-        const message = outcome.reason ?? `Permission denied for game creation.`;
-        await respondToUser(message);
-        throw new PermissionApprovalError(message, {
-            reason: `denied`,
-            guildId: interaction.guildId ?? undefined,
-            userId: interaction.user.id,
-            tokens: outcome.tokens,
-        });
-    }
-
-    const tokens = outcome.tokens ?? [];
-    if (tokens.length === 0) {
-        const message = `Approval required but no permission tokens were supplied. Contact an administrator.`;
-        await respondToUser(message);
-        throw new PermissionApprovalError(message, {
-            reason: `missing_tokens`,
-            guildId: interaction.guildId ?? undefined,
-            userId: interaction.user.id,
-        });
-    }
-
-    const decision = await RequestPermissionFromAdmin(interaction, {
-        tokens,
-        reason: outcome.reason,
+        action: `object:game:create:${gameContext.serverId}`,
+        memberProvider,
     });
 
     return {
         ...outcome,
-        allowed: true,
-        requiresApproval: false,
-        decision,
+        needsAdminApproval: !outcome.allowed && Boolean(outcome.requiresApproval),
     };
 }

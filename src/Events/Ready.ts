@@ -4,6 +4,7 @@
 import { ChannelType, type Client } from 'discord.js';
 import { log } from '../Common/Log.js';
 import { commands, commandsReady } from '../Commands/index.js';
+import { LoadGrantsForGuild } from '../Common/Permission/Store.js';
 
 /**
  * Handles the ready event. Logs bot readiness, lists application and guild commands,
@@ -13,6 +14,17 @@ import { commands, commandsReady } from '../Commands/index.js';
  */
 export async function OnReady(client: Client): Promise<void> {
     log.info(`Bot is ready as ${client.user?.tag}`, `Ready`);
+
+    // Load permission grants for all guilds
+    try {
+        const guilds = client.guilds.cache;
+        for (const [guildId] of guilds) {
+            await LoadGrantsForGuild(guildId);
+        }
+        log.info(`Loaded permission grants for ${guilds.size} guilds`, `Ready`);
+    } catch(error) {
+        log.error(`Failed to load permission grants: ${(error as Error).message}`, `Ready`);
+    }
 
     // Diagnostic: list registered application commands (global and guild)
     try {
@@ -37,7 +49,7 @@ export async function OnReady(client: Client): Promise<void> {
                 });
                 const registered = await application.commands.set(data);
                 log.info(`Registered ${registered.size} global commands`, `Ready`);
-            } catch (err) {
+            } catch(err) {
                 log.error(
                     `Failed to register global commands`,
                     err instanceof Error ? err.message : String(err),
@@ -45,7 +57,7 @@ export async function OnReady(client: Client): Promise<void> {
                 );
             }
         }
-    } catch (err) {
+    } catch(err) {
         log.warning(`Failed to fetch global commands: ${err instanceof Error ? err.message : String(err)}`, `Ready`);
     }
 }

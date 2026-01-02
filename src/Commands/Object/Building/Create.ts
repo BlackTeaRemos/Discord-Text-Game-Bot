@@ -21,7 +21,6 @@ interface FlowState {
     orgUid: string;
     orgName?: string;
     desc: string;
-    uid?: string;
 }
 
 type StepContext = {
@@ -44,7 +43,7 @@ export async function execute(interaction: InteractionExecutionContextCarrier<Ch
             .builder(
                 interaction.user.id,
                 interaction as any,
-                { type: ``, orgUid: ``, orgName: ``, desc: ``, uid: `` },
+                { type: ``, orgUid: ``, orgName: ``, desc: `` },
                 executionContext,
             )
             .step(`factory_select_org`)
@@ -105,13 +104,6 @@ export async function execute(interaction: InteractionExecutionContextCarrier<Ch
                                 .setStyle(TextInputStyle.Short)
                                 .setRequired(true),
                         ),
-                        new ActionRowBuilder<TextInputBuilder>().addComponents(
-                            new TextInputBuilder()
-                                .setCustomId(`uid`)
-                                .setLabel(`Custom UID`)
-                                .setStyle(TextInputStyle.Short)
-                                .setRequired(false),
-                        ),
                     );
                 await (ctx.interaction as ChatInputCommandInteraction).showModal(modal);
             })
@@ -120,8 +112,6 @@ export async function execute(interaction: InteractionExecutionContextCarrier<Ch
                     const fields = interaction.fields;
                     ctx.state.type = fields.getTextInputValue(`type`).trim();
                     ctx.state.desc = fields.getTextInputValue(`desc`).trim();
-                    const custom = fields.getTextInputValue(`uid`).trim();
-                    ctx.state.uid = custom || undefined;
                     await interaction.deferUpdate();
                     return true;
                 }
@@ -149,14 +139,9 @@ export async function execute(interaction: InteractionExecutionContextCarrier<Ch
                     return;
                 }
                 try {
-                    const factory = await CreateFactory(
-                        ctx.state.type,
-                        ctx.state.orgUid,
-                        ctx.state.desc,
-                        ctx.state.uid,
-                    );
+                    const factory = await CreateFactory(ctx.state.type, ctx.state.orgUid, ctx.state.desc);
                     await (ctx.interaction as ChatInputCommandInteraction).followUp({
-                        content: `Factory ${factory.uid} '${factory.type}' created under organization ${factory.organizationUid}.`,
+                        content: `Factory '${factory.type}' created under the selected organization.`,
                         flags: MessageFlags.Ephemeral,
                     });
                 } catch (error) {

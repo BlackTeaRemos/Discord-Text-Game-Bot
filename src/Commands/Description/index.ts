@@ -1,9 +1,9 @@
 import { SlashCommandBuilder, MessageFlags } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 import { executeWithContext } from '../../Common/ExecutionContextHelpers.js';
-import { StartInteractiveDescriptionEditor } from '../../SubCommand/Editor/DescriptionEditor.js';
 import type { TokenSegmentInput } from '../../Common/Permission/index.js';
 import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
+import { RunDescriptionCreateFlow } from '../../SubCommand/Object/Description/DescriptionCreateFlow.js';
 
 export const data = new SlashCommandBuilder()
     .setName(`description`)
@@ -14,15 +14,19 @@ export const data = new SlashCommandBuilder()
 
 export const permissionTokens: TokenSegmentInput[][] = [[`description`]];
 
-export async function execute(interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>) {
+/**
+ * Delegate the description slash command to the shared creation flow.
+ * @param interaction InteractionExecutionContextCarrier<ChatInputCommandInteraction> Discord interaction wrapper carrying execution context. @example await execute(interaction)
+ * @returns Promise<void> Resolves once the creation flow finishes. @example await execute(interaction)
+ */
+export async function execute(interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>): Promise<void> {
     const sub = interaction.options.getSubcommand();
     if (sub !== `create`) {
         await interaction.reply({ content: `Unsupported subcommand`, flags: MessageFlags.Ephemeral });
         return;
     }
 
-    await executeWithContext(interaction, async (fm, executionContext) => {
-        // Delegate interaction handling to the Editor subcommand which owns the UI flow.
-        await StartInteractiveDescriptionEditor(fm, interaction, executionContext);
+    await executeWithContext(interaction, async(flowManager, executionContext) => {
+        await RunDescriptionCreateFlow({ interaction, flowManager, executionContext });
     });
 }

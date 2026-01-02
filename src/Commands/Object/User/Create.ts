@@ -1,77 +1,128 @@
-import {
-    SlashCommandSubcommandBuilder,
-    ModalBuilder,
-    TextInputBuilder,
-    TextInputStyle,
-    ActionRowBuilder,
-    ModalSubmitInteraction,
-    MessageFlags,
-} from 'discord.js';
+import { ActionRowBuilder, MessageFlags, SlashCommandSubcommandBuilder, StringSelectMenuBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
-import { CreateUser } from '../../../Flow/Object/User/Create.js';
-import { flowManager } from '../../../Common/Flow/Manager.js';
-import { executeWithContext } from '../../../Common/ExecutionContextHelpers.js';
-import type { ExecutionContext } from '../../../Domain/index.js';
-import type { TokenSegmentInput } from '../../../Common/Permission/index.js';
+import { log } from '../../../Common/Log.js';
 import type { InteractionExecutionContextCarrier } from '../../../Common/Type/Interaction.js';
-
-interface FlowState {
-    discordId: string;
-}
-
-type StepContext = {
-    state: FlowState;
-    executionContext?: ExecutionContext;
-    interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>;
-    userId: string;
-};
+import { PrepareGamePrompt } from '../../../SubCommand/Prompt/Game.js';
+import { CreateUser } from '../../../Flow/Object/User/Create.js';
+import { GetUserActiveGame, SetUserActiveGame } from '../../../Flow/Object/User/SelectActiveGame.js';
 
 export const data = new SlashCommandSubcommandBuilder()
     .setName(`create`)
-    .setDescription(`Interactive register a new user`);
+    .setDescription(`Register yourself and select a game`);
 
-export const permissionTokens: TokenSegmentInput[][] = [[`object`, `user`, `create`]];
+export const permissionTokens = `object:user:create`;
 
-export async function execute(interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>) {
-    await executeWithContext(interaction, async (flowManager, executionContext) => {
-        // Start interactive flow: ask for Discord ID via modal, then create user
-        await flowManager
-            .builder(interaction.user.id, interaction as any, { discordId: `` }, executionContext)
-            .step(`user_id_modal`)
-            .prompt(async (ctx: StepContext) => {
-                const modal = new ModalBuilder()
-                    .setCustomId(`user_id_modal`)
-                    .setTitle(`Register User`)
-                    .addComponents(
-                        new ActionRowBuilder<TextInputBuilder>().addComponents(
-                            new TextInputBuilder()
-                                .setCustomId(`discordId`)
-                                .setLabel(`Discord User ID`)
-                                .setStyle(TextInputStyle.Short)
-                                .setRequired(true),
-                        ),
-                    );
-                await (ctx.interaction as ChatInputCommandInteraction).showModal(modal);
-            })
-            .onInteraction(async (ctx: StepContext, interaction: any) => {
-                if (interaction.isModalSubmit()) {
-                    const id = interaction.fields.getTextInputValue(`discordId`).trim();
-                    ctx.state.discordId = id;
-                    await interaction.deferUpdate();
-                    return true;
-                }
-                return false;
-            })
-            .next()
-            .step()
-            .prompt(async (ctx: StepContext) => {
-                const user = await CreateUser(ctx.state.discordId!);
-                await (ctx.interaction as ChatInputCommandInteraction).followUp({
-                    content: `User ${user.uid} (${user.discord_id}) created.`,
-                    flags: MessageFlags.Ephemeral,
+const USER_CREATE_GAME_SELECT_ID = `user_create_select_game`;
+
+/**
+ * Start an interactive user creation session with live preview and controls.
+ * @param interaction InteractionExecutionContextCarrier<ChatInputCommandInteraction> Discord interaction used to reply. @example await execute(interaction)
+ * @returns Promise<void> Resolves after the preview and controls have been rendered. @example await execute(interaction)
+ */
+export async function execute(
+    interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
+): Promise<void> {
+    try {
+        const serverId = interaction.guildId;
+        if (!serverId) {
+            throw new Error(`This command must be used in a server.`);
+        }
+
+        if (!interaction.deferred && !interaction.replied) {
+            await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+        }
+
+        const prepared = await PrepareGamePrompt({
+            serverId,
+            customId: USER_CREATE_GAME_SELECT_ID,
+            placeholder: `Select game`,
+            promptMessage: `Select the game you want to register for.`,
+            emptyMessage: `No games found in this server. Ask an admin to create one first.`,
+        });
+
+        if (prepared.status === `empty`) {
+            await interaction.editReply({ content: prepared.message ?? `No games found.`, components: [] });
+            return;
+        }
+
+        let selectedGameUid: string;
+        if (prepared.status === `auto` && prepared.game) {
+            selectedGameUid = prepared.game.uid;
+        } else {
+            await interaction.editReply({
+                content: prepared.message ?? `Select game to continue.`,
+                components: prepared.components ?? [],
+            });
+
+            const message = await interaction.fetchReply();
+            try {
+                const collected = await message.awaitMessageComponent({
+                    filter: component => {
+                        return component.user.id === interaction.user.id && component.customId === USER_CREATE_GAME_SELECT_ID;
+                    },
+                    time: 60_000,
                 });
-            })
-            .next()
-            .start();
-    });
+
+                if (!collected.isStringSelectMenu()) {
+                    await interaction.editReply({ content: `Invalid selection.`, components: [] });
+                    return;
+                }
+
+                await collected.deferUpdate();
+                selectedGameUid = collected.values[0];
+            } catch {
+                await interaction.editReply({ content: `Selection timed out.`, components: [] });
+                return;
+            }
+        }
+
+        const selectedGameName = prepared.games.find(game => {
+            return game.uid === selectedGameUid;
+        })?.name;
+
+        const existingActiveGame = await GetUserActiveGame(interaction.user.id);
+
+        await CreateUser({
+            discordId: interaction.user.id,
+            name: interaction.user.username,
+            friendlyName: interaction.user.username,
+            imageUrl: interaction.user.displayAvatarURL?.() ?? undefined,
+        });
+
+        if (existingActiveGame?.uid === selectedGameUid) {
+            await interaction.editReply({
+                content: `You are already registered${existingActiveGame.name ? ` for game: ${existingActiveGame.name}` : ``}.`,
+                components: [],
+            });
+            return;
+        }
+
+        await SetUserActiveGame(interaction.user.id, selectedGameUid);
+
+        const switchedMessage = existingActiveGame
+            ? `Active game updated from ${existingActiveGame.name} to ${selectedGameName ?? selectedGameUid}.`
+            : `User registered successfully${selectedGameName ? ` for game: ${selectedGameName}` : ``}.`;
+
+        await interaction.editReply({
+            content: switchedMessage,
+            components: [],
+        });
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        log.error(`Failed to execute object user create`, message, `ObjectUserCreateCommand`);
+        const response = {
+            content: `Unable to start user creation: ${message}`,
+            flags: MessageFlags.Ephemeral,
+        } as const;
+        try {
+            if (interaction.replied || interaction.deferred) {
+                await interaction.editReply({ content: response.content, components: [] });
+            } else {
+                await interaction.reply(response);
+            }
+        } catch {
+            // Silent failure if Discord refuses the message.
+        }
+        throw error instanceof Error ? error : new Error(message);
+    }
 }

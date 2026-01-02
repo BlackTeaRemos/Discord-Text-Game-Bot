@@ -2,6 +2,7 @@
 import { Neo4jClient, type Neo4jConfig } from '../Repository/Neo4jClient.js';
 import { ConfigService } from '../Services/ConfigService.js';
 import { MAIN_EVENT_BUS } from '../Events/MainEventBus.js';
+import { InitializePermissionStore } from '../Common/Permission/Store.js';
 
 /**
  * Initializes the Neo4jClient and registers it with the Sapphire container.
@@ -22,6 +23,7 @@ export async function setupNeo4j() {
 
     neo4jClient = new Neo4jClient(neo4jConfig);
     await neo4jClient.Init();
+    await InitializePermissionStore(neo4jClient);
 
     console.log(`Neo4j client initialized and connected.`);
 }

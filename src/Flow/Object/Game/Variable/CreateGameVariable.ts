@@ -45,7 +45,7 @@ export async function CreateGameVariable(options: {
             gameUid: options.gameUid,
             payload: normalizedPayload,
         };
-    } catch (error) {
+    } catch(error) {
         log.error(
             `Failed to persist game variables: ${String(error)}`,
             `Flow/Object/Game/Variable`,

@@ -26,6 +26,7 @@ export async function GetUserByUid(uid: string): Promise<ViewUser | null> {
             name: props.name,
             friendly_name: props.friendly_name,
             id: props.id,
+            image: props.image,
         } as ViewUser;
     } finally {
         await session.close();

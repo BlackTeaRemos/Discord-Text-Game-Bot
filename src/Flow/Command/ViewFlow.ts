@@ -1,6 +1,6 @@
-import type { ChatInputCommandInteraction } from 'discord.js';
 import { ResolveCommandPermission, type CommandPermissionResult } from './PermissionResolver.js';
 import type { PermissionsObject } from '../../Common/Permission/index.js';
+import type { IFlowInteractionContext, FlowMemberProvider } from '../../Common/Type/FlowContext.js';
 import { GetGame } from '../Object/Game/View.js';
 import { GetOrganizationWithMembers } from '../Object/Organization/View.js';
 import { GetUserByUid } from '../Object/User/View.js';
@@ -20,83 +20,93 @@ export type ViewPermissionResult = CommandPermissionResult;
 
 /**
  * Build contextual permission overrides for view operations based on the target entity and requester.
- * @param interaction ChatInputCommandInteraction Discord interaction initiating the view (example: slash command).
- * @param context ViewPermissionContext Object type and identifier selected by the user (example: { type: 'game', id: 'game_42' }).
- * @returns Promise<PermissionsObject | undefined> Permission overrides granting access when applicable (example: { 'view:game:game_42': 'allowed' }).
+ * Uses character context when available for organization-related access checks.
+ * @param context IFlowInteractionContext Extracted interaction context (example: { userId: '123', guildId: '456', ... }).
+ * @param viewContext ViewPermissionContext Object type and identifier selected by the user (example: { type: 'game', id: 'game_42' }).
+ * @returns Promise<PermissionsObject | undefined> Permission overrides granting access when applicable.
  * @example
- * const permissions = await buildViewPermissionOverrides(interaction, { type: 'game', id: 'game_42' });
+ * const permissions = await buildViewPermissionOverrides(flowContext, { type: 'game', id: 'game_42' });
  */
-async function buildViewPermissionOverrides(
-    interaction: ChatInputCommandInteraction,
-    context: ViewPermissionContext,
+async function __BuildViewPermissionOverrides(
+    context: IFlowInteractionContext,
+    viewContext: ViewPermissionContext,
 ): Promise<PermissionsObject | undefined> {
-    const guildId = interaction.guildId ?? ``;
-    const userId = interaction.user.id;
+    const guildId = context.guildId ?? ``;
+    const userId = context.userId;
     const overrides: PermissionsObject = {};
 
     const allow = (token: string): void => {
         overrides[token] = `allowed`;
     };
 
-    const isAdmin = Boolean(interaction.memberPermissions?.has(`Administrator`));
-    if (isAdmin) {
-        allow(`view:${context.type}`);
-        allow(`view:${context.type}:${context.id}`);
+    if (context.isAdministrator) {
+        allow(`view:${viewContext.type}`);
+        allow(`view:${viewContext.type}:${viewContext.id}`);
         return overrides;
     }
 
-    switch (context.type) {
+    switch (viewContext.type) {
         case `game`: {
-            const game = await GetGame(context.id);
+            const game = await GetGame(viewContext.id);
             if (!game) {
                 break;
             }
             if (guildId && game.serverId === guildId) {
                 allow(`view:game`);
-                allow(`view:game:${context.id}`);
+                allow(`view:game:${viewContext.id}`);
             }
             break;
         }
         case `organization`: {
-            const organization = await GetOrganizationWithMembers(context.id);
-            if (!organization) {
-                break;
-            }
-            const isMember = organization.users.some(member => {
-                return member.discord_id === userId;
-            });
-            if (isMember) {
+            if (context.character?.organizationUid === viewContext.id) {
                 allow(`view:organization`);
-                allow(`view:organization:${context.id}`);
+                allow(`view:organization:${viewContext.id}`);
+            } else {
+                const organization = await GetOrganizationWithMembers(viewContext.id);
+                if (!organization) {
+                    break;
+                }
+                const isMember = organization.users.some(member => {
+                    return member.discord_id === userId;
+                });
+                if (isMember) {
+                    allow(`view:organization`);
+                    allow(`view:organization:${viewContext.id}`);
+                }
             }
             break;
         }
         case `user`: {
-            const targetUser = await GetUserByUid(context.id);
+            const targetUser = await GetUserByUid(viewContext.id);
             if (!targetUser) {
                 break;
             }
             if (targetUser.discord_id === userId) {
                 allow(`view:user`);
-                allow(`view:user:${context.id}`);
+                allow(`view:user:${viewContext.id}`);
             }
             break;
         }
         case `building`: {
-            const factory = await GetFactory(context.id);
+            const factory = await GetFactory(viewContext.id);
             if (!factory) {
                 break;
             }
             if (!factory.organizationUid) {
                 break;
             }
-            const organization = await GetOrganizationWithMembers(factory.organizationUid);
-            const belongsToOrganization = organization?.users.some(member => {
-                return member.discord_id === userId;
-            });
-            if (belongsToOrganization) {
+            if (context.character?.organizationUid === factory.organizationUid) {
                 allow(`view:building`);
-                allow(`view:building:${context.id}`);
+                allow(`view:building:${viewContext.id}`);
+            } else {
+                const organization = await GetOrganizationWithMembers(factory.organizationUid);
+                const belongsToOrganization = organization?.users.some(member => {
+                    return member.discord_id === userId;
+                });
+                if (belongsToOrganization) {
+                    allow(`view:building`);
+                    allow(`view:building:${viewContext.id}`);
+                }
             }
             break;
         }
@@ -109,24 +119,39 @@ async function buildViewPermissionOverrides(
 }
 
 /**
+ * Options for resolving view permissions.
+ * @property context IFlowInteractionContext Extracted interaction data.
+ * @property viewContext ViewPermissionContext Type and ID of object to view.
+ * @property memberProvider FlowMemberProvider | undefined Callback to lazily fetch member.
+ */
+export interface ResolveViewPermissionsOptions {
+    context: IFlowInteractionContext;
+    viewContext: ViewPermissionContext;
+    memberProvider?: FlowMemberProvider;
+}
+
+/**
  * Resolve view command permission tokens using the standardized resolver.
- * @param interaction ChatInputCommandInteraction Interaction requesting the permission (example: original slash interaction).
- * @param context ViewPermissionContext Context values applied to templates (example: { type: 'game', id: 'g-1' }).
+ * @param options ResolveViewPermissionsOptions Configuration for resolution.
  * @returns Promise<ViewPermissionResult> Resolution outcome describing allowance and tokens.
  * @example
- * const result = await resolveViewPermissions(interaction, { type: 'game', id: 'g-1' });
+ * const result = await ResolveViewPermissions({
+ *     context: ExtractFlowContext(interaction),
+ *     viewContext: { type: 'game', id: 'g-1' },
+ * });
  */
 export async function ResolveViewPermissions(
-    interaction: ChatInputCommandInteraction,
-    context: ViewPermissionContext,
+    options: ResolveViewPermissionsOptions,
 ): Promise<ViewPermissionResult> {
-    const permissions = await buildViewPermissionOverrides(interaction, context);
+    const { context, viewContext, memberProvider } = options;
+    const permissions = await __BuildViewPermissionOverrides(context, viewContext);
     return ResolveCommandPermission({
-        interaction,
+        context,
         templates: [`view:{type}:{id}`],
-        context: { type: context.type, id: context.id },
+        additionalContext: { type: viewContext.type, id: viewContext.id },
         logSource: `ViewFlow`,
-        action: `view:${context.type}:${context.id}`,
+        action: `view:${viewContext.type}:${viewContext.id}`,
         permissions,
+        memberProvider,
     });
 }

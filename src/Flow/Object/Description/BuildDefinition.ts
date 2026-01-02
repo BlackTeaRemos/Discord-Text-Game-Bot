@@ -4,13 +4,11 @@ import { randomUUID } from 'crypto';
  * Describes a detachable description definition that is not persisted automatically.
  * @property uid string Unique identifier assigned to the definition. @example "desc_0f1a2b3c"
  * @property text string Normalized description text. @example "Seasonal ladder with weekly resets."
- * @property refType `organization` | `game` | `user` | undefined Optional reference type metadata. @example "game"
- * @property refUid string | undefined Optional reference UID metadata. @example "game_123"
+ * @property refUid string | undefined Optional reference UID metadata (global, type-free). @example "game_123"
  */
 export interface DescriptionDefinition {
     uid: string;
     text: string;
-    refType?: `organization` | `game` | `user`;
     refUid?: string;
 }
 
@@ -18,19 +16,17 @@ export interface DescriptionDefinition {
  * Options used when building a description definition.
  * @property text string | undefined Raw description text to normalize. @example "  Tournament finals  "
  * @property uid string | undefined Explicit identifier to reuse instead of generating one. @example "desc_manual_007"
- * @property refType `organization` | `game` | `user` | undefined Optional reference type metadata. @example "organization"
- * @property refUid string | undefined Optional reference UID metadata. @example "org_42"
+ * @property refUid string | undefined Optional reference UID metadata (global, type-free). @example "org_42"
  */
 export interface DescriptionDefinitionOptions {
     text?: string;
     uid?: string;
-    refType?: `organization` | `game` | `user`;
     refUid?: string;
 }
 
 /**
  * Build a description definition without persisting it.
- * @param options DescriptionDefinitionOptions Optional seed values for the definition. @example const def = BuildDescriptionDefinition({ text: " Demo ", refType: "game" })
+ * @param options DescriptionDefinitionOptions Optional seed values for the definition. @example const def = BuildDescriptionDefinition({ text: " Demo ", refUid: "game_123" })
  * @returns DescriptionDefinition Normalized definition object ready for further processing.
  */
 export function BuildDescriptionDefinition(options?: DescriptionDefinitionOptions): DescriptionDefinition {
@@ -40,7 +36,6 @@ export function BuildDescriptionDefinition(options?: DescriptionDefinitionOption
     return {
         uid: definitionUid,
         text: normalizedText,
-        refType: options?.refType,
         refUid: options?.refUid,
     };
 }

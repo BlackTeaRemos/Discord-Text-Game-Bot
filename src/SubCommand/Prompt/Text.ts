@@ -1,24 +1,24 @@
 /**
- * Options for validating text input (no Discord API calls).
- * @property value string Text to validate. @example 'My Name'
- * @property minLength number | undefined Minimum allowed length. @example 1
- * @property maxLength number | undefined Maximum allowed length. @example 100
- * @property validator (s: string) => boolean | string | undefined Optional custom validation. @example (s) => s.length > 0 || 'Cannot be empty'
- * @property cancelWords string[] | undefined Words that indicate cancellation. @example ['cancel', 'stop']
+ * Configuration for validating text prompt input.
+ * @property value string | undefined Raw user-provided text. @example 'Game name'
+ * @property minLength number | undefined Minimum allowed length in characters. @example 3
+ * @property maxLength number | undefined Maximum allowed length in characters. @example 120
+ * @property cancelWords string[] | undefined Words that signal prompt cancellation. @example ['cancel', 'stop']
+ * @property validator (value: string) => boolean | string | undefined Optional extra validation logic. @example (text) => text !== 'forbidden' || 'Reserved word.'
  */
 export interface TextPromptValidationOptions {
-    value: string;
+    value?: string;
     minLength?: number;
     maxLength?: number;
-    validator?: (s: string) => boolean | string;
     cancelWords?: string[];
+    validator?: (value: string) => boolean | string | undefined;
 }
 
 /**
- * Result from text input validation.
- * @property status 'ok' | 'cancel' | 'error' Indicates validation outcome. @example 'ok'
- * @property value string | undefined Validated text if ok. @example 'My Name'
- * @property errorMessage string | undefined Error details if validation failed. @example 'Input too short'
+ * Result describing the outcome of text prompt validation.
+ * @property status 'ok' | 'cancel' | 'error' Validation result state. @example 'ok'
+ * @property value string | undefined Sanitized text when validation succeeds. @example 'Validated text'
+ * @property errorMessage string | undefined Reason for failure when status is 'error'. @example 'Too short'
  */
 export interface TextPromptValidationResult {
     status: `ok` | `cancel` | `error`;
@@ -26,35 +26,69 @@ export interface TextPromptValidationResult {
     errorMessage?: string;
 }
 
+/** Default error returned when custom validation rejects the submitted text. */
+const DEFAULT_VALIDATOR_FAILURE_MESSAGE = `The provided text did not pass validation.`;
+
+/** Default error returned when the user submits an empty value. */
+const DEFAULT_EMPTY_VALUE_MESSAGE = `Please provide a response before continuing.`;
+
 /**
- * Validate text input (pure business logic, no Discord API interactions).
- * @param options TextPromptValidationOptions Configuration for validation. @example ValidateTextInput({ value: 'name', minLength: 1, maxLength: 100 });
- * @returns TextPromptValidationResult Validation result. @example { status: 'ok', value: 'name' }
+ * Validate text prompt input prior to resolving asynchronous prompt workflows.
+ * @param options TextPromptValidationOptions Validation configuration. @example ValidateTextInput({ value: 'My game' })
+ * @returns TextPromptValidationResult Validation status information. @example { status: 'ok', value: 'My game' }
  */
 export function ValidateTextInput(options: TextPromptValidationOptions): TextPromptValidationResult {
-    const { value, minLength = 0, maxLength = Infinity, validator, cancelWords = [] } = options;
+    const { value, minLength, maxLength, cancelWords = [], validator } = options;
 
-    if (cancelWords.includes(value.toLowerCase())) {
+    const normalizedValue = (value ?? ``).trim();
+    const normalizedLowerValue = normalizedValue.toLowerCase();
+
+    if (
+        cancelWords.some(word => {
+            return word.trim().toLowerCase() === normalizedLowerValue && word.trim().length > 0;
+        })
+    ) {
         return { status: `cancel` };
     }
 
-    if (value.length < minLength) {
-        return { status: `error`, errorMessage: `Input too short (minimum ${minLength} characters).` };
+    if (normalizedValue.length === 0) {
+        return { status: `error`, errorMessage: DEFAULT_EMPTY_VALUE_MESSAGE };
     }
 
-    if (value.length > maxLength) {
-        return { status: `error`, errorMessage: `Input too long (maximum ${maxLength} characters).` };
+    if (typeof minLength === `number` && Number.isFinite(minLength) && normalizedValue.length < minLength) {
+        const minimumMessage =
+            minLength === 1
+                ? `Response must contain at least one character.`
+                : `Response must contain at least ${minLength} characters.`;
+        return { status: `error`, errorMessage: minimumMessage };
+    }
+
+    if (typeof maxLength === `number` && Number.isFinite(maxLength) && normalizedValue.length > maxLength) {
+        return { status: `error`, errorMessage: `Response must not exceed ${maxLength} characters.` };
     }
 
     if (validator) {
-        const result = validator(value);
-        if (result === false) {
-            return { status: `error`, errorMessage: `Validation failed.` };
+        let result: boolean | string | undefined;
+        try {
+            result = validator(normalizedValue);
+        } catch (error) {
+            if (error instanceof Error && error.message.trim().length > 0) {
+                return { status: `error`, errorMessage: error.message };
+            }
+            return { status: `error`, errorMessage: DEFAULT_VALIDATOR_FAILURE_MESSAGE };
         }
+
+        if (result === false) {
+            return { status: `error`, errorMessage: DEFAULT_VALIDATOR_FAILURE_MESSAGE };
+        }
+
         if (typeof result === `string`) {
+            if (result.trim().length === 0) {
+                return { status: `error`, errorMessage: DEFAULT_VALIDATOR_FAILURE_MESSAGE };
+            }
             return { status: `error`, errorMessage: result };
         }
     }
 
-    return { status: `ok`, value };
+    return { status: `ok`, value: normalizedValue };
 }

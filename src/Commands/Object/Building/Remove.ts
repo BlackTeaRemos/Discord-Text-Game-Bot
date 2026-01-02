@@ -42,7 +42,7 @@ export async function execute(interaction: InteractionExecutionContextCarrier<Ch
         if (!deleted) {
             return await ctx.reply({ content: `Factory not found`, flags: MessageFlags.Ephemeral });
         }
-        return await ctx.reply({ content: `Factory ${uid} removed.`, flags: MessageFlags.Ephemeral });
+        return await ctx.reply({ content: `Factory removed.`, flags: MessageFlags.Ephemeral });
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         log.error(`Error removing factory`, errorMessage, `removeFactory`);

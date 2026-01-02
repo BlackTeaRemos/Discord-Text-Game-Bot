@@ -2,7 +2,9 @@ import type { ButtonInteraction, Interaction } from 'discord.js';
 import { log } from '../Common/Log.js';
 import { flowManager } from '../Common/Flow/Manager.js';
 import { HandleGameCreateControlInteraction } from '../SubCommand/Object/Game/GameCreateControls.js';
-import { HandleViewGameUpdateInteraction } from '../Commands/View.js';
+import { HandleOrganizationCreateControlInteraction } from '../SubCommand/Object/Organization/OrganizationCreateControls.js';
+import { HandleUserCreateControlInteraction } from '../SubCommand/Object/User/UserCreateControls.js';
+import { HandleViewGameActionInteraction, HandleViewDescriptionActionInteraction, HandleViewParameterActionInteraction } from '../Commands/View/index.js';
 
 /**
  * Handles the 'interactionCreate' event from Discord by delegating processing to the shared flow manager.
@@ -22,14 +24,26 @@ export async function OnInteractionCreate(interaction: Interaction): Promise<voi
         if (interaction.isButton()) {
             handled = await HandleGameCreateControlInteraction(interaction as ButtonInteraction);
             if (!handled) {
-                handled = await HandleViewGameUpdateInteraction(interaction as ButtonInteraction);
+                handled = await HandleOrganizationCreateControlInteraction(interaction as ButtonInteraction);
+            }
+            if (!handled) {
+                handled = await HandleUserCreateControlInteraction(interaction as ButtonInteraction);
+            }
+            if (!handled) {
+                handled = await HandleViewGameActionInteraction(interaction as ButtonInteraction);
+            }
+            if (!handled) {
+                handled = await HandleViewDescriptionActionInteraction(interaction as ButtonInteraction);
+            }
+            if (!handled) {
+                handled = await HandleViewParameterActionInteraction(interaction as ButtonInteraction);
             }
         }
 
         if (!handled) {
             await flowManager.onInteraction(interaction);
         }
-    } catch (error) {
+    } catch(error) {
         log.error(`Flow manager failed to process interaction ${interaction.id}: ${(error as Error).message}`, `Flow`);
     }
 }

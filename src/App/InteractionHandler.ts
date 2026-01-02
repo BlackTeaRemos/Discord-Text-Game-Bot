@@ -2,13 +2,12 @@ import { MessageFlags } from 'discord.js';
 import { log } from '../Common/Log.js';
 import { createExecutionContext } from '../Domain/index.js';
 import {
-    resolveTokens as resolvePermission,
-    type PermissionToken,
     type TokenSegmentInput,
-    GrantForever,
     resolve,
 } from '../Common/Permission/index.js';
-import { FormatPermissionToken } from '../Common/Permission/FormatPermissionToken.js';
+import { RequestPermissionFromAdmin } from '../SubCommand/Permission/PermissionUI.js';
+import { ExtractFlowContext, ExtractFlowMember } from '../Common/Type/FlowContext.js';
+import { EnrichWithCharacter } from '../Common/Type/CharacterContextEnricher.js';
 
 /**
  * Factory for Discord interaction handler focused on chat input commands.
@@ -31,6 +30,10 @@ export function CreateInteractionHandler(options: { loadedCommands: Record<strin
             interaction.executionContext = createExecutionContext(interaction.id);
 
             const member = interaction.guild ? await interaction.guild.members.fetch(interaction.user.id) : null;
+
+            const baseFlowContext = ExtractFlowContext(interaction);
+            const enrichedFlowContext = await EnrichWithCharacter(baseFlowContext);
+            interaction.flowContext = enrichedFlowContext;
 
             // Resolve permission token templates for this command.
             const cmdAny = command as any;
@@ -68,40 +71,71 @@ export function CreateInteractionHandler(options: { loadedCommands: Record<strin
                 ),
                 userId: interaction.user.id,
                 guildId: interaction.guildId ?? undefined,
-                getMember: async () => {
+                character: enrichedFlowContext.character,
+                getMember: async() => {
                     return interaction.guild ? await interaction.guild.members.fetch(interaction.user.id) : null;
                 },
             };
 
-            // Use throwing resolver: will prompt admins when needed; throws if denied.
-            const result = await resolve(templates, {
-                context: resolverCtx,
-                member,
-                getMember: resolverCtx.getMember,
-            });
-
-            // Persist forever-grant if admin approved permanently
-            if (result.detail.decision === `approve_forever` && interaction.guildId) {
-                // Grant the most specific token from templates
-                const tokens: PermissionToken[] = [];
-                const seen = new Set<string>();
-                for (const tmpl of templates) {
-                    for (const token of resolvePermission(tmpl, resolverCtx)) {
-                        const display = FormatPermissionToken(token);
-                        if (seen.has(display)) {
-                            continue;
-                        }
-                        seen.add(display);
-                        tokens.push(token);
-                    }
+            // Defer reply to avoid "The application did not respond" when performing
+            // long-running permission checks or waiting for admin input.
+            let deferredByHandler = false;
+            if (!interaction.replied && !interaction.deferred) {
+                try {
+                    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+                    deferredByHandler = true;
+                } catch(e) {
+                    // If deferring fails, continue without blocking; the request may still work.
+                    try {
+                        log.warning(`Failed to defer interaction reply: ${String(e)}`, `InteractionHandler`);
+                    } catch {}
                 }
-                const grantToken = tokens?.[0] ?? interaction.commandName;
-                GrantForever(interaction.guildId, interaction.user.id, grantToken);
             }
 
-            // Execute the command
+            // If we deferred the interaction, some commands may still call `interaction.reply`.
+            // Monkey-patch `reply` so it calls `editReply` when the interaction is already deferred.
+            if (deferredByHandler) {
+                try {
+                    const _origReply = interaction.reply?.bind(interaction);
+                    (interaction as any).reply = async(options: any) => {
+                        try {
+                            return (await interaction.editReply(options)) as any;
+                        } catch(err) {
+                            if (_origReply) {
+                                return _origReply(options);
+                            }
+                            throw err;
+                        }
+                    };
+                } catch {}
+            }
+
+            // DEBUG: Log before permission request
+            console.log(`[DEBUG] Preparing to request permission`, {
+                commandName: interaction.commandName,
+                userId: interaction.user.id,
+                guildId: interaction.guildId,
+                channelId: interaction.channel?.id,
+            });
+
+            // Global gate: resolve required tokens, check permanent grants, and request admin approval if needed.
+            // This gate remains independent from any local flow-level permission checks.
+            const flowMember = member ? ExtractFlowMember(member) : null;
+            const resolution = await resolve(templates, {
+                context: resolverCtx as any,
+                member: flowMember,
+                requestApproval: payload => {
+                    return RequestPermissionFromAdmin(interaction, payload as any);
+                },
+            });
+
+            if (!resolution.success) {
+                throw new Error(resolution.detail.reason ?? `Permission denied`);
+            }
+
+            // Execute the command after the global gate passes.
             await command.execute(interaction);
-        } catch (err: any) {
+        } catch(err: any) {
             // Centralized error handler for permission denials and execution errors
             try {
                 log.error(`Interaction handler error for /${interaction.commandName}: ${String(err)}`, `Boot`);

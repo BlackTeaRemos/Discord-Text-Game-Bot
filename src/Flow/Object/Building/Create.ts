@@ -25,18 +25,12 @@ export function GenerateFactoryUid(prefix: string): string {
  * @param type Factory type
  * @param organizationUid Organization UID to link
  * @param description Factory description
- * @param uid Optional UID; if not provided, a new one is generated
  * @returns The created or updated factory properties
  */
-export async function CreateFactory(
-    type: string,
-    organizationUid: string,
-    description: string,
-    uid?: string,
-): Promise<Factory> {
+export async function CreateFactory(type: string, organizationUid: string, description: string): Promise<Factory> {
     const session = await neo4jClient.GetSession(`WRITE`);
     try {
-        const factoryUid = uid || GenerateFactoryUid(`factory`);
+        const factoryUid = GenerateFactoryUid(`factory`);
         const query = `
             MATCH (o:Organization { uid: $orgUid })
             MERGE (f:Factory { uid: $factoryUid })

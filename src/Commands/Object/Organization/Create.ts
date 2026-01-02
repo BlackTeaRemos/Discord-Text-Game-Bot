@@ -1,117 +1,78 @@
-import {
-    SlashCommandSubcommandBuilder,
-    ModalBuilder,
-    TextInputBuilder,
-    TextInputStyle,
-    ActionRowBuilder,
-    ModalSubmitInteraction,
-    MessageFlags,
-} from 'discord.js';
+import { MessageFlags, SlashCommandSubcommandBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 import { log } from '../../../Common/Log.js';
-import { CreateOrganization, GenerateUid } from '../../../Flow/Object/Organization/Create.js';
-import { flowManager } from '../../../Common/Flow/Manager.js';
-import { executeWithContext } from '../../../Common/ExecutionContextHelpers.js';
-import type { ExecutionContext } from '../../../Domain/index.js';
-import type { TokenSegmentInput } from '../../../Common/Permission/index.js';
+import { createOrganizationCreateState } from '../../../Flow/Object/Organization/CreateState.js';
 import type { InteractionExecutionContextCarrier } from '../../../Common/Type/Interaction.js';
-
-interface FlowState {
-    name: string;
-    friendly: string;
-    uid?: string;
-}
-
-type StepContext = {
-    state: FlowState;
-    executionContext?: ExecutionContext;
-    interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>;
-};
-
-interface FlowState {
-    name: string;
-    friendly: string;
-    uid?: string;
-}
+import { RegisterOrganizationCreateSession } from '../../../SubCommand/Object/Organization/OrganizationCreateControls.js';
+import { BuildOrganizationPreviewEmbed } from '../../../SubCommand/Object/Organization/Renderers/BuildOrganizationPreviewEmbed.js';
+import { BuildOrganizationCreateControlsContent } from '../../../SubCommand/Object/Organization/Renderers/BuildOrganizationCreateControlsContent.js';
+import { BuildOrganizationCreateControlRows } from '../../../SubCommand/Object/Organization/Renderers/BuildOrganizationCreateControlRows.js';
 
 export const data = new SlashCommandSubcommandBuilder()
     .setName(`create`)
-    .setDescription(`Interactive create a new organization`);
+    .setDescription(`Preview a new organization before completing creation`);
 
-export const permissionTokens: TokenSegmentInput[][] = [[`object`, `organization`, `create`]];
+export const permissionTokens = `object:organization:create`;
 
-export async function execute(interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>) {
-    await executeWithContext(interaction, async (flowManager, executionContext) => {
-        // Interactive flow: collect name, friendly name (optional), and UID (optional)
-        await flowManager
-            .builder(interaction.user.id, interaction as any, { name: ``, friendly: ``, uid: `` }, executionContext)
-            .step(`org_create_modal`)
-            .prompt(async (ctx: StepContext) => {
-                const modal = new ModalBuilder()
-                    .setCustomId(`org_create_modal`)
-                    .setTitle(`New Organization`)
-                    .addComponents(
-                        new ActionRowBuilder<TextInputBuilder>().addComponents(
-                            new TextInputBuilder()
-                                .setCustomId(`name`)
-                                .setLabel(`Organization Name`)
-                                .setStyle(TextInputStyle.Short)
-                                .setRequired(true),
-                        ),
-                        new ActionRowBuilder<TextInputBuilder>().addComponents(
-                            new TextInputBuilder()
-                                .setCustomId(`friendly`)
-                                .setLabel(`Friendly Name`)
-                                .setStyle(TextInputStyle.Short)
-                                .setRequired(false),
-                        ),
-                        new ActionRowBuilder<TextInputBuilder>().addComponents(
-                            new TextInputBuilder()
-                                .setCustomId(`uid`)
-                                .setLabel(`Custom UID`)
-                                .setStyle(TextInputStyle.Short)
-                                .setRequired(false),
-                        ),
-                    );
-                await (ctx.interaction as ChatInputCommandInteraction).showModal(modal);
-            })
-            .onInteraction(async (ctx: StepContext, interaction: any) => {
-                if (interaction.isModalSubmit()) {
-                    const fields = interaction.fields;
-                    ctx.state.name = fields.getTextInputValue(`name`).trim();
-                    ctx.state.friendly = fields.getTextInputValue(`friendly`).trim() || ctx.state.name;
-                    ctx.state.uid = fields.getTextInputValue(`uid`).trim() || undefined;
-                    await interaction.deferUpdate();
-                    return true;
-                }
-                return false;
-            })
-            .next()
-            .step()
-            .prompt(async (ctx: StepContext) => {
-                try {
-                    const org = await CreateOrganization(
-                        ctx.state.name!,
-                        ctx.state.friendly || ctx.state.name!,
-                        ctx.state.uid,
-                    );
-                    await (ctx.interaction as ChatInputCommandInteraction).followUp({
-                        content: `Organization ${org.uid} '${org.name}' created.`,
-                        flags: MessageFlags.Ephemeral,
-                    });
-                } catch (error) {
-                    log.error(
-                        `Error creating organization`,
-                        error instanceof Error ? error.message : String(error),
-                        `createOrganization`,
-                    );
-                    await (ctx.interaction as ChatInputCommandInteraction).followUp({
-                        content: `Error creating organization`,
-                        flags: MessageFlags.Ephemeral,
-                    });
-                }
-            })
-            .next()
-            .start();
-    });
+/**
+ * Start an interactive organization creation session with live preview and controls.
+ * @param interaction InteractionExecutionContextCarrier<ChatInputCommandInteraction> Discord interaction used to reply. @example await execute(interaction)
+ * @returns Promise<void> Resolves after the preview and controls have been rendered. @example await execute(interaction)
+ */
+export async function execute(
+    interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
+): Promise<void> {
+    try {
+        const ownerDiscordId = interaction.user.id;
+        const state = createOrganizationCreateState({ ownerDiscordId });
+
+        await interaction.reply({
+            content: `Preview how your organization will appear once created.`,
+            embeds: [BuildOrganizationPreviewEmbed(state)],
+            flags: MessageFlags.Ephemeral,
+        });
+
+        const previewMessage = await interaction.fetchReply();
+        state.previewMessageId = previewMessage.id;
+
+        const controlsContent = BuildOrganizationCreateControlsContent(state);
+        const controlRows = BuildOrganizationCreateControlRows(state);
+        const controlsMessage = await interaction.followUp({
+            content: controlsContent,
+            components: controlRows,
+            flags: MessageFlags.Ephemeral,
+        });
+
+        state.controlsMessageId = controlsMessage.id;
+
+        const bucket = interaction.executionContext.shared.objectOrganizationCreate ?? {};
+        bucket.state = state;
+        bucket.previewMessageId = state.previewMessageId;
+        bucket.controlsMessageId = state.controlsMessageId;
+        interaction.executionContext.shared.objectOrganizationCreate = bucket;
+
+        await RegisterOrganizationCreateSession({
+            interaction,
+            state,
+            previewMessageId: state.previewMessageId!,
+            controlsMessageId: state.controlsMessageId!,
+        });
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        log.error(`Failed to execute object organization create`, message, `ObjectOrganizationCreateCommand`);
+        const response = {
+            content: `Unable to start organization creation: ${message}`,
+            flags: MessageFlags.Ephemeral,
+        } as const;
+        try {
+            if (interaction.replied || interaction.deferred) {
+                await interaction.followUp(response);
+            } else {
+                await interaction.reply(response);
+            }
+        } catch {
+            // Silent failure if Discord refuses the message.
+        }
+        throw error instanceof Error ? error : new Error(message);
+    }
 }

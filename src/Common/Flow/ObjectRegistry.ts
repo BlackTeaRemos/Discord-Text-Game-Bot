@@ -1,10 +1,18 @@
 import { EmbedBuilder } from 'discord.js';
 import { neo4jClient } from '../../Setup/Neo4j.js';
 import { GetGame } from '../../Flow/Object/Game/View.js';
+import { GameCreateFlowConstants } from '../../Flow/Object/Game/CreateState.js';
+import type { Game } from '../../Flow/Object/Game/CreateRecord.js';
 import { GetOrganizationWithMembers } from '../../Flow/Object/Organization/View.js';
+import type { OrganizationWithMembers } from '../../Flow/Object/Organization/View.js';
 import { GetUserByUid } from '../../Flow/Object/User/View.js';
+import type { ViewUser } from '../../Flow/Object/User/View/ViewUser.js';
 import { GetFactory } from '../../Flow/Object/Building/View.js';
-import { GetLatestDescription } from '../../Flow/Object/Description/Latest.js';
+import type { Factory } from '../../Flow/Object/Building/Create.js';
+import { sanitizeDescriptionText } from '../../Flow/Object/Description/BuildDefinition.js';
+import { GetPriorityScopedDescription } from '../../Flow/Object/Description/Scope/GetPriorityScopedDescription.js';
+import { GetUserOrganizations } from '../../Flow/Command/Description/GetUserOrganizations.js';
+import { ResolveEmbedThumbnailUrl } from './ResolveEmbedThumbnailUrl.js';
 
 export type ObjectTypeKey = `game` | `organization` | `user` | `building`;
 
@@ -50,70 +58,172 @@ export async function listRecordsFor(type: ObjectTypeKey): Promise<Array<{ uid: 
     }
 }
 
-export async function buildEmbedFor(type: ObjectTypeKey, id: string, orgUid: string | undefined) {
-    const embed = new EmbedBuilder().setTitle(`Details`).setColor(`Blue`);
+export interface EmbedBuildContext {
+    game?: Game | null;
+    organization?: OrganizationWithMembers | null;
+    user?: ViewUser | null;
+    factory?: Factory | null;
+}
+
+/**
+ * Generate a compact description field label for a resolved scoped description.
+ * @param scopeType string Scope type identifier. @example 'user'
+ * @returns string Human label for embeds. @example 'Description (personal)'
+ */
+function __BuildScopedDescriptionLabel(scopeType: string): string {
+    switch (scopeType) {
+        case `user`:
+            return `Description (personal)`;
+        case `organization`:
+            return `Description (organization)`;
+        case `global`:
+            return `Description (public)`;
+        default:
+            return `Description`;
+    }
+}
+
+/**
+ * Resolve a description to display using priority user > organization > public.
+ * Falls back to legacy object-attached description when no scoped description exists.
+ * @param options object Resolution input.
+ * @returns Promise<{ label: string; text: string }> Embed field payload.
+ */
+async function __ResolvePriorityDescription(options: {
+    objectType: string;
+    objectUid: string;
+    viewerUserUid: string;
+    legacyFallback?: string | undefined;
+    characterOrganizationUid?: string | null | undefined;
+}): Promise<{ label: string; text: string }> {
+    let organizationUids: string[];
+
+    if (options.characterOrganizationUid) {
+        organizationUids = [options.characterOrganizationUid];
+    } else {
+        const organizations = await GetUserOrganizations(options.viewerUserUid);
+        organizationUids = organizations.map(org => {
+            return org.uid;
+        });
+    }
+
+    const scoped = await GetPriorityScopedDescription({
+        objectType: options.objectType,
+        objectUid: options.objectUid,
+        userUid: options.viewerUserUid,
+        organizationUids,
+    });
+
+    const descriptionText = sanitizeDescriptionText(scoped?.content ?? options.legacyFallback);
+    const safeText = descriptionText.length > 0 ? descriptionText : `No description yet.`;
+
+    if (!scoped) {
+        return { label: `Description`, text: safeText };
+    }
+
+    return {
+        label: `${__BuildScopedDescriptionLabel(scoped.scopeType)} v${scoped.version}`,
+        text: safeText,
+    };
+}
+
+export async function buildEmbedFor(
+    type: ObjectTypeKey,
+    id: string,
+    viewerUserUid: string,
+    context?: EmbedBuildContext,
+    characterOrganizationUid?: string | null,
+): Promise<EmbedBuilder | null> {
     switch (type) {
         case `game`: {
-            const g = await GetGame(id);
-            embed
-                .addFields({ name: `UID`, value: g?.uid ?? `n/a`, inline: true })
-                .addFields({ name: `Name`, value: g?.name ?? `n/a`, inline: true })
-                .addFields({ name: `Server`, value: g?.serverId ?? `n/a`, inline: true });
-            const latest = await GetLatestDescription(`game`, id, orgUid || ``);
-            if (latest?.text) {
-                embed.addFields({
-                    name: `Description v${latest.version}${latest.isPublic ? ` (public)` : ``}`,
-                    value: latest.text.slice(0, 1024),
-                });
+            const game = context?.game ?? (await GetGame(id));
+            if (!game) {
+                return null;
             }
-            break;
+            const embed = new EmbedBuilder()
+                .setColor(`Blue`)
+                .setTitle(game.name || `Game details`)
+                .addFields({ name: `Name`, value: game.name || `n/a`, inline: true })
+                .addFields({ name: `Identifier`, value: `Stored internally.`, inline: true })
+                .addFields({ name: `Server`, value: game.serverId ?? `n/a`, inline: true });
+            const thumbnailUrl = ResolveEmbedThumbnailUrl(game.image, GameCreateFlowConstants.defaultImageUrl);
+            if (thumbnailUrl) {
+                embed.setThumbnail(thumbnailUrl);
+            }
+            const resolved = await __ResolvePriorityDescription({
+                objectType: `game`,
+                objectUid: id,
+                viewerUserUid,
+                legacyFallback: game.description,
+                characterOrganizationUid,
+            });
+            embed.addFields({ name: resolved.label, value: resolved.text.slice(0, 1024) });
+            return embed;
         }
         case `organization`: {
-            const org = await GetOrganizationWithMembers(id);
-            if (org) {
-                embed
-                    .addFields({ name: `UID`, value: org.organization.uid, inline: true })
-                    .addFields({ name: `Name`, value: org.organization.name, inline: true })
-                    .addFields({ name: `Friendly`, value: org.organization.friendly_name, inline: true })
-                    .addFields({ name: `Members`, value: String(org.users.length), inline: true });
-                const latest = await GetLatestDescription(`organization`, id, orgUid || ``);
-                if (latest?.text) {
-                    embed.addFields({
-                        name: `Description v${latest.version}${latest.isPublic ? ` (public)` : ``}`,
-                        value: latest.text.slice(0, 1024),
-                    });
-                }
+            const organization = context?.organization ?? (await GetOrganizationWithMembers(id));
+            if (!organization) {
+                return null;
             }
-            break;
+            const embed = new EmbedBuilder()
+                .setColor(`Blue`)
+                .setTitle(organization.organization.name || `Organization details`)
+                .addFields({ name: `Name`, value: organization.organization.name || `n/a`, inline: true })
+                .addFields({ name: `Friendly`, value: organization.organization.friendly_name, inline: true })
+                .addFields({ name: `Identifier`, value: `Stored internally.`, inline: true })
+                .addFields({ name: `Members`, value: String(organization.users.length), inline: true });
+            const resolved = await __ResolvePriorityDescription({
+                objectType: `organization`,
+                objectUid: id,
+                viewerUserUid,
+                characterOrganizationUid,
+            });
+            embed.addFields({ name: resolved.label, value: resolved.text.slice(0, 1024) });
+            return embed;
         }
         case `user`: {
-            const user = await GetUserByUid(id);
-            if (user) {
-                embed
-                    .addFields({ name: `UID`, value: user.uid, inline: true })
-                    .addFields({ name: `Discord`, value: user.discord_id, inline: true })
-                    .addFields({ name: `Name`, value: user.name || `n/a`, inline: true });
-                const latest = await GetLatestDescription(`user`, id, orgUid || ``);
-                if (latest?.text) {
-                    embed.addFields({
-                        name: `Description v${latest.version}${latest.isPublic ? ` (public)` : ``}`,
-                        value: latest.text.slice(0, 1024),
-                    });
-                }
+            const user = context?.user ?? (await GetUserByUid(id));
+            if (!user) {
+                return null;
             }
-            break;
+            const embed = new EmbedBuilder()
+                .setColor(`Blue`)
+                .setTitle(user.name || `User details`)
+                .addFields({ name: `Discord`, value: user.discord_id, inline: true })
+                .addFields({ name: `Name`, value: user.name || `n/a`, inline: true })
+                .addFields({ name: `Identifier`, value: `Stored internally.`, inline: true });
+            const resolved = await __ResolvePriorityDescription({
+                objectType: `user`,
+                objectUid: id,
+                viewerUserUid,
+                characterOrganizationUid,
+            });
+            embed.addFields({ name: resolved.label, value: resolved.text.slice(0, 1024) });
+            return embed;
         }
         case `building`: {
-            const f = await GetFactory(id);
-            if (f) {
-                embed
-                    .addFields({ name: `UID`, value: f.uid, inline: true })
-                    .addFields({ name: `Type`, value: f.type, inline: true })
-                    .addFields({ name: `Org`, value: f.organizationUid || `n/a`, inline: true });
-                // No description linkage defined for building yet
+            const factory = context?.factory ?? (await GetFactory(id));
+            if (!factory) {
+                return null;
             }
-            break;
+            const embed = new EmbedBuilder()
+                .setColor(`Blue`)
+                .setTitle(factory.type || `Factory details`)
+                .addFields({ name: `Type`, value: factory.type || `n/a`, inline: true })
+                .addFields({ name: `Identifier`, value: `Stored internally.`, inline: true })
+                .addFields({ name: `Organization`, value: `Linked organization recorded internally.`, inline: true });
+
+            const resolved = await __ResolvePriorityDescription({
+                objectType: `factory`,
+                objectUid: id,
+                viewerUserUid,
+                legacyFallback: factory.description,
+                characterOrganizationUid,
+            });
+            embed.addFields({ name: resolved.label, value: resolved.text.slice(0, 1024) });
+            return embed;
         }
+        default:
+            return null;
     }
-    return embed;
 }

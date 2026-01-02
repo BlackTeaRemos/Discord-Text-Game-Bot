@@ -23,13 +23,12 @@ export interface ViewOrganization {
  * Create or update an Organization node in Neo4j.
  * @param name Organization name
  * @param friendly_name Friendly name
- * @param uid Optional UID; if not provided, a new one is generated
  * @returns The created or matched organization properties
  */
-export async function CreateOrganization(name: string, friendly_name: string, uid?: string): Promise<ViewOrganization> {
+export async function CreateOrganization(name: string, friendly_name: string): Promise<ViewOrganization> {
     const session = await neo4jClient.GetSession(`WRITE`);
     try {
-        const orgUid = uid || GenerateUid(`org`);
+        const orgUid = GenerateUid(`org`);
         const query = `
             MERGE (o:Organization { uid: $uid })
             ON CREATE SET o.name = $name, o.friendly_name = $friendly

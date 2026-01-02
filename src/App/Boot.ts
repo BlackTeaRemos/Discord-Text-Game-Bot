@@ -3,6 +3,7 @@ import { Client, GatewayIntentBits, Events } from 'discord.js';
 import { log } from '../Common/Log.js';
 import type { ConfigService } from '../Services/ConfigService.js';
 import { CreateInteractionHandler } from './InteractionHandler.js';
+import { CreateSafeEventListener } from '../Common/SafeEventListener.js';
 
 /**
  * Boot helper: loads config, creates and logs-in a Discord client, and registers application commands.
@@ -27,10 +28,30 @@ export async function bootDiscordClient(options: {
 
     // Wire lightweight handlers provided by the caller
     if (onInteractionCreate) {
-        client.on(`interactionCreate`, onInteractionCreate);
+        client.on(
+            `interactionCreate`,
+            CreateSafeEventListener(onInteractionCreate as any, {
+                name: `discord:interactionCreate`,
+                onError: (error, name) => {
+                    try {
+                        log.error(`${name ?? `discord:interactionCreate`} listener error: ${String(error)}`, `Boot`);
+                    } catch {}
+                },
+            }) as any,
+        );
     }
     if (onMessageCreate) {
-        client.on(`messageCreate`, onMessageCreate);
+        client.on(
+            `messageCreate`,
+            CreateSafeEventListener(onMessageCreate as any, {
+                name: `discord:messageCreate`,
+                onError: (error, name) => {
+                    try {
+                        log.error(`${name ?? `discord:messageCreate`} listener error: ${String(error)}`, `Boot`);
+                    } catch {}
+                },
+            }) as any,
+        );
     }
 
     // Error logging
@@ -45,16 +66,16 @@ export async function bootDiscordClient(options: {
 
     // Command registration happens once the client is ready
     let didReady = false;
-    const handleReady = async () => {
-        if (didReady) {
-            return;
-        }
-        didReady = true;
-        eventBus.emit(`output`, `[Boot] Client ready, registering commands...`);
+    const handleReady = CreateSafeEventListener(
+        async() => {
+            if (didReady) {
+                return;
+            }
+            didReady = true;
+            eventBus.emit(`output`, `[Boot] Client ready, registering commands...`);
 
-        await commandsReady;
+            await commandsReady;
 
-        try {
             // Wipe all commands first (global)
             await client.application!.commands.set([]);
 
@@ -84,10 +105,14 @@ export async function bootDiscordClient(options: {
                     eventBus.emit(`output`, `Global command registration failed: ${String(err)}`);
                 }
             }
-        } catch (err) {
-            eventBus.emit(`output`, `Command registration failed in ready handler: ${String(err)}`);
-        }
-    };
+        },
+        {
+            name: `discord:clientReady`,
+            onError: error => {
+                eventBus.emit(`output`, `Command registration failed in ready handler: ${String(error)}`);
+            },
+        },
+    );
 
     client.once(Events.ClientReady, handleReady);
 
@@ -97,7 +122,25 @@ export async function bootDiscordClient(options: {
 
     // Extracted interaction handler for clarity
     const interactionHandler = CreateInteractionHandler({ loadedCommands });
-    client.on(`interactionCreate`, interactionHandler);
+    client.on(
+        Events.InteractionCreate,
+        CreateSafeEventListener(
+            async interaction => {
+                if (!interaction.isChatInputCommand()) {
+                    return;
+                }
+                await interactionHandler(interaction);
+            },
+            {
+                name: `discord:chatInputCommand`,
+                onError: error => {
+                    try {
+                        log.error(`Chat input command handler failed: ${String(error)}`, `Boot`);
+                    } catch {}
+                },
+            },
+        ) as any,
+    );
 
     // ensure we return the client and config as before
     return { client, config };

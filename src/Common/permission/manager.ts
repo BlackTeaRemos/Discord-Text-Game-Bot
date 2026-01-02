@@ -1,4 +1,4 @@
-import type { GuildMember } from 'discord.js';
+import type { IFlowMember } from '../Type/FlowContext.js';
 import { BuildPermissionEmitter } from './Emitter.js';
 import { HasPermanentGrant } from './Store.js';
 import type { PermissionCheckResult, PermissionState, PermissionTokenInput, PermissionsObject } from './types.js';
@@ -39,7 +39,7 @@ function ComputeStateResult(state: PermissionState, formattedToken: string): Per
 /**
  * Evaluates whether a guild member holds permissions for provided tokens.
  * @param permissions PermissionsObject | undefined Permission configuration object, optional (example: { 'command:create': 'allowed' }).
- * @param member GuildMember | null Discord member requesting the action (example: fetched GuildMember instance).
+ * @param member IFlowMember | null Flow member requesting the action (example: extracted IFlowMember instance).
  * @param tokens PermissionTokenInput[] Candidate tokens to evaluate (example: ['command:create']).
  * @returns Promise<PermissionCheckResult> Permission check outcome (example: { allowed: true }).
  * @example
@@ -47,7 +47,7 @@ function ComputeStateResult(state: PermissionState, formattedToken: string): Per
  */
 export async function CheckPermission(
     permissions: PermissionsObject | undefined,
-    member: GuildMember | null,
+    member: IFlowMember | null,
     tokens: PermissionTokenInput[],
 ): Promise<PermissionCheckResult> {
     try {
@@ -58,7 +58,7 @@ export async function CheckPermission(
         //     return { allowed: true };
         // }
 
-        const guildId = member?.guild.id;
+        const guildId = member?.guildId;
         const userId = member?.id;
 
         if (HasPermanentGrant(guildId, userId, tokens)) {
@@ -98,7 +98,7 @@ export async function CheckPermission(
             missing: missing.length ? missing : undefined,
             reason: missing.length ? `Token(s) not defined` : undefined,
         };
-    } catch (err: any) {
+    } catch(err: any) {
         return { allowed: false, reason: `Permission check error: ${String(err)}` };
     }
 }

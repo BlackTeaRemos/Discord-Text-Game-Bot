@@ -1,4 +1,5 @@
 import { randomUUID } from 'crypto';
+import type { DBObject } from '../../../Repository/Object/Object.js';
 import { neo4jClient } from '../../../Setup/Neo4j.js';
 
 /**
@@ -10,9 +11,7 @@ import { neo4jClient } from '../../../Setup/Neo4j.js';
  * @property parameters Record<string, any> Arbitrary game parameters captured during creation.
  * @property description string | undefined Last known description associated with the game. @example "Season overview"
  */
-export interface Game {
-    uid: string;
-    name: string;
+export interface Game extends DBObject {
     image: string;
     serverId: string;
     parameters: Record<string, any>;
@@ -58,8 +57,12 @@ export async function CreateGame(
         const paramEntries = Object.entries(gameParams);
         const query = `
             MERGE (server:Server { id: $serverId })
-            MERGE (game:Game { uid: $uid })
-            SET game.name = $name, game.image = $image, game.server_id = $serverId
+            MERGE (game:Game:DBObject:Entity { uid: $uid })
+            SET game.id = $uid,
+                game.name = $name,
+                game.friendly_name = $name,
+                game.image = $image,
+                game.server_id = $serverId
             MERGE (server)-[:HAS_GAME]->(game)
             WITH game, server
             UNWIND $paramEntries AS entry
@@ -74,7 +77,9 @@ export async function CreateGame(
         const descriptionValue = typeof gameParams.description === `string` ? gameParams.description : undefined;
         return {
             uid: gameProps.uid,
+            id: gameProps.id ?? gameProps.uid,
             name: gameProps.name,
+            friendly_name: gameProps.friendly_name ?? gameProps.name,
             image: gameProps.image,
             serverId: serverIdFromDb,
             parameters: gameParams,
@@ -150,7 +155,9 @@ export async function UpdateGame(uid: string, options: UpdateGameOptions): Promi
                 OPTIONAL MATCH (game)-[rel:HAS_PARAMETER]->(existing:Parameter)
                 DELETE rel, existing
                 WITH game, $paramEntries AS entries
-                SET game.name = $name, game.image = $image
+                SET game.name = $name,
+                    game.friendly_name = $name,
+                    game.image = $image
                 FOREACH (entry IN entries |
                     CREATE (game)-[:HAS_PARAMETER]->(:Parameter { key: entry[0], value: entry[1] })
                 )
@@ -174,7 +181,9 @@ export async function UpdateGame(uid: string, options: UpdateGameOptions): Promi
 
         return {
             uid,
+            id: updatedNode.properties?.id ?? uid,
             name: options.name,
+            friendly_name: updatedNode.properties?.friendly_name ?? options.name,
             image: options.image,
             serverId,
             parameters: mergedParameters,

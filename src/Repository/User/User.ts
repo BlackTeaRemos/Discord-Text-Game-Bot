@@ -7,5 +7,6 @@ import type { UID } from '../Common/Ids.js';
 
 export interface User extends DBObject {
     discord_id: string; // Discord user id
+    image?: string; // optional profile image url
     organizations: UID[]; // list of Organization.uids this user belongs to
 }

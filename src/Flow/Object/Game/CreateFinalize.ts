@@ -3,9 +3,9 @@ import { CreateGame, UpdateGame } from './CreateRecord.js';
 import type { GameCreateFlowState } from './CreateState.js';
 import { GameCreateFlowConstants } from './CreateState.js';
 import { log } from '../../../Common/Log.js';
-import { CreateDescription } from '../Description/Create.js';
-import { CreateDescriptionVersion } from '../Description/Update.js';
 import { sanitizeDescriptionText } from '../Description/BuildDefinition.js';
+import { SaveScopedDescription } from '../Description/Scope/SaveScopedDescription.js';
+import type { DescriptionScope } from '../Description/Scope/Types.js';
 
 export interface GameCreateFinalizationResult {
     success: boolean;
@@ -31,10 +31,16 @@ export async function FinalizeGameCreation(state: GameCreateFlowState): Promise<
             currentTurn: 1,
             description: descriptionText,
         });
-
-        await CreateDescription(`game`, created.uid, descriptionText);
+        const scope = buildDescriptionScope(state.organizationUid ?? null);
+        await SaveScopedDescription({
+            scope,
+            objectType: `game`,
+            objectUid: created.uid,
+            content: descriptionText,
+            createdBy: state.ownerDiscordId ?? `system`,
+        });
         return { success: true, game: created };
-    } catch (error) {
+    } catch(error) {
         log.error(`Game creation failed: ${String(error)}`, GameCreateFlowConstants.logSource, `FinalizeGameCreation`);
         return { success: false, error: String(error) };
     }
@@ -69,18 +75,39 @@ export async function FinalizeGameUpdate(state: GameCreateFlowState): Promise<Ga
         const descriptionChanged = descriptionText !== originalDescription;
 
         if (descriptionChanged) {
-            await CreateDescriptionVersion(
-                `game`,
-                state.gameUid,
-                state.organizationUid ?? ``,
-                descriptionText,
-                state.ownerDiscordId ?? `unknown`,
-            );
+            const scope = buildDescriptionScope(state.organizationUid ?? null);
+            await SaveScopedDescription({
+                scope,
+                objectType: `game`,
+                objectUid: state.gameUid,
+                content: descriptionText,
+                createdBy: state.ownerDiscordId ?? `unknown`,
+            });
         }
 
         return { success: true, game: updated };
-    } catch (error) {
+    } catch(error) {
         log.error(`Game update failed: ${String(error)}`, GameCreateFlowConstants.logSource, `FinalizeGameUpdate`);
         return { success: false, error: String(error) };
     }
+}
+
+/**
+ * Build a description scope for game content, preferring organization visibility when available.
+ * @param organizationUid string | null organization identifier for scoping. @example 'org_123'
+ * @returns DescriptionScope scoped descriptor for save operations.
+ */
+function buildDescriptionScope(organizationUid: string | null): DescriptionScope {
+    if (organizationUid && organizationUid.length > 0) {
+        return {
+            scopeType: `organization`,
+            scopeUid: organizationUid,
+            label: `Organization`,
+        };
+    }
+    return {
+        scopeType: `global`,
+        scopeUid: null,
+        label: `Global`,
+    };
 }

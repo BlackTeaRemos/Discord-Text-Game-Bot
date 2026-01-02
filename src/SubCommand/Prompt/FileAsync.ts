@@ -56,7 +56,7 @@ export async function AwaitFileInput(options: AwaitFileInputOptions): Promise<{
             MAIN_EVENT_BUS.off(`discord:message:raw`, onMessage);
         };
 
-        const resolveWith = async (
+        const resolveWith = async(
             payload: { type: `url` | `attachment`; value: string | Attachment },
             message: Message,
         ) => {
@@ -68,7 +68,7 @@ export async function AwaitFileInput(options: AwaitFileInputOptions): Promise<{
 
             try {
                 await interaction.webhook.deleteMessage(promptResponse.id);
-            } catch (error) {
+            } catch(error) {
                 log.warning(
                     `Failed to delete prompt message ${promptResponse.id}: ${error instanceof Error ? error.message : String(error)}`,
                     `Prompt/FileAsync`,
@@ -77,7 +77,7 @@ export async function AwaitFileInput(options: AwaitFileInputOptions): Promise<{
 
             try {
                 await message.delete();
-            } catch (error) {
+            } catch(error) {
                 log.warning(
                     `Failed to delete file response ${message.id}: ${error instanceof Error ? error.message : String(error)}`,
                     `Prompt/FileAsync`,
@@ -87,7 +87,7 @@ export async function AwaitFileInput(options: AwaitFileInputOptions): Promise<{
             resolve(payload);
         };
 
-        const rejectWith = async (error: Error) => {
+        const rejectWith = async(error: Error) => {
             if (settled) {
                 return;
             }
@@ -96,7 +96,7 @@ export async function AwaitFileInput(options: AwaitFileInputOptions): Promise<{
 
             try {
                 await interaction.webhook.deleteMessage(promptResponse.id);
-            } catch (deleteError) {
+            } catch(deleteError) {
                 log.warning(
                     `Failed to delete prompt message ${promptResponse.id}: ${deleteError instanceof Error ? deleteError.message : String(deleteError)}`,
                     `Prompt/FileAsync`,
@@ -106,7 +106,7 @@ export async function AwaitFileInput(options: AwaitFileInputOptions): Promise<{
             reject(error);
         };
 
-        const onMessage = async (message: Message) => {
+        const onMessage = async(message: Message) => {
             if (settled) {
                 return;
             }

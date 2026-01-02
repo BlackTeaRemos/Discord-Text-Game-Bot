@@ -1,11 +1,10 @@
 import { MessageFlags, SlashCommandSubcommandBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
-import {
-    BuildDescriptionDefinition,
-    type DescriptionDefinition,
-} from '../../../Flow/Object/Description/BuildDefinition.js';
+import { BuildDescriptionDefinition } from '../../../Flow/Object/Description/BuildDefinition.js';
+import type { DescriptionDefinition } from '../../../Flow/Object/Description/BuildDefinition.js';
 import type { InteractionExecutionContextCarrier } from '../../../Common/Type/Interaction.js';
 import type { TokenSegmentInput } from '../../../Common/Permission/index.js';
+import { BuildDescriptionDefinitionSummary } from '../../../SubCommand/Object/Description/DescriptionDefinitionPreview.js';
 
 export const data = new SlashCommandSubcommandBuilder()
     .setName(`definition`)
@@ -16,17 +15,6 @@ export const data = new SlashCommandSubcommandBuilder()
             .setDescription(`Optional description text to normalize`)
             .setRequired(false)
             .setMaxLength(1024);
-    })
-    .addStringOption(option => {
-        return option
-            .setName(`reference_type`)
-            .setDescription(`Optional reference type metadata`)
-            .setRequired(false)
-            .addChoices(
-                { name: `Organization`, value: `organization` },
-                { name: `Game`, value: `game` },
-                { name: `User`, value: `user` },
-            );
     })
     .addStringOption(option => {
         return option
@@ -47,29 +35,9 @@ export async function execute(
     interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
 ): Promise<void> {
     const text = interaction.options.getString(`text`) ?? undefined;
-    const refTypeInput = interaction.options.getString(`reference_type`);
-    const refType =
-        (refTypeInput === null ? undefined : (refTypeInput as DescriptionDefinition[`refType`])) ?? undefined;
     const refUid = interaction.options.getString(`reference_uid`) ?? undefined;
 
-    const definition = BuildDescriptionDefinition({ text, refType, refUid });
-    await interaction.reply({ content: buildDefinitionSummary(definition), flags: MessageFlags.Ephemeral });
-}
-
-/**
- * Format a definition object into a human-readable summary string.
- * @param definition DescriptionDefinition Definition to summarize. @example const text = buildDefinitionSummary(definition)
- * @returns string Multiline summary ready for an ephemeral reply. @example const summary = buildDefinitionSummary(definition)
- */
-function buildDefinitionSummary(definition: DescriptionDefinition): string {
-    const lines: string[] = [];
-    lines.push(`Definition ID: ${definition.uid}`);
-    lines.push(`Text: ${definition.text}`);
-    if (definition.refType) {
-        lines.push(`Reference Type: ${definition.refType}`);
-    }
-    if (definition.refUid) {
-        lines.push(`Reference UID: ${definition.refUid}`);
-    }
-    return lines.join(`\n`);
+    const definition = BuildDescriptionDefinition({ text, refUid });
+    const summary = BuildDescriptionDefinitionSummary(definition);
+    await interaction.reply({ content: summary, flags: MessageFlags.Ephemeral });
 }

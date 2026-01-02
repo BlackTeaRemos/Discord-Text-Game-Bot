@@ -5,6 +5,7 @@ import { FetchTasksForViewer } from '../../Flow/Task/FetchTasksForViewer.js';
 import { neo4jClient } from '../../Setup/Neo4j.js';
 import { resolve } from '../../Common/Permission/index.js';
 import { RequestPermissionFromAdmin } from '../../SubCommand/Permission/PermissionUI.js';
+import { ExtractFlowMember } from '../../Common/Type/FlowContext.js';
 import type { TaskFlowState } from './TaskFlowState.js';
 import { DEFAULT_TASK_STATUSES } from '../../Domain/Task.js';
 import type { TaskListItem } from '../../Domain/Task.js';
@@ -51,9 +52,10 @@ export function registerTaskViewStep(builder: FlowBuilder<TaskFlowState>): FlowB
             }
             const includeAll = action === `view_org`;
             if (includeAll && base.guild) {
-                const member = await base.guild.members.fetch(base.user.id).catch(() => {
+                const guildMember = await base.guild.members.fetch(base.user.id).catch(() => {
                     return null;
                 });
+                const member = guildMember ? ExtractFlowMember(guildMember) : null;
                 const token = [`task`, `organization`, orgUid, `list`];
                 const resolution = await resolve([token], {
                     context: { commandName: `task`, organizationUid: orgUid, userId: base.user.id },

@@ -8,13 +8,12 @@ import {
     createExecutionContext,
 } from '../Domain/index.js';
 import {
-    CheckPermission,
-    resolveTokens as resolvePermission,
+    resolve,
     type PermissionTokenInput,
     type PermissionsObject,
 } from '../Common/Permission/index.js';
 import type { GuildMember } from 'discord.js';
-import { FormatPermissionToken } from '../Common/Permission/FormatPermissionToken.js';
+import { ExtractFlowMember } from '../Common/Type/FlowContext.js';
 
 /** Error thrown when attempting to register a duplicate command id. */
 export class DuplicateCommandError extends Error {
@@ -205,25 +204,7 @@ export class CommandRegistry {
                 } as const;
 
                 // Resolve templates into concrete tokens (most-specific first)
-                const tokens: any[] = [];
-                const seen = new Set<string>();
-                for (const tmpl of templates) {
-                    const resolved = resolvePermission(tmpl as any, resolverCtx as any);
-                    for (const token of resolved) {
-                        const display = FormatPermissionToken(token);
-                        if (seen.has(display)) {
-                            continue;
-                        }
-                        seen.add(display);
-                        tokens.push(token);
-                    }
-                }
-
-                const inputs: PermissionTokenInput[] = tokens.length
-                    ? tokens.map(t => {
-                          return [...t];
-                      })
-                    : [`command:${mod.meta.id}`];
+                const inputs: PermissionTokenInput[] = templates.length ? templates : [`command:${mod.meta.id}`];
 
                 // Build a minimal member-like object when none provided so permanent grants can be checked
                 let member = opts?.member ?? null;
@@ -248,21 +229,28 @@ export class CommandRegistry {
                 if (!bypassPermission) {
                     // Allow callers to override the permissions map via opts.permissions; otherwise
                     // use undefined which will make checkPermission consult the default source.
-                    const evaluation = await CheckPermission(opts?.permissions ?? undefined, member, inputs);
+                    const flowMember = member ? ExtractFlowMember(member) : null;
 
-                    if (!evaluation.allowed) {
-                        if (evaluation.requiresApproval && !opts?.skipApproval) {
+                    const resolution = await resolve(inputs as any, {
+                        context: resolverCtx as any,
+                        member: flowMember,
+                        permissions: opts?.permissions ?? undefined,
+                        skipApproval: true,
+                    });
+
+                    if (!resolution.success) {
+                        if (resolution.detail.requiresApproval && !opts?.skipApproval) {
                             // Programmatic callers cannot request interactive admin approval here.
                             return {
                                 ok: false,
                                 error: `PERMISSION_REQUIRES_APPROVAL`,
-                                message: evaluation.reason ?? `Permission requires approval`,
+                                message: resolution.detail.reason ?? `Permission requires approval`,
                             };
                         }
                         return {
                             ok: false,
                             error: `PERMISSION_DENIED`,
-                            message: evaluation.reason ?? `Permission denied`,
+                            message: resolution.detail.reason ?? `Permission denied`,
                         };
                     }
                 }

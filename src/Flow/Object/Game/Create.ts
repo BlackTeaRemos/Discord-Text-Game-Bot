@@ -79,7 +79,7 @@ export function StartGameCreateFlow(options: {
     const { builder, memorySeed } = options;
     return builder
         .step(undefined, `root`)
-        .prompt(async (ctx: GameCreateStepContext) => {
+        .prompt(async(ctx: GameCreateStepContext) => {
             if (memorySeed) {
                 for (const [key, value] of Object.entries(memorySeed)) {
                     ctx.remember(key, value);
@@ -97,7 +97,7 @@ export function StartGameCreateFlow(options: {
         })
         .next()
         .step()
-        .prompt(async (ctx: GameCreateStepContext) => {
+        .prompt(async(ctx: GameCreateStepContext) => {
             await ctx.advance();
         })
         .next();

@@ -2,6 +2,7 @@ import { log } from '../../Log.js';
 import { CheckPermission } from '../Manager.js';
 import type { PermissionToken, PermissionTokenInput } from '../types.js';
 import type { ResolveEnsureOptions, ResolveEnsureResult } from './types.js';
+import type { IFlowMember } from '../../Type/FlowContext.js';
 import { CollectEnsureTokens } from './CollectEnsureTokens.js';
 import { ToInputs } from './ToInputs.js';
 
@@ -21,7 +22,7 @@ import { ToInputs } from './ToInputs.js';
  * const result = await resolve(['command:{action}'], {
  *   context: { action: 'ban' },
  *   permissions: { 'command:ban': 'once' },
- *   member: guildMember,
+ *   member: flowMember,
  *   requestApproval: async (payload) => 'approve_once'
  * });
  * if (result.success) {
@@ -40,7 +41,7 @@ export async function Resolve(
             return { success: true, detail: { tokens } };
         }
 
-        let member: import('discord.js').GuildMember | null | undefined = options.member;
+        let member: IFlowMember | null | undefined = options.member;
         if (member === undefined && options.getMember) {
             member = await options.getMember();
         }

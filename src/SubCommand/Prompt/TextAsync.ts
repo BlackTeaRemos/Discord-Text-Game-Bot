@@ -44,7 +44,7 @@ const DEFAULT_TIMEOUT_MS = 2 * 60 * 1000;
  * @returns Promise<string> Resolved with the validated user input.
  * @throws Error When the channel is unavailable, the user cancels, or the timeout elapses.
  */
-export async function AwaitTextInput(options: AwaitTextInputOptions): Promise<string> {
+export async function PromptText(options: AwaitTextInputOptions): Promise<string> {
     const {
         interaction,
         prompt,

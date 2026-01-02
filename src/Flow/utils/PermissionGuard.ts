@@ -1,11 +1,13 @@
 /**
  * Utilities for command-level permission checks with contextual token resolution.
  * @example
- * const result = await ensureCommandPermission(interaction, { templates: ['object:game:create:{serverId}'], context: { serverId } });
+ * const result = await EnsureCommandPermission({
+ *     context: ExtractFlowContext(interaction),
+ *     templates: ['object:game:create:{serverId}'],
+ *     additionalContext: { serverId },
+ * });
  */
-import type { ChatInputCommandInteraction, GuildMember } from 'discord.js';
 import {
-    GrantForever,
     resolve,
     type PermissionDecision,
     type PermissionToken,
@@ -14,32 +16,35 @@ import {
     type TokenSegmentInput,
     type ResolveEnsureOptions,
 } from '../../Common/Permission/index.js';
-// Interactive permission UI moved to SubCommand so flows remain UI-free.
-// import { requestPermissionFromAdmin } from '../permission/PermissionUI.js';
 import { log } from '../../Common/Log.js';
+import type { IFlowInteractionContext, IFlowMember, FlowMemberProvider } from '../../Common/Type/FlowContext.js';
 
 /**
- * Options for ensureCommandPermission.
- * @property templates Array of templates resolved to permission tokens (example: ['object:game:create:{serverId}']).
- * @property context Additional context values merged into the resolver context (example: { serverId: '123' }).
+ * Options for EnsureCommandPermission.
+ * @property context IFlowInteractionContext Extracted interaction data.
+ * @property templates Array of templates resolved to permission tokens.
+ * @property additionalContext Additional context values merged into the resolver context.
  * @property permissions Permission configuration object when available from config.
- * @property member Optional guild member to avoid refetching (example: cached GuildMember).
+ * @property member IFlowMember | null | undefined Pre-resolved member data.
+ * @property memberProvider FlowMemberProvider | undefined Callback to lazily fetch member.
  * @property skipAdminApproval When true, skip admin approval flow and return immediately.
  */
 export interface EnsureCommandPermissionOptions {
+    context: IFlowInteractionContext;
     templates: Array<string | TokenSegmentInput[]>;
-    context?: Record<string, unknown>;
+    additionalContext?: Record<string, unknown>;
     permissions?: PermissionsObject;
-    member?: GuildMember | null;
+    member?: IFlowMember | null;
+    memberProvider?: FlowMemberProvider;
     skipAdminApproval?: boolean;
 }
 
 /**
- * Result of ensureCommandPermission.
+ * Result of EnsureCommandPermission.
  * @property allowed Indicates whether action is permitted (example: true when allowed).
  * @property reason Explanation message when denied (example: 'Explicitly forbidden').
- * @property tokens Tokens evaluated during the check (example: [['object','game','create','123']]).
- * @property decision Admin decision when approval was requested (example: 'approve_once').
+ * @property tokens Tokens evaluated during the check.
+ * @property decision Admin decision when approval was requested.
  */
 export interface EnsureCommandPermissionResult {
     allowed: boolean;
@@ -48,65 +53,61 @@ export interface EnsureCommandPermissionResult {
     decision?: PermissionDecision;
 }
 
-function __buildBaseContext(interaction: ChatInputCommandInteraction): TokenResolveContext {
+/**
+ * Build base context from flow interaction context.
+ */
+function __BuildBaseContext(context: IFlowInteractionContext): TokenResolveContext {
     const options = Object.fromEntries(
-        interaction.options.data.map(o => {
-            return [o.name, o.value];
+        context.options.map(option => {
+            return [option.name, option.value];
         }),
     );
     return {
-        commandName: interaction.commandName,
-        guildId: interaction.guildId ?? undefined,
-        userId: interaction.user.id,
+        commandName: context.commandName,
+        guildId: context.guildId,
+        userId: context.userId,
         options,
     };
 }
 
-async function __getMember(
-    interaction: ChatInputCommandInteraction,
-    provided: GuildMember | null | undefined,
-): Promise<GuildMember | null> {
-    if (provided !== undefined) {
-        return provided ?? null;
-    }
-    if (!interaction.guild) {
-        return null;
-    }
-    try {
-        return await interaction.guild.members.fetch(interaction.user.id);
-    } catch (error) {
-        log.warning(`Failed to fetch guild member: ${String(error)}`, `PermissionGuard`, `ensureCommandPermission`);
-        return null;
-    }
-}
-
 /**
- * Ensure a command action is allowed by resolving permission templates against context and triggering approval flow if needed.
- * @param interaction ChatInputCommandInteraction Command interaction requesting permission (example: original slash interaction).
- * @param options EnsureCommandPermissionOptions Configuration describing templates and optional context.
+ * Ensure a command action is allowed by resolving permission templates against context.
+ * @param options EnsureCommandPermissionOptions Configuration describing templates and context.
  * @returns Promise<EnsureCommandPermissionResult> Outcome of the permission check.
  * @example
- * const result = await ensureCommandPermission(interaction, { templates: ['object:game:create:{serverId}'], context: { serverId } });
+ * const result = await EnsureCommandPermission({
+ *     context: ExtractFlowContext(interaction),
+ *     templates: ['object:game:create:{serverId}'],
+ *     additionalContext: { serverId },
+ * });
  */
-export async function ensureCommandPermission(
-    interaction: ChatInputCommandInteraction,
+export async function EnsureCommandPermission(
     options: EnsureCommandPermissionOptions,
 ): Promise<EnsureCommandPermissionResult> {
-    const baseContext = __buildBaseContext(interaction);
-    const mergedContext = { ...baseContext, ...(options.context ?? {}) } as TokenResolveContext;
+    const baseContext = __BuildBaseContext(options.context);
+    const mergedContext = { ...baseContext, ...(options.additionalContext ?? {}) } as TokenResolveContext;
+
+    let member: IFlowMember | null = null;
+    if (options.member !== undefined) {
+        member = options.member;
+    } else if (options.memberProvider) {
+        try {
+            member = await options.memberProvider();
+        } catch(error) {
+            log.warning(
+                `Failed to fetch member via provider: ${String(error)}`,
+                `PermissionGuard`,
+                `ensureCommandPermission`,
+            );
+        }
+    }
+
     const ensureOptions: ResolveEnsureOptions = {
         context: mergedContext,
         permissions: options.permissions,
-        // Keep approval disabled inside flows; commands must trigger interactive approval.
         skipApproval: true,
-        getMember: () => {
-            return __getMember(interaction, options.member);
-        },
+        member,
     };
-
-    if (options.member !== undefined) {
-        ensureOptions.member = options.member;
-    }
 
     const outcome = await resolve(options.templates, ensureOptions);
 

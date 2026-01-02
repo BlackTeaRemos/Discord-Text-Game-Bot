@@ -1,10 +1,8 @@
 import { SlashCommandSubcommandBuilder, MessageFlags } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
-import { RemoveDescription } from '../../../Flow/Object/Description/Remove.js';
-import { log } from '../../../Common/Log.js';
-import { createCommandContext } from '../../../Common/ExecutionContextHelpers.js';
 import type { TokenSegmentInput } from '../../../Common/Permission/index.js';
 import type { InteractionExecutionContextCarrier } from '../../../Common/Type/Interaction.js';
+import { RunDescriptionRemoveFlow } from '../../../SubCommand/Object/Description/DescriptionRemoveFlow.js';
 
 export const data = new SlashCommandSubcommandBuilder()
     .setName(`remove`)
@@ -16,18 +14,6 @@ export const data = new SlashCommandSubcommandBuilder()
 export const permissionTokens: TokenSegmentInput[][] = [[`object`, `description`, `remove`]];
 
 export async function execute(interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>) {
-    const ctx = createCommandContext(interaction);
-
-    const uid = interaction.options.getString(`uid`, true).trim();
-    try {
-        const deleted = await RemoveDescription(uid);
-        if (!deleted) {
-            return await ctx.reply({ content: `Description not found`, flags: MessageFlags.Ephemeral });
-        }
-        return await ctx.reply({ content: `Description ${uid} removed.`, flags: MessageFlags.Ephemeral });
-    } catch (error) {
-        const msg = error instanceof Error ? error.message : String(error);
-        log.error(`Error removing description`, msg, `removeDescription`);
-        return await ctx.reply({ content: `Error: ${msg}`, flags: MessageFlags.Ephemeral });
-    }
+    const uid = interaction.options.getString(`uid`, true);
+    await RunDescriptionRemoveFlow({ interaction, descriptionUid: uid });
 }

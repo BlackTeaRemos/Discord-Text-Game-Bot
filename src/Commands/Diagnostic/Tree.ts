@@ -20,7 +20,7 @@ export async function execute(interaction: InteractionExecutionContextCarrier<Ch
     const sub = interaction.options.getSubcommand(true);
     if (sub === `tree`) {
         // Dynamically import loadedCommands to list builder data immediately
-        const lines = await ctx.executionContext!.getOrCompute(`diagnostic:commands_tree`, async () => {
+        const lines = await ctx.executionContext!.getOrCompute(`diagnostic:commands_tree`, async() => {
             const { commands } = await import(`../index.js`);
 
             return Object.values(commands).map((cmd: any) => {

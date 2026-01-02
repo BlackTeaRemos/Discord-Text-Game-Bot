@@ -7,4 +7,5 @@ export interface ViewUser {
     name: string;
     friendly_name: string;
     id: string;
+    image?: string;
 }
