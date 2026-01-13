@@ -19,7 +19,8 @@ export async function ListGamesForServer(serverId: string): Promise<ServerGameLi
         const query = `
             MATCH (s:Server { id: $serverId })-[:HAS_GAME]->(g:Game)
             RETURN g.uid AS uid, g.name AS name
-            ORDER BY g.name`;
+            ORDER BY coalesce(g.created_at, 0) ASC, g.name
+            LIMIT 1`;
         const result = await session.run(query, { serverId });
         return result.records.map(record => {
             return {

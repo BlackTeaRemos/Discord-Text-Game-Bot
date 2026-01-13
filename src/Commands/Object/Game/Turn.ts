@@ -12,10 +12,12 @@ import {
     TextInputStyle,
 } from 'discord.js';
 import { flowManager } from '../../../Common/Flow/Manager.js';
-import { GetGameForServer, UpdateGameTurn } from '../../../Flow/Object/Game/Turn.js';
+import { GetGameCurrentTurn, UpdateGameTurn } from '../../../Flow/Object/Game/Turn.js';
 import { log } from '../../../Common/Log.js';
 import type { InteractionExecutionContextCarrier } from '../../../Common/Type/Interaction.js';
 import type { TokenSegmentInput } from '../../../Common/Permission/index.js';
+import { GetGame } from '../../../Flow/Object/Game/View.js';
+import { ListGamesForServer } from '../../../Flow/Object/Game/ListGamesForServer.js';
 
 /**
  * Track turn management session state.
@@ -23,6 +25,7 @@ import type { TokenSegmentInput } from '../../../Common/Permission/index.js';
 interface State {
     gameUid?: string; // tracked game identifier
     currentTurn?: number; // active turn counter
+    gameName?: string; // friendly game name
 }
 
 export const data = new SlashCommandSubcommandBuilder()
@@ -55,57 +58,70 @@ export async function StartGameTurnFlow(
             throw new Error(`This command must be used in a server.`);
         }
 
+        const games = await ListGamesForServer(serverId);
+        const game = games[0];
+        if (!game) {
+            if (!baseInteraction.deferred && !baseInteraction.replied) {
+                await baseInteraction.deferReply({ flags: MessageFlags.Ephemeral });
+            }
+            await baseInteraction.editReply({ content: `No game found in this server. Create one first.`, components: [] });
+            return;
+        }
+
+        /**
+         * Render the current turn management UI.
+         * @param state State Flow state holding game and turn data. @example state.currentTurn
+         * @returns Promise<void> Resolves once the reply is updated. @example await __RenderTurnUi(state)
+         */
+        const __RenderTurnUi = async(state: State): Promise<void> => {
+            const embed = new EmbedBuilder()
+                .setTitle(`Game Turn Management`)
+                .setDescription(
+                    `${state.gameName ? `Game: **${state.gameName}**\n` : ``}Current turn: **${state.currentTurn ?? 1}**`,
+                )
+                .setColor(`Blue`);
+            const incrementBtn = new ButtonBuilder()
+                .setCustomId(`increment_turn`)
+                .setLabel(`Next turn`)
+                .setStyle(ButtonStyle.Secondary);
+            const setBtn = new ButtonBuilder()
+                .setCustomId(`set_turn`)
+                .setLabel(`Set specific turn`)
+                .setStyle(ButtonStyle.Primary);
+            const row = new ActionRowBuilder<ButtonBuilder>().addComponents(incrementBtn, setBtn); // action row containing control buttons
+            await baseInteraction.editReply({ embeds: [embed], components: [row] });
+        };
+
         await flowManager
-            .builder(baseInteraction.user.id, baseInteraction, {} as State)
-            .step(`manage_turn`)
+            .builder(baseInteraction.user.id, baseInteraction, { gameUid: game.uid, gameName: game.name } as State)
+            .step([`increment_turn`, `set_turn`, `set_turn_modal`], `manage_turn`)
             .prompt(async (ctx: any) => {
-                const game = await GetGameForServer(serverId); // latest game data for server
-                if (!game) {
-                    if (!baseInteraction.deferred && !baseInteraction.replied) {
-                        await baseInteraction.deferReply({ flags: MessageFlags.Ephemeral });
-                    }
-                    await baseInteraction.editReply({ content: `No game found in this server.`, components: [] });
+                if (!ctx.state.gameUid) {
+                    await ctx.cancel();
                     return;
                 }
-                ctx.state.gameUid = game.uid;
-                ctx.state.currentTurn = game.parameters.currentTurn || 1;
-                const embed = new EmbedBuilder()
-                    .setTitle(`Game Turn Management`)
-                    .setDescription(`Current turn: **${ctx.state.currentTurn}**`)
-                    .setColor(`Blue`);
-                const decrementBtn = new ButtonBuilder()
-                    .setCustomId(`decrement_turn`)
-                    .setLabel(`-1`)
-                    .setStyle(ButtonStyle.Secondary);
-                const incrementBtn = new ButtonBuilder()
-                    .setCustomId(`increment_turn`)
-                    .setLabel(`+1`)
-                    .setStyle(ButtonStyle.Secondary);
-                const setBtn = new ButtonBuilder()
-                    .setCustomId(`set_turn`)
-                    .setLabel(`Set Turn`)
-                    .setStyle(ButtonStyle.Primary);
-                const row = new ActionRowBuilder<ButtonBuilder>().addComponents(decrementBtn, incrementBtn, setBtn); // action row containing control buttons
+                ctx.state.currentTurn = await GetGameCurrentTurn(ctx.state.gameUid);
                 if (!baseInteraction.deferred && !baseInteraction.replied) {
                     await baseInteraction.deferReply({ flags: MessageFlags.Ephemeral });
                 }
-                await baseInteraction.editReply({
-                    embeds: [embed],
-                    components: [row],
-                });
+                await __RenderTurnUi(ctx.state as State);
             })
             .onInteraction(async (ctx: any, incomingInteraction: any) => {
                 if (incomingInteraction.isButton()) {
                     const customId = incomingInteraction.customId; // interaction identifier
-                    if (customId === `decrement_turn`) {
-                        ctx.state.currentTurn = Math.max(1, (ctx.state.currentTurn || 1) - 1);
-                        await UpdateGameTurn(ctx.state.gameUid, ctx.state.currentTurn);
-                        await incomingInteraction.deferUpdate();
-                        return false; // Re-prompt
-                    } else if (customId === `increment_turn`) {
+                    if (customId === `increment_turn`) {
+                        if (!ctx.state.gameUid) {
+                            await incomingInteraction.reply({
+                                content: `Game context is missing. Restart the flow.`,
+                                flags: MessageFlags.Ephemeral,
+                            });
+                            return false;
+                        }
                         ctx.state.currentTurn = (ctx.state.currentTurn || 1) + 1;
                         await UpdateGameTurn(ctx.state.gameUid, ctx.state.currentTurn);
                         await incomingInteraction.deferUpdate();
+                        ctx.state.currentTurn = await GetGameCurrentTurn(ctx.state.gameUid);
+                        await __RenderTurnUi(ctx.state as State);
                         return false; // Re-prompt
                     } else if (customId === `set_turn`) {
                         const modal = new ModalBuilder()
@@ -125,6 +141,13 @@ export async function StartGameTurnFlow(
                         return false;
                     }
                 } else if (incomingInteraction.isModalSubmit() && incomingInteraction.customId === `set_turn_modal`) {
+                    if (!ctx.state.gameUid) {
+                        await incomingInteraction.reply({
+                            content: `Game context is missing. Restart the flow.`,
+                            flags: MessageFlags.Ephemeral,
+                        });
+                        return false;
+                    }
                     const turnStr = incomingInteraction.fields.getTextInputValue(`turn_number`); // raw turn input
                     const newTurn = parseInt(turnStr, 10); // parsed turn value
                     if (isNaN(newTurn) || newTurn < 1) {
@@ -137,6 +160,8 @@ export async function StartGameTurnFlow(
                     ctx.state.currentTurn = newTurn;
                     await UpdateGameTurn(ctx.state.gameUid, ctx.state.currentTurn);
                     await incomingInteraction.deferUpdate();
+                    ctx.state.currentTurn = await GetGameCurrentTurn(ctx.state.gameUid);
+                    await __RenderTurnUi(ctx.state as State);
                     return false; // Re-prompt
                 }
                 return false;

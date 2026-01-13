@@ -14,7 +14,37 @@ export function registerTaskOrganizationStep(
         .step(`task_select_org`, `task_org`)
         .prompt(async (ctx: StepContext<TaskFlowState>) => {
             ctx.state.baseInteraction = interaction;
-            await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+            if (!interaction.deferred && !interaction.replied) {
+                await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+            }
+
+            if (ctx.state.isTaskAdmin) {
+                ctx.state.organizationUidFilter = null;
+                ctx.state.organizationNameFilter = `All organizations`;
+
+                const prompt = await PrepareOrganizationPrompt({
+                    userId: interaction.user.id,
+                    customId: `task_select_org`,
+                    placeholder: `Select organization`,
+                    promptMessage: `Choose organization to continue.`,
+                    emptyMessage: `You are not linked to any organization.`,
+                });
+
+                if (prompt.organization) {
+                    ctx.state.organizationUid = prompt.organization.uid;
+                    ctx.state.organizationName = prompt.organization.name;
+                } else {
+                    const firstOrg = prompt.selection.orgs[0];
+                    if (firstOrg) {
+                        ctx.state.organizationUid = firstOrg.uid;
+                        ctx.state.organizationName = firstOrg.name;
+                    }
+                }
+
+                await ctx.advance();
+                return;
+            }
+
             const prompt = await PrepareOrganizationPrompt({
                 userId: interaction.user.id,
                 customId: `task_select_org`,
@@ -33,6 +63,8 @@ export function registerTaskOrganizationStep(
             if (prompt.status === `auto` && prompt.organization) {
                 ctx.state.organizationUid = prompt.organization.uid;
                 ctx.state.organizationName = prompt.organization.name;
+                ctx.state.organizationUidFilter = prompt.organization.uid;
+                ctx.state.organizationNameFilter = prompt.organization.name;
                 await ctx.advance();
                 return;
             }
@@ -48,6 +80,8 @@ export function registerTaskOrganizationStep(
             ctx.state.organizationUid = select.values[0];
             ctx.state.organizationName =
                 (await ResolveOrganizationName(interaction.user.id, select.values[0])) ?? select.values[0];
+            ctx.state.organizationUidFilter = ctx.state.organizationUid;
+            ctx.state.organizationNameFilter = ctx.state.organizationName;
             await select.deferUpdate();
             return true;
         })

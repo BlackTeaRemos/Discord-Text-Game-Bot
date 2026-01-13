@@ -1,12 +1,10 @@
-import { ActionRowBuilder, EmbedBuilder, StringSelectMenuBuilder } from 'discord.js';
+import { EmbedBuilder } from 'discord.js';
 import type { FlowBuilder } from '../../Common/Flow/Builder.js';
 import type { StepContext } from '../../Common/Flow/Types.js';
 import { neo4jClient } from '../../Setup/Neo4j.js';
 import { CreateTaskRecord } from '../../Flow/Task/CreateTaskRecord.js';
 import type { TaskFlowState } from './TaskFlowState.js';
-import { buildExecutorOptions, resolveExecutorSelection } from './TaskExecutorOptions.js';
 
-const EXECUTOR_SELECT_ID = `task_create_executor`; // string guild component id for executor select menu
 
 /**
  * Finishes task creation by persisting the record and updating the Discord response.
@@ -21,6 +19,8 @@ async function __FinalizeTaskCreation(
 ): Promise<void> {
     const baseInteraction = ctx.state.baseInteraction;
     const orgUid = ctx.state.organizationUid;
+    const gameUid = ctx.state.gameUid;
+    const turnNumber = ctx.state.currentTurn ?? null;
     const description = ctx.state.description;
     if (!baseInteraction || !orgUid || !description) {
         await ctx.cancel();
@@ -29,6 +29,8 @@ async function __FinalizeTaskCreation(
 
     const task = await CreateTaskRecord(neo4jClient, {
         organizationUid: orgUid,
+        gameUid: gameUid ?? null,
+        turnNumber,
         creatorDiscordId: baseInteraction.user.id,
         description,
         executorDiscordId,
@@ -40,6 +42,7 @@ async function __FinalizeTaskCreation(
         .addFields(
             { name: `Task ID`, value: task.id, inline: true },
             { name: `Status`, value: task.status, inline: true },
+            { name: `Turn`, value: task.turnNumber ? String(task.turnNumber) : `Unassigned`, inline: true },
             {
                 name: `Executor`,
                 value: task.executorName ? `${task.executorName} (${task.executorDiscordId})` : `Unassigned`,
@@ -65,7 +68,7 @@ async function __FinalizeTaskCreation(
 export function registerTaskCreateStep(builder: FlowBuilder<TaskFlowState>): FlowBuilder<TaskFlowState> {
     return builder
         .step(`task_create`, `task_create`)
-        .prompt(async (ctx: StepContext<TaskFlowState>) => {
+        .prompt(async(ctx: StepContext<TaskFlowState>) => {
             if (ctx.state.action !== `create`) {
                 await ctx.advance();
                 return;
@@ -82,7 +85,7 @@ export function registerTaskCreateStep(builder: FlowBuilder<TaskFlowState>): Flo
                 components: [],
             });
         })
-        .onMessage(async (ctx: StepContext<TaskFlowState>, message) => {
+        .onMessage(async(ctx: StepContext<TaskFlowState>, message) => {
             if (ctx.state.action !== `create`) {
                 return false;
             }
@@ -90,10 +93,6 @@ export function registerTaskCreateStep(builder: FlowBuilder<TaskFlowState>): Flo
             const orgUid = ctx.state.organizationUid;
             if (!baseInteraction || !orgUid) {
                 await ctx.cancel();
-                return false;
-            }
-            if (ctx.state.awaitingAssignment ?? false) {
-                await message.reply(`Select executor from the menu above or type **cancel** to stop.`);
                 return false;
             }
             const content = message.content?.trim();
@@ -107,33 +106,7 @@ export function registerTaskCreateStep(builder: FlowBuilder<TaskFlowState>): Flo
                 return true;
             }
             ctx.state.description = content;
-            const options = await buildExecutorOptions(orgUid, message.author.id);
-            if (options.length <= 1) {
-                await __FinalizeTaskCreation(ctx, message.author.id);
-                return true;
-            }
-            ctx.state.awaitingAssignment = true;
-            // Interaction prompting the creator to pick a task executor before finalizing creation.
-            const menu = new StringSelectMenuBuilder()
-                .setCustomId(EXECUTOR_SELECT_ID)
-                .setPlaceholder(`Select executor`)
-                .addOptions(options as any);
-            await baseInteraction.editReply({
-                content: `Select executor for this task or choose to leave it unassigned.`,
-                components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(menu)],
-            });
-            return false;
-        })
-        .onInteraction(async (ctx: StepContext<TaskFlowState>, interaction) => {
-            if (ctx.state.action !== `create`) {
-                return false;
-            }
-            if (!interaction.isStringSelectMenu() || interaction.customId !== EXECUTOR_SELECT_ID) {
-                return false;
-            }
-            ctx.state.executorDiscordId = resolveExecutorSelection(interaction.values[0]);
-            await interaction.deferUpdate();
-            await __FinalizeTaskCreation(ctx, ctx.state.executorDiscordId ?? null);
+            await __FinalizeTaskCreation(ctx, message.author.id);
             return true;
         })
         .next();

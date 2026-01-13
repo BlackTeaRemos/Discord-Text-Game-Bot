@@ -6,6 +6,7 @@ import {
     REL_BELONGS_TO,
     REL_CREATED_TASK,
     REL_EXECUTES_TASK,
+    REL_PART_OF_GAME,
     REL_RELATES_TO,
     TASK_LABEL,
 } from './TaskConstants.js';
@@ -21,6 +22,7 @@ export async function CreateTaskRecord(client: Neo4jClient, input: CreateTaskInp
     try {
         const result = await session.run(
             `MATCH (org:Organization { uid: $organizationUid })
+             OPTIONAL MATCH (game:Game { uid: $gameUid })
              MATCH (creator:User { discord_id: $creatorDiscordId })
              OPTIONAL MATCH (executor:User { discord_id: $executorDiscordId })
              OPTIONAL MATCH (linked { uid: $objectUid })
@@ -31,6 +33,8 @@ export async function CreateTaskRecord(client: Neo4jClient, input: CreateTaskInp
                  creator_discord_id: $creatorDiscordId,
                  executor_discord_id: $executorDiscordId,
                  organization_uid: $organizationUid,
+                 game_uid: $gameUid,
+                 turn_number: $turnNumber,
                  object_uid: $objectUid,
                  created_at: $timestamp,
                  updated_at: $timestamp,
@@ -38,6 +42,9 @@ export async function CreateTaskRecord(client: Neo4jClient, input: CreateTaskInp
              })
              MERGE (creator)-[:${REL_CREATED_TASK}]->(task)
              MERGE (task)-[:${REL_BELONGS_TO}]->(org)
+             FOREACH (_ IN CASE WHEN game IS NULL THEN [] ELSE [1] END |
+                 MERGE (task)-[:${REL_PART_OF_GAME}]->(game)
+             )
              FOREACH (_ IN CASE WHEN executor IS NULL THEN [] ELSE [1] END |
                  MERGE (executor)-[:${REL_EXECUTES_TASK}]->(task)
              )
@@ -47,6 +54,8 @@ export async function CreateTaskRecord(client: Neo4jClient, input: CreateTaskInp
              RETURN task, org AS organization, creator, executor`,
             {
                 organizationUid: input.organizationUid,
+                gameUid: input.gameUid ?? null,
+                turnNumber: input.turnNumber ?? null,
                 creatorDiscordId: input.creatorDiscordId,
                 executorDiscordId,
                 objectUid: input.objectUid ?? null,

@@ -1,18 +1,16 @@
-import { ActionRowBuilder, MessageFlags, SlashCommandSubcommandBuilder, StringSelectMenuBuilder } from 'discord.js';
+import { MessageFlags, SlashCommandSubcommandBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 import { log } from '../../../Common/Log.js';
 import type { InteractionExecutionContextCarrier } from '../../../Common/Type/Interaction.js';
-import { PrepareGamePrompt } from '../../../SubCommand/Prompt/Game.js';
 import { CreateUser } from '../../../Flow/Object/User/Create.js';
 import { GetUserActiveGame, SetUserActiveGame } from '../../../Flow/Object/User/SelectActiveGame.js';
+import { ListGamesForServer } from '../../../Flow/Object/Game/ListGamesForServer.js';
 
 export const data = new SlashCommandSubcommandBuilder()
     .setName(`create`)
     .setDescription(`Register yourself and select a game`);
 
 export const permissionTokens = `object:user:create`;
-
-const USER_CREATE_GAME_SELECT_ID = `user_create_select_game`;
 
 /**
  * Start an interactive user creation session with live preview and controls.
@@ -32,53 +30,18 @@ export async function execute(
             await interaction.deferReply({ flags: MessageFlags.Ephemeral });
         }
 
-        const prepared = await PrepareGamePrompt({
-            serverId,
-            customId: USER_CREATE_GAME_SELECT_ID,
-            placeholder: `Select game`,
-            promptMessage: `Select the game you want to register for.`,
-            emptyMessage: `No games found in this server. Ask an admin to create one first.`,
-        });
-
-        if (prepared.status === `empty`) {
-            await interaction.editReply({ content: prepared.message ?? `No games found.`, components: [] });
+        const games = await ListGamesForServer(serverId);
+        const game = games[0];
+        if (!game) {
+            await interaction.editReply({
+                content: `No games found in this server. Ask an admin to create one first.`,
+                components: [],
+            });
             return;
         }
 
-        let selectedGameUid: string;
-        if (prepared.status === `auto` && prepared.game) {
-            selectedGameUid = prepared.game.uid;
-        } else {
-            await interaction.editReply({
-                content: prepared.message ?? `Select game to continue.`,
-                components: prepared.components ?? [],
-            });
-
-            const message = await interaction.fetchReply();
-            try {
-                const collected = await message.awaitMessageComponent({
-                    filter: component => {
-                        return component.user.id === interaction.user.id && component.customId === USER_CREATE_GAME_SELECT_ID;
-                    },
-                    time: 60_000,
-                });
-
-                if (!collected.isStringSelectMenu()) {
-                    await interaction.editReply({ content: `Invalid selection.`, components: [] });
-                    return;
-                }
-
-                await collected.deferUpdate();
-                selectedGameUid = collected.values[0];
-            } catch {
-                await interaction.editReply({ content: `Selection timed out.`, components: [] });
-                return;
-            }
-        }
-
-        const selectedGameName = prepared.games.find(game => {
-            return game.uid === selectedGameUid;
-        })?.name;
+        const selectedGameUid = game.uid;
+        const selectedGameName = game.name;
 
         const existingActiveGame = await GetUserActiveGame(interaction.user.id);
 

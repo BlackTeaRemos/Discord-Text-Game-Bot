@@ -45,6 +45,21 @@ export async function CreateGame(
 ): Promise<Game> {
     const session = await neo4jClient.GetSession(`WRITE`);
     try {
+        const timestamp = Date.now();
+
+        const existingGameResult = await session.run(
+            `
+                MATCH (server:Server { id: $serverId })-[:HAS_GAME]->(existing:Game)
+                RETURN count(existing) AS existingCount
+            `,
+            { serverId },
+        );
+
+        const existingCount = Number(existingGameResult.records[0]?.get(`existingCount`) ?? 0);
+        if (existingCount > 0) {
+            throw new Error(`Only one game per server is supported for now.`);
+        }
+
         const checkQuery = `
             MATCH (game:Game { name: $name, server_id: $serverId })
             RETURN game LIMIT 1`;
@@ -58,17 +73,28 @@ export async function CreateGame(
         const query = `
             MERGE (server:Server { id: $serverId })
             MERGE (game:Game:DBObject:Entity { uid: $uid })
-            SET game.id = $uid,
+            ON CREATE SET
+                game.id = $uid,
                 game.name = $name,
                 game.friendly_name = $name,
                 game.image = $image,
-                game.server_id = $serverId
+                game.server_id = $serverId,
+                game.created_at = $timestamp,
+                game.updated_at = $timestamp
+            ON MATCH SET
+                game.id = $uid,
+                game.name = $name,
+                game.friendly_name = $name,
+                game.image = $image,
+                game.server_id = $serverId,
+                game.created_at = coalesce(game.created_at, $timestamp),
+                game.updated_at = $timestamp
             MERGE (server)-[:HAS_GAME]->(game)
             WITH game, server
             UNWIND $paramEntries AS entry
             MERGE (game)-[:HAS_PARAMETER]->(param:Parameter { key: entry[0], value: entry[1] })
             RETURN game, server.id AS serverId`;
-        const params = { uid: gameUid, name, image, serverId, paramEntries };
+        const params = { uid: gameUid, name, image, serverId, paramEntries, timestamp };
         const result: any = await session.run(query, params);
         const record = result.records[0];
         const gameNode = record.get(`game`);
@@ -105,6 +131,7 @@ export interface UpdateGameOptions {
 export async function UpdateGame(uid: string, options: UpdateGameOptions): Promise<Game> {
     const session = await neo4jClient.GetSession(`WRITE`);
     try {
+        const timestamp = Date.now();
         const existingResult = await session.run(
             `
                 MATCH (game:Game { uid: $uid })
@@ -157,7 +184,9 @@ export async function UpdateGame(uid: string, options: UpdateGameOptions): Promi
                 WITH game, $paramEntries AS entries
                 SET game.name = $name,
                     game.friendly_name = $name,
-                    game.image = $image
+                    game.image = $image,
+                    game.created_at = coalesce(game.created_at, $timestamp),
+                    game.updated_at = $timestamp
                 FOREACH (entry IN entries |
                     CREATE (game)-[:HAS_PARAMETER]->(:Parameter { key: entry[0], value: entry[1] })
                 )
@@ -168,6 +197,7 @@ export async function UpdateGame(uid: string, options: UpdateGameOptions): Promi
                 name: options.name,
                 image: options.image,
                 paramEntries,
+                timestamp,
             },
         );
 

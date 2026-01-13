@@ -29,9 +29,13 @@ export function MapTaskRecord(row: TaskQueryRow): TaskListItem {
     const createdAt = Number(taskProps.created_at ?? taskProps.createdAt ?? Date.now());
     const updatedAt = Number(taskProps.updated_at ?? taskProps.updatedAt ?? createdAt);
     const version = Number(taskProps.version ?? 1);
+    const rawTurn = taskProps.turn_number ?? taskProps.turnNumber;
+    const parsedTurn = rawTurn === undefined || rawTurn === null ? null : Number(rawTurn);
     return {
         id: String(taskProps.id),
         organizationUid: String(taskProps.organization_uid ?? ``),
+        gameUid: taskProps.game_uid ? String(taskProps.game_uid) : null,
+        turnNumber: Number.isFinite(parsedTurn) && parsedTurn !== null ? parsedTurn : null,
         creatorDiscordId: String(taskProps.creator_discord_id ?? ``),
         executorDiscordId: taskProps.executor_discord_id ? String(taskProps.executor_discord_id) : null,
         objectUid: taskProps.object_uid ? String(taskProps.object_uid) : null,

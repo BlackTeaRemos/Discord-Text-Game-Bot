@@ -18,6 +18,10 @@ export interface TaskEntity {
     id: string;
     /** Owning organization UID that constrains visibility. */
     organizationUid: string;
+    /** Game UID that this task belongs to; null when not linked to a game. */
+    gameUid: string | null;
+    /** Turn number this task belongs to; null when not tied to a specific turn. */
+    turnNumber: number | null;
     /** Discord snowflake of the user who created the task. */
     creatorDiscordId: string;
     /** Optional Discord snowflake of the assigned executor; null when unassigned. */
@@ -56,7 +60,12 @@ export interface TaskListItem extends TaskEntity {
  * @example
  * const allStatuses = [...DEFAULT_TASK_STATUSES, 'blocked'];
  */
-export const DEFAULT_TASK_STATUSES: readonly string[] = Object.freeze([`active`, `waiting`, `finished`]);
+export const DEFAULT_TASK_STATUSES: readonly string[] = Object.freeze([
+    `incomplete`,
+    `in_progress`,
+    `complete`,
+    `failed`,
+]);
 
 /**
  * String literal union describing known task statuses while permitting custom values.
@@ -64,4 +73,9 @@ export const DEFAULT_TASK_STATUSES: readonly string[] = Object.freeze([`active`,
  * @example
  * const status: TaskStatus = userInput as TaskStatus;
  */
-export type TaskStatus = `active` | `waiting` | `finished` | (string & Record<never, never>);
+export type TaskStatus =
+    | `incomplete`
+    | `in_progress`
+    | `complete`
+    | `failed`
+    | (string & Record<never, never>);

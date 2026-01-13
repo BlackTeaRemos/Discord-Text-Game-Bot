@@ -37,6 +37,7 @@ export class ConfigService {
                 discordToken: Joi.string().required(),
                 discordGuildId: Joi.string().required(),
                 discordCategoryId: Joi.string().required(),
+                taskAdminUserIds: Joi.array().items(Joi.string()).default([]),
                 logLevel: Joi.string().valid(`debug`, `info`, `warn`, `error`),
                 dataRoot: Joi.string(),
                 mirrorRoot: Joi.string(),
@@ -73,6 +74,7 @@ export class ConfigService {
                 dataRoot,
                 mirrorRoot,
                 tempRoot,
+                taskAdminUserIds: (value.taskAdminUserIds as string[]) ?? [],
                 neo4j: value.neo4j as Neo4jConfig,
             };
             this._eventBus.emit(`config:loaded`, validated);

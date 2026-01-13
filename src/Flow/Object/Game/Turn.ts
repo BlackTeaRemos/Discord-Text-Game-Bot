@@ -41,6 +41,37 @@ export async function GetGameForServer(
 }
 
 /**
+ * Get the current turn value for a game.
+ * @param gameUid string Game UID. @example 'game_abc123'
+ * @returns Promise<number> Current turn number; defaults to 1 when missing or invalid. @example 3
+ */
+export async function GetGameCurrentTurn(gameUid: string): Promise<number> {
+    const session = await neo4jClient.GetSession(`READ`);
+    try {
+        const result = await session.run(
+            `
+            MATCH (game:Game { uid: $uid })
+            OPTIONAL MATCH (game)-[:HAS_PARAMETER]->(param:Parameter { key: 'currentTurn' })
+            RETURN param.value AS value
+            LIMIT 1`,
+            { uid: gameUid },
+        );
+        const record = result.records[0];
+        if (!record) {
+            return 1;
+        }
+        const raw = record.get(`value`) as unknown;
+        const parsed = typeof raw === `string` ? parseInt(raw, 10) : Number(raw);
+        if (!Number.isFinite(parsed) || parsed < 1) {
+            return 1;
+        }
+        return parsed;
+    } finally {
+        await session.close();
+    }
+}
+
+/**
  * Update the current turn for a game.
  * @param gameUid Game UID
  * @param newTurn New turn number
@@ -49,8 +80,9 @@ export async function UpdateGameTurn(gameUid: string, newTurn: number): Promise<
     const session = await neo4jClient.GetSession(`WRITE`);
     try {
         await session.run(
-            `MATCH (game:Game { uid: $uid })-[:HAS_PARAMETER]->(param:Parameter { key: 'currentTurn' })
-            SET param.value = $value`,
+            `MATCH (game:Game { uid: $uid })
+             MERGE (game)-[:HAS_PARAMETER]->(param:Parameter { key: 'currentTurn' })
+             SET param.value = $value`,
             { uid: gameUid, value: newTurn.toString() },
         );
     } finally {

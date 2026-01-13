@@ -46,7 +46,6 @@ export interface GamePromptResult {
  * @returns Promise<GamePromptResult> Prompt result instructing caller whether to prompt or auto-select.
  */
 export async function PrepareGamePrompt(options: GamePromptOptions): Promise<GamePromptResult> {
-    const limit = Math.min(Math.max(options.limit ?? 25, 1), 25);
     const games = await ListGamesForServer(options.serverId);
 
     if (games.length === 0) {
@@ -57,30 +56,9 @@ export async function PrepareGamePrompt(options: GamePromptOptions): Promise<Gam
         };
     }
 
-    if (games.length === 1) {
-        return {
-            status: `auto`,
-            games,
-            game: games[0],
-        };
-    }
-
-    const menu = new StringSelectMenuBuilder()
-        .setCustomId(options.customId)
-        .setPlaceholder(options.placeholder ?? `Select game`)
-        .addOptions(
-            games.slice(0, limit).map(game => {
-                return {
-                    label: game.name.slice(0, 100),
-                    value: game.uid,
-                } as any;
-            }),
-        );
-
     return {
-        status: `prompt`,
+        status: `auto`,
         games,
-        message: options.promptMessage ?? `Select game to continue.`,
-        components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(menu)],
+        game: games[0],
     };
 }

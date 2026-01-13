@@ -9,26 +9,37 @@ export async function FetchTasksForViewer(client: Neo4jClient, input: TaskFetchI
 
     try {
         const result = await session.run(
-            `MATCH (org:Organization { uid: $organizationUid })
+            `MATCH (org:Organization)
+             WHERE $organizationUid IS NULL OR org.uid = $organizationUid
              MATCH (task:${TASK_LABEL})-[:${REL_BELONGS_TO}]->(org)
              OPTIONAL MATCH (creator:User)-[:${REL_CREATED_TASK}]->(task)
              OPTIONAL MATCH (executor:User)-[:${REL_EXECUTES_TASK}]->(task)
-             WITH task,
-                  org,
-                  collect(DISTINCT creator) AS creators,
-                  collect(DISTINCT executor) AS executors,
-                  ($includeAll OR task.creator_discord_id = $viewerDiscordId OR task.executor_discord_id = $viewerDiscordId) AS allowed
-             WHERE allowed
-             WITH task,
-                  org,
-                  head(creators) AS creator,
-                  head(executors) AS executor
-             RETURN task, org AS organization, creator, executor
+               WITH task,
+                   org,
+                   collect(DISTINCT creator) AS creators,
+                   collect(DISTINCT executor) AS executors,
+                   ($allowOverride OR $includeAll OR task.creator_discord_id = $viewerDiscordId OR task.executor_discord_id = $viewerDiscordId) AS allowed,
+                   ($targetDiscordId IS NULL OR task.creator_discord_id = $targetDiscordId OR task.executor_discord_id = $targetDiscordId) AS matchesTarget
+               WHERE allowed
+                 AND matchesTarget
+                 AND ($gameUid IS NULL OR task.game_uid = $gameUid)
+                 AND ($turnNumber IS NULL OR task.turn_number = $turnNumber)
+                 AND (size($statuses) = 0 OR task.status IN $statuses)
+               WITH task,
+                   org,
+                   head(creators) AS creator,
+                   head(executors) AS executor
+               RETURN task, org AS organization, creator, executor
              ORDER BY task.updated_at DESC, task.created_at DESC`,
             {
-                organizationUid: input.organizationUid,
+                organizationUid: input.organizationUid ?? null,
                 viewerDiscordId: input.viewerDiscordId,
+                gameUid: input.gameUid ?? null,
+                turnNumber: input.turnNumber ?? null,
                 includeAll: Boolean(input.includeAll),
+                allowOverride: Boolean(input.allowOverride),
+                targetDiscordId: input.targetDiscordId ?? null,
+                statuses: input.statuses ?? [],
             },
         );
 
