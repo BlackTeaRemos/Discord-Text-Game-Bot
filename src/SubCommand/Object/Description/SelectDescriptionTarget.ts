@@ -2,7 +2,7 @@ import { ActionRowBuilder, MessageFlags, StringSelectMenuBuilder } from 'discord
 import type { ChatInputCommandInteraction } from 'discord.js';
 import { getSupportedTypes, listRecordsFor, type ObjectTypeKey } from '../../../Common/Flow/ObjectRegistry.js';
 import { PrepareOrganizationPrompt } from '../../Prompt/Organization.js';
-import { BuildViewSelectOptions } from '../../../Commands/View/BuildViewSelectOptions.js';
+import { BuildViewSelectOptions } from '../../../Common/BuildViewSelectOptions.js';
 import { GetUserByDiscordId } from '../../../Flow/Object/User/View/GetUserByDiscordId.js';
 
 export interface DescriptionTargetSelection {

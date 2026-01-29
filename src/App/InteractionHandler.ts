@@ -17,7 +17,9 @@ export function CreateInteractionHandler(options: { loadedCommands: Record<strin
     const { loadedCommands } = options;
 
     return async function handleInteraction(interaction: any) {
-        if (!interaction?.isChatInputCommand?.()) {
+        const isChatCommand = interaction?.isChatInputCommand?.();
+        const isMessageCommand = interaction?.isMessageContextMenuCommand?.();
+        if (!isChatCommand && !isMessageCommand) {
             return;
         }
         const command = loadedCommands[interaction.commandName];
@@ -41,15 +43,15 @@ export function CreateInteractionHandler(options: { loadedCommands: Record<strin
                 | string
                 | string[]
                 | ((interaction: any) => Promise<string | string[] | undefined>)
-                | undefined = cmdAny.permissionTokens ?? cmdAny.permissions ?? `command:{commandName}`;
+                | undefined = cmdAny.permissionTokens;
 
             const templates: (string | TokenSegmentInput[])[] = [];
             if (typeof rawTemplates === `function`) {
                 try {
                     const t = await rawTemplates(interaction);
-                    rawTemplates = t || `command:{commandName}`;
+                    rawTemplates = t;
                 } catch {
-                    rawTemplates = `command:{commandName}`;
+                    rawTemplates = undefined;
                 }
             }
             if (typeof rawTemplates === `string`) {
@@ -65,12 +67,14 @@ export function CreateInteractionHandler(options: { loadedCommands: Record<strin
                 commandName: interaction.commandName,
                 interaction,
                 options: Object.fromEntries(
-                    interaction.options.data.map((o: any) => {
+                    (Array.isArray(interaction.options?.data) ? interaction.options.data : []).map((o: any) => {
                         return [o.name, o.value];
                     }),
                 ),
                 userId: interaction.user.id,
                 guildId: interaction.guildId ?? undefined,
+                ownerId: interaction.guild?.ownerId ?? undefined,
+                isAdministrator: enrichedFlowContext.isAdministrator,
                 character: enrichedFlowContext.character,
                 getMember: async() => {
                     return interaction.guild ? await interaction.guild.members.fetch(interaction.user.id) : null;
@@ -111,12 +115,18 @@ export function CreateInteractionHandler(options: { loadedCommands: Record<strin
             }
 
             // DEBUG: Log before permission request
-            console.log(`[DEBUG] Preparing to request permission`, {
-                commandName: interaction.commandName,
-                userId: interaction.user.id,
-                guildId: interaction.guildId,
-                channelId: interaction.channel?.id,
-            });
+            log.debug(
+                `Preparing to request permission`,
+                `InteractionHandler`,
+                JSON.stringify({
+                    commandName: interaction.commandName,
+                    userId: interaction.user.id,
+                    guildId: interaction.guildId,
+                    channelId: interaction.channel?.id,
+                    templatesCount: templates.length,
+                    templates: templates,
+                }),
+            );
 
             // Global gate: resolve required tokens, check permanent grants, and request admin approval if needed.
             // This gate remains independent from any local flow-level permission checks.
@@ -125,14 +135,31 @@ export function CreateInteractionHandler(options: { loadedCommands: Record<strin
                 context: resolverCtx as any,
                 member: flowMember,
                 requestApproval: payload => {
+                    log.debug(
+                        `RequestPermissionFromAdmin called`,
+                        `InteractionHandler`,
+                        JSON.stringify({ tokens: payload.tokens, reason: payload.reason }),
+                    );
                     return RequestPermissionFromAdmin(interaction, payload as any);
                 },
             });
+
+            log.debug(
+                `Permission resolution result`,
+                `InteractionHandler`,
+                JSON.stringify({
+                    success: resolution.success,
+                    reason: resolution.detail.reason,
+                    tokensCount: resolution.detail.tokens.length,
+                    decision: resolution.detail.decision,
+                }),
+            );
 
             if (!resolution.success) {
                 throw new Error(resolution.detail.reason ?? `Permission denied`);
             }
 
+            log.debug(`Permission gate passed, executing command`, `InteractionHandler`);
             // Execute the command after the global gate passes.
             await command.execute(interaction);
         } catch(err: any) {

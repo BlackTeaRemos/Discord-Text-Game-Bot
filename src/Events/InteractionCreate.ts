@@ -4,7 +4,6 @@ import { flowManager } from '../Common/Flow/Manager.js';
 import { HandleGameCreateControlInteraction } from '../SubCommand/Object/Game/GameCreateControls.js';
 import { HandleOrganizationCreateControlInteraction } from '../SubCommand/Object/Organization/OrganizationCreateControls.js';
 import { HandleUserCreateControlInteraction } from '../SubCommand/Object/User/UserCreateControls.js';
-import { HandleViewGameActionInteraction, HandleViewDescriptionActionInteraction, HandleViewParameterActionInteraction } from '../Commands/View/index.js';
 
 /**
  * Handles the 'interactionCreate' event from Discord by delegating processing to the shared flow manager.
@@ -29,15 +28,7 @@ export async function OnInteractionCreate(interaction: Interaction): Promise<voi
             if (!handled) {
                 handled = await HandleUserCreateControlInteraction(interaction as ButtonInteraction);
             }
-            if (!handled) {
-                handled = await HandleViewGameActionInteraction(interaction as ButtonInteraction);
-            }
-            if (!handled) {
-                handled = await HandleViewDescriptionActionInteraction(interaction as ButtonInteraction);
-            }
-            if (!handled) {
-                handled = await HandleViewParameterActionInteraction(interaction as ButtonInteraction);
-            }
+
         }
 
         if (!handled) {

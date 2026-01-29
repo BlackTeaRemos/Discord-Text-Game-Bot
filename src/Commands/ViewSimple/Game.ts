@@ -24,7 +24,9 @@ export async function ExecuteViewGame(
         return;
     }
 
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    if (!interaction.deferred && !interaction.replied) {
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    }
 
     try {
         const games = await ListGamesForServer(serverId);

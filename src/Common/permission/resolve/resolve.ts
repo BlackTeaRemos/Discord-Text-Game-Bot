@@ -37,6 +37,12 @@ export async function Resolve(
         const context = (options.context ?? {}) as import('./types.js').TokenResolveContext;
         const tokens = CollectEnsureTokens(templates, context);
 
+        log.debug(
+            `Permission.Resolve: collected ${tokens.length} tokens from ${templates.length} templates`,
+            `Permission.Resolve`,
+            JSON.stringify({ tokens, hasApprovalCallback: !!options.requestApproval }),
+        );
+
         if (tokens.length === 0) {
             return { success: true, detail: { tokens } };
         }
@@ -49,11 +55,32 @@ export async function Resolve(
         const inputs: PermissionTokenInput[] = ToInputs(tokens);
         const evaluation = await CheckPermission(options.permissions, member ?? null, inputs);
 
+        log.debug(
+            `Permission.Resolve: evaluation result`,
+            `Permission.Resolve`,
+            JSON.stringify({
+                allowed: evaluation.allowed,
+                requiresApproval: evaluation.requiresApproval,
+                reason: evaluation.reason,
+                skipApproval: options.skipApproval,
+                hasRequestApproval: !!options.requestApproval,
+            }),
+        );
+
         if (evaluation.allowed) {
             return { success: true, detail: { tokens, requiresApproval: !!evaluation.requiresApproval } };
         }
 
         if (!evaluation.requiresApproval || options.skipApproval || !options.requestApproval) {
+            log.debug(
+                `Permission.Resolve: skipping approval flow`,
+                `Permission.Resolve`,
+                JSON.stringify({
+                    requiresApproval: evaluation.requiresApproval,
+                    skipApproval: options.skipApproval,
+                    hasRequestApproval: !!options.requestApproval,
+                }),
+            );
             return {
                 success: false,
                 detail: {
@@ -64,7 +91,9 @@ export async function Resolve(
             };
         }
 
+        log.debug(`Permission.Resolve: requesting admin approval`, `Permission.Resolve`, JSON.stringify({ tokens }));
         const decision = await options.requestApproval({ tokens, reason: evaluation.reason } as any);
+        log.debug(`Permission.Resolve: admin decision received`, `Permission.Resolve`, JSON.stringify({ decision }));
 
         if (decision === `approve_once` || decision === `approve_forever`) {
             return { success: true, detail: { tokens, decision } };

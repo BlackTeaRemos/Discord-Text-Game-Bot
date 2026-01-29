@@ -19,6 +19,8 @@ export interface BotCommand {
      * @param interaction The interaction triggered by the command.
      */
     execute(interaction: ChatInputCommandInteraction): Promise<void>;
+    /** Permission token templates for this command */
+    permissionTokens?: any;
 }
 
 export interface BotCommandsMap {
@@ -51,12 +53,16 @@ export const commandsReady: Promise<void> = (async() => {
     }
     for (const mod of modules) {
         try {
-            // default export class
+            let inst;
             if (typeof mod === `function`) {
                 try {
-                    const inst = new (mod as any)();
+                    inst = new (mod as any)();
                     if (inst.data && typeof inst.execute === `function`) {
-                        commands[inst.data.name] = inst;
+                        commands[inst.data.name] = {
+                            data: inst.data,
+                            execute: inst.execute.bind(inst),
+                            permissionTokens: inst.permissionTokens ?? (mod as any).permissionTokens,
+                        };
                         continue;
                     }
                 } catch {}
@@ -68,7 +74,11 @@ export const commandsReady: Promise<void> = (async() => {
         const moduleExports = mod as any;
         // named export data+execute
         if (moduleExports.data && typeof moduleExports.execute === `function`) {
-            commands[moduleExports.data.name] = { data: moduleExports.data, execute: moduleExports.execute };
+            commands[moduleExports.data.name] = {
+                data: moduleExports.data,
+                execute: moduleExports.execute,
+                permissionTokens: moduleExports.permissionTokens,
+            };
             continue;
         }
         // other named exports as classes
@@ -77,7 +87,11 @@ export const commandsReady: Promise<void> = (async() => {
                 try {
                     const inst = new (Ex as any)();
                     if (inst.data && typeof inst.execute === `function`) {
-                        commands[inst.data.name] = inst;
+                        commands[inst.data.name] = {
+                            data: inst.data,
+                            execute: inst.execute.bind(inst),
+                            permissionTokens: inst.permissionTokens ?? (Ex as any).permissionTokens,
+                        };
                     }
                 } catch {}
             }

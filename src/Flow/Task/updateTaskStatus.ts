@@ -12,19 +12,21 @@ export async function UpdateTaskStatus(
 
     try {
         const result = await session.run(
-            `MATCH (task:${TASK_LABEL} { id: $taskId })-[:${REL_BELONGS_TO}]->(org:Organization { uid: $organizationUid })
+            `MATCH (task:${TASK_LABEL} { id: $taskId })
+             OPTIONAL MATCH (task)-[:${REL_BELONGS_TO}]->(org:Organization)
              OPTIONAL MATCH (creator:User)-[:${REL_CREATED_TASK}]->(task)
              OPTIONAL MATCH (executor:User)-[:${REL_EXECUTES_TASK}]->(task)
              WITH task, org, creator, executor,
                   ($allowOverride OR task.creator_discord_id = $viewerDiscordId OR task.executor_discord_id = $viewerDiscordId) AS permitted
              WHERE permitted
+               AND ($organizationUid IS NULL OR $organizationUid = '' OR org.uid = $organizationUid)
              SET task.status = $status,
                  task.updated_at = $timestamp,
                  task.version = coalesce(task.version, 1) + 1
              RETURN task, org AS organization, creator, executor`,
             {
                 taskId: input.taskId,
-                organizationUid: input.organizationUid,
+                organizationUid: input.organizationUid ?? null,
                 viewerDiscordId: input.viewerDiscordId,
                 status: input.status,
                 timestamp: Date.now(),

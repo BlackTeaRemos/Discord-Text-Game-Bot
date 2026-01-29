@@ -167,15 +167,17 @@ export class CommandRegistry {
             // Permission token evaluation (skip when caller asks to bypass)
             if (!opts?.skipPermissionCheck) {
                 const cmdAny = mod as any;
+                // TODO restore broad command token fallback
+                // const broadTokenFallback = `command:${mod.meta.id}`
                 let rawTemplates: string | string[] | Function | undefined =
-                    cmdAny.permissionTokens ?? `command:${mod.meta.id}`;
+                    cmdAny.permissionTokens;
 
                 // If the module exported a function for templates we cannot reliably execute it
                 // in a programmatic context that is not a Discord interaction. Fall back to
                 // the canonical command token in that case.
                 const templates: (string | any[])[] = [];
                 if (typeof rawTemplates === `function`) {
-                    templates.push(`command:${mod.meta.id}`);
+                    // TODO restore broad command token fallback
                 } else if (typeof rawTemplates === `string`) {
                     templates.push(rawTemplates);
                 } else if (Array.isArray(rawTemplates)) {
@@ -204,7 +206,8 @@ export class CommandRegistry {
                 } as const;
 
                 // Resolve templates into concrete tokens (most-specific first)
-                const inputs: PermissionTokenInput[] = templates.length ? templates : [`command:${mod.meta.id}`];
+                // TODO restore broad command token fallback
+                const inputs: PermissionTokenInput[] = templates.length ? templates : [];
 
                 // Build a minimal member-like object when none provided so permanent grants can be checked
                 let member = opts?.member ?? null;

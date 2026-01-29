@@ -10,6 +10,7 @@ export interface CreateTaskInput {
     creatorDiscordId: string; // creator discord snowflake
     executorDiscordId?: string | null; // executor discord snowflake; null clears
     objectUid?: string | null; // related object uid
+    shortDescription: string; // short description for list views
     description: string; // task description
     status?: TaskStatus; // optional custom status
 }

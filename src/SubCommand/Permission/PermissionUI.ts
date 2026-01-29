@@ -124,6 +124,21 @@ export async function RequestPermissionFromAdmin(
         return !m.user.bot && m.permissions.has(PermissionsBitField.Flags.Administrator);
     });
 
+    const ownerId = guild.ownerId;
+    if (ownerId) {
+        let ownerMember = members.get(ownerId);
+        if (!ownerMember) {
+            try {
+                ownerMember = await guild.members.fetch(ownerId);
+            } catch {
+                ownerMember = undefined;
+            }
+        }
+        if (ownerMember && !ownerMember.user.bot) {
+            admins.set(ownerMember.id, ownerMember);
+        }
+    }
+
     log.info(
         `PermissionUI.AdminCandidates`,
         import.meta.filename,
@@ -151,9 +166,10 @@ export async function RequestPermissionFromAdmin(
         });
     }
 
-    // Pick a random admin
+    // Prefer the requesting admin so they receive the approval prompt
+    const requesterAdmin = admins.get(interaction.user.id);
     const adminArray = Array.from(admins.values());
-    const admin = adminArray[Math.floor(Math.random() * adminArray.length)];
+    const admin = requesterAdmin ?? adminArray[Math.floor(Math.random() * adminArray.length)];
 
     // Log selected admin
     log.info(`PermissionUI.SelectedAdmin`, import.meta.filename, JSON.stringify({ id: admin.id, tag: admin.user.tag }));

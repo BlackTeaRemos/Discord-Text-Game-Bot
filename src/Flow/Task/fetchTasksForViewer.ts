@@ -9,9 +9,8 @@ export async function FetchTasksForViewer(client: Neo4jClient, input: TaskFetchI
 
     try {
         const result = await session.run(
-            `MATCH (org:Organization)
-             WHERE $organizationUid IS NULL OR org.uid = $organizationUid
-             MATCH (task:${TASK_LABEL})-[:${REL_BELONGS_TO}]->(org)
+            `MATCH (task:${TASK_LABEL})
+             OPTIONAL MATCH (task)-[:${REL_BELONGS_TO}]->(org:Organization)
              OPTIONAL MATCH (creator:User)-[:${REL_CREATED_TASK}]->(task)
              OPTIONAL MATCH (executor:User)-[:${REL_EXECUTES_TASK}]->(task)
                WITH task,
@@ -22,6 +21,7 @@ export async function FetchTasksForViewer(client: Neo4jClient, input: TaskFetchI
                    ($targetDiscordId IS NULL OR task.creator_discord_id = $targetDiscordId OR task.executor_discord_id = $targetDiscordId) AS matchesTarget
                WHERE allowed
                  AND matchesTarget
+                 AND ($organizationUid IS NULL OR $organizationUid = '' OR org.uid = $organizationUid)
                  AND ($gameUid IS NULL OR task.game_uid = $gameUid)
                  AND ($turnNumber IS NULL OR task.turn_number = $turnNumber)
                  AND (size($statuses) = 0 OR task.status IN $statuses)

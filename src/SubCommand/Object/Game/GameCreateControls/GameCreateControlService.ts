@@ -48,19 +48,21 @@ export class GameCreateControlService {
             return true;
         }
 
-        await interaction.deferUpdate();
-
         switch (interaction.customId) {
             case GameCreateFlowConstants.changeNameId:
+                await interaction.deferUpdate();
                 await HandleGameCreateChangeName({ session, store: this._store });
                 return true;
             case GameCreateFlowConstants.changeDescriptionId:
+                await interaction.deferUpdate();
                 await HandleGameCreateChangeDescription({ session, store: this._store });
                 return true;
             case GameCreateFlowConstants.changeImageId:
+                await interaction.deferUpdate();
                 await HandleGameCreateChangeImage({ session, store: this._store });
                 return true;
             case GameCreateFlowConstants.cancelCreateId:
+                await interaction.deferUpdate();
                 await ExpireGameCreateSession(
                     this._store,
                     session,
@@ -68,6 +70,7 @@ export class GameCreateControlService {
                 );
                 return true;
             case GameCreateFlowConstants.confirmCreateId:
+                await interaction.deferUpdate();
                 await HandleGameCreateConfirmAction({ session, store: this._store });
                 return true;
             default:

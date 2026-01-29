@@ -66,6 +66,7 @@ function __BuildBaseContext(context: IFlowInteractionContext): TokenResolveConte
         commandName: context.commandName,
         guildId: context.guildId,
         userId: context.userId,
+        isAdministrator: context.isAdministrator,
         options,
     };
 }
@@ -105,7 +106,7 @@ export async function EnsureCommandPermission(
     const ensureOptions: ResolveEnsureOptions = {
         context: mergedContext,
         permissions: options.permissions,
-        skipApproval: true,
+        skipApproval: Boolean(options.skipAdminApproval),
         member,
     };
 

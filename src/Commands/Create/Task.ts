@@ -1,12 +1,12 @@
 import { MessageFlags } from 'discord.js';
-import type { ChatInputCommandInteraction, Message } from 'discord.js';
+import type { ChatInputCommandInteraction, Message, MessageContextMenuCommandInteraction } from 'discord.js';
 import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
 import { ListGamesForServer } from '../../Flow/Object/Game/ListGamesForServer.js';
 import { GetGameCurrentTurn } from '../../Flow/Object/Game/Turn.js';
 import { CreateTaskRecord } from '../../Flow/Task/CreateTaskRecord.js';
 import { neo4jClient } from '../../Setup/Neo4j.js';
 import { log } from '../../Common/Log.js';
-import { FindOrganizationForServer } from '../../Flow/Object/Organization/FindForServer.js';
+// import { FindOrganizationForServer } from '../../Flow/Object/Organization/FindForServer.js';
 
 /**
  * Create task from replied message for current turn
@@ -15,6 +15,26 @@ import { FindOrganizationForServer } from '../../Flow/Object/Organization/FindFo
  */
 export async function ExecuteCreateTask(
     interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
+): Promise<void> {
+    const delay = interaction.options.getInteger(`delay`) ?? 0;
+    await __CreateTaskFromInteraction(interaction, delay);
+}
+
+/**
+ * Create task from message context menu selection
+ * @param interaction InteractionExecutionContextCarrier<MessageContextMenuCommandInteraction> Discord interaction
+ * @returns Promise<void> Resolves when task is created
+ */
+export async function ExecuteCreateTaskFromMessageContext(
+    interaction: InteractionExecutionContextCarrier<MessageContextMenuCommandInteraction>,
+): Promise<void> {
+    const delay = 0;
+    await __CreateTaskFromInteraction(interaction, delay);
+}
+
+async function __CreateTaskFromInteraction(
+    interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction | MessageContextMenuCommandInteraction>,
+    delay: number,
 ): Promise<void> {
     const serverId = interaction.guildId;
     if (!serverId) {
@@ -25,26 +45,28 @@ export async function ExecuteCreateTask(
         return;
     }
 
-    const delay = interaction.options.getInteger(`delay`) ?? 0;
-
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    if (!interaction.deferred && !interaction.replied) {
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    }
 
     try {
-        const repliedMessage = await __FetchRepliedMessage(interaction);
-        if (!repliedMessage) {
+        const targetMessage = await __FetchTargetMessage(interaction);
+        if (!targetMessage) {
             await interaction.editReply({
-                content: `This command must be used as a reply to a message`,
+                content: `Select a message to create a task`,
             });
             return;
         }
 
-        const messageContent = repliedMessage.content?.trim();
+        const messageContent = targetMessage.content?.trim();
         if (!messageContent) {
             await interaction.editReply({
-                content: `The replied message has no text content`,
+                content: `The selected message has no text content`,
             });
             return;
         }
+
+        const shortDescription = __BuildShortDescription(messageContent);
 
         const games = await ListGamesForServer(serverId);
         const game = games[0];
@@ -58,19 +80,21 @@ export async function ExecuteCreateTask(
         const currentTurn = await GetGameCurrentTurn(game.uid);
         const targetTurn = currentTurn + delay;
 
-        const organization = await FindOrganizationForServer(serverId);
-        if (!organization) {
-            await interaction.editReply({
-                content: `No organization found for this server`,
-            });
-            return;
-        }
+        // TODO restore organization lookup later
+        // const organization = await FindOrganizationForServer(serverId);
+        // if (!organization) {
+        //     await interaction.editReply({
+        //         content: `No organization found for this server`,
+        //     });
+        //     return;
+        // }
 
         const task = await CreateTaskRecord(neo4jClient, {
-            organizationUid: organization.uid,
+            organizationUid: ``,
             gameUid: game.uid,
             turnNumber: targetTurn,
-            creatorDiscordId: interaction.user.id,
+            creatorDiscordId: targetMessage.author.id,
+            shortDescription,
             description: messageContent,
         });
 
@@ -83,28 +107,28 @@ export async function ExecuteCreateTask(
         });
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Failed to create task`, message, `CreateTask`);
+        const stack = error instanceof Error ? error.stack : undefined;
+        log.error(`Failed to create task: ${message}`, `CreateTask`, stack);
         await interaction.editReply({
             content: `Failed to create task: ${message}`,
         });
     }
 }
 
-/**
- * Fetch the message this interaction is replying to
- * @param interaction ChatInputCommandInteraction The slash command interaction
- * @returns Promise<Message | null> The replied message or null
- */
-async function __FetchRepliedMessage(
-    interaction: ChatInputCommandInteraction,
+async function __FetchTargetMessage(
+    interaction: ChatInputCommandInteraction | MessageContextMenuCommandInteraction,
 ): Promise<Message | null> {
     try {
+        if (`targetMessage` in interaction && typeof interaction.targetMessage !== `undefined`) {
+            return interaction.targetMessage as Message;
+        }
+
         const channel = interaction.channel;
         if (!channel || !(`messages` in channel)) {
             return null;
         }
 
-        const reference = (interaction as any).targetMessage ?? (interaction as any).message?.reference;
+        const reference = (interaction as any).message?.reference;
         if (!reference?.messageId) {
             return null;
         }
@@ -113,4 +137,29 @@ async function __FetchRepliedMessage(
     } catch {
         return null;
     }
+}
+
+/**
+ * Build short description from message content
+ * @param text string Full message content example Fix the bug in login flow
+ * @returns string Short description for list views example Fix the bug
+ */
+function __BuildShortDescription(text: string): string {
+    const trimmed = text.trim();
+    if (!trimmed) {
+        return ``;
+    }
+
+    const firstLine = trimmed.split(/\r?\n/)[0] ?? ``;
+    const sentenceMatch = firstLine.match(/^[\s\S]*?[.!?](?=\s|$)/);
+    let candidate = (sentenceMatch?.[0] ?? firstLine).trim();
+
+    const words = candidate.split(/\s+/).filter(Boolean);
+    if (words.length > 5) {
+        candidate = words.slice(0, 5).join(` `);
+    }
+    if (candidate.length > 32) {
+        candidate = candidate.slice(0, 32).trim();
+    }
+    return candidate;
 }

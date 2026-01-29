@@ -17,7 +17,13 @@ export const data = new SlashCommandBuilder()
     .addSubcommand(subcommand => {
         return subcommand
             .setName(`task`)
-            .setDescription(`List tasks for current turn`)
+            .setDescription(`List tasks or view a specific task`)
+            .addStringOption(option => {
+                return option
+                    .setName(`id`)
+                    .setDescription(`Task id to view`)
+                    .setRequired(false);
+            })
             .addIntegerOption(option => {
                 return option
                     .setName(`turn`)

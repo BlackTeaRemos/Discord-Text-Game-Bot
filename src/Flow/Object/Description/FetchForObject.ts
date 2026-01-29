@@ -1,4 +1,4 @@
-import { neo4jClient } from '../../Setup/Neo4j.js';
+import { neo4jClient } from '../../../Setup/Neo4j.js';
 
 /**
  * Fetch global description content for an object

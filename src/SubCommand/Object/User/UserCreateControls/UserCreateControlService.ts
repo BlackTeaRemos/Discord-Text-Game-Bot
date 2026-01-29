@@ -47,22 +47,25 @@ export class UserCreateControlService {
             return true;
         }
 
-        await interaction.deferUpdate();
-
         switch (interaction.customId) {
             case UserCreateFlowConstants.changeDiscordId:
+                await interaction.deferUpdate();
                 await HandleUserCreateChangeDiscordId({ session, store: this._store });
                 return true;
             case UserCreateFlowConstants.changeDisplayName:
+                await interaction.deferUpdate();
                 await HandleUserCreateChangeDisplayName({ session, store: this._store });
                 return true;
             case UserCreateFlowConstants.changeFriendlyName:
+                await interaction.deferUpdate();
                 await HandleUserCreateChangeFriendlyName({ session, store: this._store });
                 return true;
             case UserCreateFlowConstants.changeDescription:
+                await interaction.deferUpdate();
                 await HandleUserCreateChangeDescription({ session, store: this._store });
                 return true;
             case UserCreateFlowConstants.cancelCreateId:
+                await interaction.deferUpdate();
                 await ExpireUserCreateSession(
                     this._store,
                     session,
@@ -70,6 +73,7 @@ export class UserCreateControlService {
                 );
                 return true;
             case UserCreateFlowConstants.confirmCreateId:
+                await interaction.deferUpdate();
                 await HandleUserCreateConfirmAction({ session, store: this._store });
                 return true;
             default:

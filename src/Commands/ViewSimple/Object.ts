@@ -22,7 +22,9 @@ export async function ExecuteViewObject(
         return;
     }
 
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    if (!interaction.deferred && !interaction.replied) {
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    }
 
     try {
         const objectInfo = await ResolveObjectByUid(objectId.trim());

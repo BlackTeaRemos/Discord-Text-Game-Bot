@@ -28,6 +28,8 @@ export interface TaskEntity {
     executorDiscordId?: string | null;
     /** Optional UID of the related object providing domain linkage. */
     objectUid?: string | null;
+    /** Short task description for list views */
+    shortDescription: string;
     /** Free-form task description supplied by users. */
     description: string;
     /** Arbitrary task status chosen from configured values. */

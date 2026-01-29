@@ -12,7 +12,8 @@ export async function FetchTaskById(client: Neo4jClient, input: FetchTaskByIdInp
 
     try {
         const result = await session.run(
-            `MATCH (task:${TASK_LABEL} { id: $taskId })-[:${REL_BELONGS_TO}]->(org:Organization { uid: $organizationUid })
+            `MATCH (task:${TASK_LABEL} { id: $taskId })
+             OPTIONAL MATCH (task)-[:${REL_BELONGS_TO}]->(org:Organization)
              OPTIONAL MATCH (creator:User)-[:${REL_CREATED_TASK}]->(task)
              OPTIONAL MATCH (executor:User)-[:${REL_EXECUTES_TASK}]->(task)
              WITH task,
@@ -21,10 +22,11 @@ export async function FetchTaskById(client: Neo4jClient, input: FetchTaskByIdInp
                   executor,
                   ($allowOverride OR task.creator_discord_id = $viewerDiscordId OR task.executor_discord_id = $viewerDiscordId) AS permitted
              WHERE permitted
+               AND ($organizationUid IS NULL OR $organizationUid = '' OR org.uid = $organizationUid)
              RETURN task, org AS organization, creator, executor`,
             {
                 taskId: input.taskId,
-                organizationUid: input.organizationUid,
+                organizationUid: input.organizationUid ?? null,
                 viewerDiscordId: input.viewerDiscordId,
                 allowOverride: Boolean(input.allowOverride),
             },

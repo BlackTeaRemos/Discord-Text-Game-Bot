@@ -47,38 +47,11 @@ export interface OrganizationPromptResult {
  * @returns Promise<OrganizationPromptResult> Result instructing caller whether to prompt or auto-select. @example const prompt = await PrepareOrganizationPrompt(opts);
  */
 export async function PrepareOrganizationPrompt(options: OrganizationPromptOptions): Promise<OrganizationPromptResult> {
-    const limit = Math.min(Math.max(options.limit ?? 25, 1), 25);
-    const selection = await GetOrganizationSelection(options.userId);
-    if (selection.orgs.length === 0) {
-        return {
-            status: `empty`,
-            selection,
-            message: options.emptyMessage ?? `You are not assigned to any organization.`,
-        };
-    }
-    if (selection.selected && selection.orgUid && selection.orgName) {
-        return {
-            status: `auto`,
-            selection,
-            organization: { uid: selection.orgUid, name: selection.orgName },
-        };
-    }
-    const menu = new StringSelectMenuBuilder()
-        .setCustomId(options.customId)
-        .setPlaceholder(options.placeholder ?? `Select organization`)
-        .addOptions(
-            selection.orgs.slice(0, limit).map(org => {
-                return {
-                    label: org.name.slice(0, 100),
-                    value: org.uid,
-                } as any;
-            }),
-        );
+    // Organizations disabled; return an empty result to indicate there are no selectable organizations.
     return {
-        status: `prompt`,
-        selection,
-        message: options.promptMessage ?? `Select organization to continue.`,
-        components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(menu)],
+        status: `empty`,
+        selection: { selected: false, orgs: [] },
+        message: options.emptyMessage ?? `Organization functionality is disabled.`,
     };
 }
 
@@ -89,9 +62,6 @@ export async function PrepareOrganizationPrompt(options: OrganizationPromptOptio
  * @returns Promise<string | undefined> Resolved name or undefined when not found. @example const name = await ResolveOrganizationName(userId, orgUid);
  */
 export async function ResolveOrganizationName(userId: string, organizationUid: string): Promise<string | undefined> {
-    const selection = await GetOrganizationSelection(userId);
-    const match = selection.orgs.find(org => {
-        return org.uid === organizationUid;
-    });
-    return match?.name;
+    // Organizations disabled; resolution not available.
+    return undefined;
 }

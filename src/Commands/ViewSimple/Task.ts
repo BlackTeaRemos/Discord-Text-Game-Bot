@@ -11,13 +11,19 @@ import type { TaskListItem } from '../../Domain/Task.js';
 import { ListGamesForServer } from '../../Flow/Object/Game/ListGamesForServer.js';
 import { GetGameCurrentTurn } from '../../Flow/Object/Game/Turn.js';
 import { FetchTasksForViewer } from '../../Flow/Task/FetchTasksForViewer.js';
-import { FindOrganizationForServer } from '../../Flow/Object/Organization/FindForServer.js';
+import { FetchTaskById } from '../../Flow/Task/FetchTaskById.js';
+import { UpdateTaskStatus } from '../../Flow/Task/UpdateTaskStatus.js';
+import { ResolveStatusesForGroup } from '../../Flow/Task/ResolveStatusesForGroup.js';
 import { neo4jClient } from '../../Setup/Neo4j.js';
 import { flowManager } from '../../Common/Flow/Manager.js';
 import { log } from '../../Common/Log.js';
+import { resolve } from '../../Common/Permission/index.js';
+import type { IFlowMember } from '../../Common/Type/FlowContext.js';
 
 const VIEW_TASK_PREV_ID = `view_task_prev`;
 const VIEW_TASK_NEXT_ID = `view_task_next`;
+const VIEW_TASK_FINISH_ID = `view_task_finish`;
+const VIEW_TASK_CANCEL_ID = `view_task_cancel`;
 const PAGE_SIZE = 10;
 
 /**
@@ -27,7 +33,14 @@ interface ViewTaskState {
     tasks: TaskListItem[]; // all fetched tasks
     pageIndex: number; // current page index
     totalPages: number; // total page count
-    turnNumber: number; // viewed turn number
+    baseInteraction: ChatInputCommandInteraction; // original interaction
+}
+
+/**
+ * Flow state for task detail viewing
+ */
+interface ViewTaskDetailState {
+    task: TaskListItem; // current task item
     baseInteraction: ChatInputCommandInteraction; // original interaction
 }
 
@@ -48,46 +61,96 @@ export async function ExecuteViewTask(
         return;
     }
 
+    const taskIdOption = interaction.options.getString(`id`)?.trim();
     const turnOption = interaction.options.getInteger(`turn`);
+    const statusOption = interaction.options.getString(`status`)?.trim();
     const creatorOption = interaction.options.getUser(`creator`);
 
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    if (!interaction.deferred && !interaction.replied) {
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    }
 
     try {
-        const games = await ListGamesForServer(serverId);
-        const game = games[0];
-        if (!game) {
-            await interaction.editReply({
-                content: `No game exists in this server`,
+        let allowOverride = false;
+        try {
+            const member: IFlowMember = {
+                id: interaction.user.id,
+                guildId: interaction.guildId ?? undefined,
+                roles: [],
+            };
+
+            const options = Object.fromEntries(
+                (Array.isArray(interaction.options?.data) ? interaction.options.data : []).map((option: any) => {
+                    return [option.name, option.value];
+                }),
+            );
+
+            const isAdmin = Boolean(interaction.memberPermissions?.has(`Administrator`));
+            const outcome = await resolve([`task:view:all`], {
+                context: {
+                    commandName: interaction.commandName,
+                    userId: interaction.user.id,
+                    guildId: interaction.guildId ?? undefined,
+                    options,
+                    isAdministrator: isAdmin,
+                },
+                member,
+                skipApproval: false,
             });
+
+            allowOverride = outcome.success;
+        } catch (error) {
+            log.warning(`Failed to resolve task:view:all: ${String(error)}`, `ViewTask`);
+        } finally {
+            // no cleanup needed
+        }
+
+        if (taskIdOption) {
+            await __ShowTaskDetail(
+                interaction as unknown as ChatInputCommandInteraction,
+                taskIdOption,
+                allowOverride,
+            );
             return;
         }
 
-        const organization = await FindOrganizationForServer(serverId);
-        if (!organization) {
-            await interaction.editReply({
-                content: `No organization found for this server`,
-            });
-            return;
+        const isTasksCommand = interaction.commandName === `tasks`;
+        const needsTurn = isTasksCommand || turnOption !== null;
+        let targetTurn: number | null = null;
+        let gameUid: string | null = null;
+
+        if (needsTurn) {
+            const games = await ListGamesForServer(serverId);
+            const game = games[0];
+            if (!game) {
+                await interaction.editReply({
+                    content: `No game exists in this server`,
+                });
+                return;
+            }
+
+            const currentTurn = await GetGameCurrentTurn(game.uid);
+            targetTurn = turnOption ?? currentTurn;
+            gameUid = game.uid;
         }
 
-        const currentTurn = await GetGameCurrentTurn(game.uid);
-        const targetTurn = turnOption ?? currentTurn;
+        const statusGroup = statusOption || (isTasksCommand ? `todo` : `all`);
+        const statuses = __ResolveStatusGroup(statusGroup);
 
         const tasks = await FetchTasksForViewer(neo4jClient, {
-            organizationUid: organization.uid,
+            organizationUid: null,
             viewerDiscordId: interaction.user.id,
-            gameUid: game.uid,
+            gameUid,
             turnNumber: targetTurn,
-            includeAll: true,
-            allowOverride: true,
+            includeAll: allowOverride,
+            allowOverride,
             targetDiscordId: creatorOption?.id ?? null,
-            statuses: [],
+            statuses,
         });
 
         if (tasks.length === 0) {
             await interaction.editReply({
-                content: `No tasks found for turn ${targetTurn}`,
+                content: `No tasks found`,
             });
             return;
         }
@@ -97,7 +160,6 @@ export async function ExecuteViewTask(
             tasks,
             pageIndex: 0,
             totalPages,
-            turnNumber: targetTurn,
             baseInteraction: interaction as unknown as ChatInputCommandInteraction,
         };
 
@@ -143,13 +205,14 @@ async function __RenderTaskList(state: ViewTaskState): Promise<void> {
     const pageTasks = state.tasks.slice(startIndex, startIndex + PAGE_SIZE);
 
     const lines = pageTasks.map(task => {
-        const shortDescription = __ExtractWords(task.description, 5);
-        return `\`${task.id}\` - ${shortDescription}`;
+        const shortDescription = __ResolveShortDescription(task);
+        const emoji = __ResolveStatusEmoji(task.status);
+        return `${emoji}\n${shortDescription || `No short description`}\n\`${task.id}\``;
     });
 
     const embed = new EmbedBuilder()
-        .setTitle(`Tasks - Turn ${state.turnNumber}`)
-        .setDescription(lines.join(`\n`))
+        .setTitle(`Tasks`)
+        .setDescription(lines.join(`\n\n`))
         .setColor(`Blue`)
         .setFooter({ text: `Page ${state.pageIndex + 1} of ${state.totalPages} (${state.tasks.length} total)` });
 
@@ -174,6 +237,118 @@ async function __RenderTaskList(state: ViewTaskState): Promise<void> {
 }
 
 /**
+ * Render a single task detail view
+ * @param state ViewTaskDetailState Current detail state
+ * @returns Promise<void> Resolves when reply is updated
+ */
+async function __RenderTaskDetail(state: ViewTaskDetailState): Promise<void> {
+    const task = state.task;
+    const embed = new EmbedBuilder()
+        .setTitle(`Task ${task.id}`)
+        .setDescription(task.description || `No description`)
+        .setColor(`Blue`)
+        .addFields([
+            { name: `Status`, value: String(task.status), inline: true },
+            { name: `Short`, value: task.shortDescription || `None`, inline: true },
+        ]);
+
+    const finishButton = new ButtonBuilder()
+        .setCustomId(VIEW_TASK_FINISH_ID)
+        .setLabel(`Finish`)
+        .setStyle(ButtonStyle.Success);
+
+    const cancelButton = new ButtonBuilder()
+        .setCustomId(VIEW_TASK_CANCEL_ID)
+        .setLabel(`Cancel`)
+        .setStyle(ButtonStyle.Danger);
+
+    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(finishButton, cancelButton);
+
+    await state.baseInteraction.editReply({
+        embeds: [embed],
+        components: [row],
+    });
+}
+
+/**
+ * Show task detail and handle status updates
+ * @param interaction ChatInputCommandInteraction Base interaction
+ * @param taskId string Task id to display example task_123
+ * @returns Promise<void> Resolves when detail flow starts
+ */
+async function __ShowTaskDetail(
+    interaction: ChatInputCommandInteraction,
+    taskId: string,
+    allowOverride: boolean,
+): Promise<void> {
+    const task = await FetchTaskById(neo4jClient, {
+        taskId,
+        organizationUid: ``,
+        viewerDiscordId: interaction.user.id,
+        allowOverride,
+    });
+
+    if (!task) {
+        await interaction.editReply({
+            content: `Task not found or access denied`,
+        });
+        return;
+    }
+
+    const initialState: ViewTaskDetailState = {
+        task,
+        baseInteraction: interaction,
+    };
+
+    await flowManager
+        .builder(interaction.user.id, interaction, initialState)
+        .step([VIEW_TASK_FINISH_ID, VIEW_TASK_CANCEL_ID], `view_task_detail`)
+        .prompt(async ctx => {
+            await __RenderTaskDetail(ctx.state);
+        })
+        .onInteraction(async (ctx, incomingInteraction) => {
+            if (!incomingInteraction.isButton()) {
+                return false;
+            }
+
+            let nextStatus: string | null = null;
+            if (incomingInteraction.customId === VIEW_TASK_FINISH_ID) {
+                nextStatus = `complete`;
+            } else if (incomingInteraction.customId === VIEW_TASK_CANCEL_ID) {
+                nextStatus = `failed`;
+            }
+
+            if (!nextStatus) {
+                return false;
+            }
+
+            await incomingInteraction.deferUpdate();
+
+            const updated = await UpdateTaskStatus(neo4jClient, {
+                taskId: ctx.state.task.id,
+                organizationUid: ``,
+                viewerDiscordId: interaction.user.id,
+                status: nextStatus as any,
+                allowOverride,
+            });
+
+            if (!updated) {
+                await interaction.followUp({
+                    content: `Failed to update task status`,
+                    flags: MessageFlags.Ephemeral,
+                });
+                return false;
+            }
+
+            ctx.state.task = updated;
+            await __RenderTaskDetail(ctx.state);
+            return false;
+        })
+        .next()
+        .start();
+}
+
+/**
  * Extract first N words from text
  * @param text string Source text
  * @param wordCount number Number of words to extract
@@ -183,4 +358,46 @@ function __ExtractWords(text: string, wordCount: number): string {
     const words = text.trim().split(/\s+/);
     const extracted = words.slice(0, wordCount).join(` `);
     return words.length > wordCount ? `${extracted}...` : extracted;
+}
+
+/**
+ * Resolve statuses for a status group
+ * @param statusGroup string Status group value example todo
+ * @returns string[] Status list example ['incomplete','in_progress']
+ */
+function __ResolveStatusGroup(statusGroup: string): string[] {
+    const normalized = (statusGroup ?? ``).trim().toLowerCase();
+    if (!normalized || normalized === `all`) {
+        return [];
+    }
+    return ResolveStatusesForGroup(normalized);
+}
+
+/**
+ * Resolve short description for list output
+ * @param task TaskListItem Task item to format example { shortDescription: 'Fix bug' }
+ * @returns string Short description value example Fix bug
+ */
+function __ResolveShortDescription(task: TaskListItem): string {
+    const stored = task.shortDescription?.trim();
+    if (stored) {
+        return stored;
+    }
+    return __ExtractWords(task.description ?? ``, 5);
+}
+
+/**
+ * Map task status to emoji
+ * @param status string Task status value example complete
+ * @returns string Emoji marker example 🟢
+ */
+function __ResolveStatusEmoji(status: string): string {
+    const normalized = (status ?? ``).trim().toLowerCase();
+    if (normalized === `complete` || normalized === `completed`) {
+        return `🟢`;
+    }
+    if (normalized === `failed` || normalized === `canceled` || normalized === `cancelled`) {
+        return `🔴`;
+    }
+    return `🟡`;
 }

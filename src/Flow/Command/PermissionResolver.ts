@@ -78,6 +78,7 @@ export async function ResolveCommandPermission(
         commandName: context.commandName,
         guildId: context.guildId,
         userId: context.userId,
+        isAdministrator: context.isAdministrator,
         options: Object.fromEntries(
             context.options.map(option => {
                 return [option.name, option.value];

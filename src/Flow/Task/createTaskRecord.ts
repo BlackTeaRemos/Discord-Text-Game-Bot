@@ -13,21 +13,35 @@ import {
 import { MapTaskRecord } from './MapTaskRecord.js';
 import type { CreateTaskInput } from './TaskFlowTypes.js';
 
+/**
+ * Create task record and required user nodes in Neo4j
+ * @param client Neo4jClient Database client used for write session example neo4jClient
+ * @param input CreateTaskInput Task payload example { creatorDiscordId: '123', shortDescription: 'Fix', description: 'Fix bug' }
+ * @returns Promise<TaskListItem> Created task view example { id: 'task_x', shortDescription: 'Fix' }
+ * @example
+ * const task = await CreateTaskRecord(neo4jClient, input)
+ */
 export async function CreateTaskRecord(client: Neo4jClient, input: CreateTaskInput): Promise<TaskListItem> {
     const session = await client.GetSession(`WRITE`);
-    const executorDiscordId = input.executorDiscordId ?? input.creatorDiscordId;
-    const taskId = `task_${randomUUID().replace(/-/g, ``).toLowerCase()}`;
-    const timestamp = Date.now();
+    const executorDiscordId = input.executorDiscordId ?? input.creatorDiscordId; // executor id
+    const taskId = `task_${randomUUID().replace(/-/g, ``).toLowerCase()}`; // task id
+    const creatorUid = `user_${randomUUID().replace(/-/g, ``).toLowerCase()}`; // creator uid
+    const executorUid = `user_${randomUUID().replace(/-/g, ``).toLowerCase()}`; // executor uid
+    const timestamp = Date.now(); // epoch time
 
     try {
         const result = await session.run(
-            `MATCH (org:Organization { uid: $organizationUid })
+            `OPTIONAL MATCH (org:Organization { uid: $organizationUid })
              OPTIONAL MATCH (game:Game { uid: $gameUid })
-             MATCH (creator:User { discord_id: $creatorDiscordId })
-             OPTIONAL MATCH (executor:User { discord_id: $executorDiscordId })
+             MERGE (creator:User { discord_id: $creatorDiscordId })
+             ON CREATE SET creator.uid = $creatorUid, creator.id = $creatorUid
+             MERGE (executor:User { discord_id: $executorDiscordId })
+             ON CREATE SET executor.uid = $executorUid, executor.id = $executorUid
+             WITH org, game, creator, executor
              OPTIONAL MATCH (linked { uid: $objectUid })
              CREATE (task:${TASK_LABEL} {
                  id: $taskId,
+                 short_description: $shortDescription,
                  description: $description,
                  status: $status,
                  creator_discord_id: $creatorDiscordId,
@@ -41,7 +55,9 @@ export async function CreateTaskRecord(client: Neo4jClient, input: CreateTaskInp
                  version: 1
              })
              MERGE (creator)-[:${REL_CREATED_TASK}]->(task)
-             MERGE (task)-[:${REL_BELONGS_TO}]->(org)
+             FOREACH (_ IN CASE WHEN org IS NULL THEN [] ELSE [1] END |
+                 MERGE (task)-[:${REL_BELONGS_TO}]->(org)
+             )
              FOREACH (_ IN CASE WHEN game IS NULL THEN [] ELSE [1] END |
                  MERGE (task)-[:${REL_PART_OF_GAME}]->(game)
              )
@@ -59,9 +75,12 @@ export async function CreateTaskRecord(client: Neo4jClient, input: CreateTaskInp
                 creatorDiscordId: input.creatorDiscordId,
                 executorDiscordId,
                 objectUid: input.objectUid ?? null,
+                shortDescription: input.shortDescription,
                 description: input.description,
                 status: input.status ?? DEFAULT_TASK_STATUS,
                 taskId,
+                creatorUid,
+                executorUid,
                 timestamp,
             },
         );

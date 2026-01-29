@@ -47,7 +47,9 @@ export async function ExecuteManageGame(
         return;
     }
 
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    if (!interaction.deferred && !interaction.replied) {
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    }
 
     try {
         const games = await ListGamesForServer(serverId);
