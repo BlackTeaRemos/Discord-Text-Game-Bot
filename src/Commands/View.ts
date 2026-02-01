@@ -1,11 +1,8 @@
 /**
- * View command - re-exports from modular implementation.
- * This file is kept for backward compatibility with existing imports.
- * @deprecated Import from './ViewSimple/index.js' instead. This shim will be removed in the next major release.
+ * REMOVED: Deprecated View shim removed (2026-02-01).
+ * Original content archived at `src/_deprecated_backup/Commands/View.ts`.
+ * Import directly from `./Commands/ViewSimple/index.js`.
  */
-import { log } from '../Common/Log.js';
+export {}; // intentionally empty
 
-log.warning('DEPRECATION: Importing from "src/Commands/View" is deprecated and will be removed in the next major release. Please import from "./Commands/ViewSimple/index.js" instead.', 'View');
-
-export { data, permissionTokens, execute } from './ViewSimple/index.js';
 

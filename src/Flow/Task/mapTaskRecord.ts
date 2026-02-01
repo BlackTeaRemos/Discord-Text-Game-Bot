@@ -1,5 +1,5 @@
 import type { TaskListItem, TaskStatus } from '../../Domain/Task.js';
-import { DEFAULT_TASK_STATUS } from './TaskConstants.js';
+import { DEFAULT_TASK_STATUS } from './taskConstants.js';
 
 export interface TaskQueryRow {
     task: { properties: Record<string, any> };

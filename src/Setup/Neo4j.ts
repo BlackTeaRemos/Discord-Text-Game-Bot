@@ -2,7 +2,7 @@
 import { Neo4jClient, type Neo4jConfig } from '../Repository/Neo4jClient.js';
 import { ConfigService } from '../Services/ConfigService.js';
 import { MAIN_EVENT_BUS } from '../Events/MainEventBus.js';
-import { InitializePermissionStore } from '../Common/Permission/Store.js';
+import { InitializePermissionStore } from '../Common/Permission/store.js';
 
 /**
  * Initializes the Neo4jClient and registers it with the Sapphire container.

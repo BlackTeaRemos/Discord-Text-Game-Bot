@@ -4,7 +4,7 @@
 import { ChannelType, type Client } from 'discord.js';
 import { log } from '../Common/Log.js';
 import { commands, commandsReady } from '../Commands/index.js';
-import { LoadGrantsForGuild } from '../Common/Permission/Store.js';
+import { LoadGrantsForGuild } from '../Common/Permission/store.js';
 
 /**
  * Handles the ready event. Logs bot readiness, lists application and guild commands,

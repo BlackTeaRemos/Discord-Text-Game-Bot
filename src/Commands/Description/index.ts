@@ -1,21 +1,7 @@
-import { SlashCommandBuilder, MessageFlags } from 'discord.js';
-import type { ChatInputCommandInteraction } from 'discord.js';
-import type { TokenSegmentInput } from '../../Common/Permission/index.js';
-import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
-
 /**
- * @deprecated Use /create description <id> instead
- * This command is kept for backward compatibility and will be removed
+ * REMOVED: Deprecated command removed (2026-02-01).
+ * Original content archived at `src/_deprecated_backup/Commands/Description/index.ts`.
+ * Use `/create description <object id>` instead.
  */
-export const data = new SlashCommandBuilder()
-    .setName(`description`)
-    .setDescription(`[DEPRECATED] Use /create description <id>`);
+export {}; // intentionally empty
 
-export const permissionTokens: TokenSegmentInput[][] = [[`description`]];
-
-export async function execute(interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>): Promise<void> {
-    await interaction.reply({
-        content: `This command is deprecated\n\nUse \`/create description <object id>\` instead`,
-        flags: MessageFlags.Ephemeral,
-    });
-}

@@ -1,7 +1,6 @@
 /**
- * @deprecated Object name generation is no longer required because images are stored via direct URLs.
- * The function is retained for backward compatibility and will throw if invoked.
+ * REMOVED: Image object naming utility removed (2026-02-01).
+ * Original content archived at `src/_deprecated_backup/Flow/Object/Game/utils/ImageObjectName.ts`.
  */
-export function GenerateGameImageObjectName(): string {
-    throw new Error(`GenerateGameImageObjectName is deprecated.`);
-}
+export {}; // intentionally empty
+

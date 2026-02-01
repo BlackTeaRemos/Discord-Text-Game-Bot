@@ -1,6 +1,6 @@
 import ComplexEventEmitter from '../ComplexEventEmitter.js';
 import type { PermissionEvaluationPayload, PermissionsObject } from './types.js';
-import { NormalizeToken } from './NormalizeToken.js';
+import { NormalizeToken } from './normalizeToken.js';
 
 /**
  * Builds a ComplexEventEmitter instance populated with permission listeners.

@@ -4,7 +4,7 @@ import { log } from '../Common/Log.js';
 import type { ConfigService } from '../Services/ConfigService.js';
 import { CreateInteractionHandler } from './InteractionHandler.js';
 import { CreateSafeEventListener } from '../Common/SafeEventListener.js';
-import { LoadGrantsForGuild } from '../Common/Permission/Store.js';
+import { LoadGrantsForGuild } from '../Common/Permission/store.js';
 
 /**
  * Load cached permission grants for all guilds

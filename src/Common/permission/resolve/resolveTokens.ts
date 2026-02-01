@@ -1,6 +1,6 @@
 import { log } from '../../Log.js';
-import { FormatPermissionToken } from '../FormatPermissionToken.js';
-import { NormalizeToken } from '../NormalizeToken.js';
+import { FormatPermissionToken } from '../formatPermissionToken.js';
+import { NormalizeToken } from '../normalizeToken.js';
 import type { PermissionToken, TokenSegmentInput } from '../types.js';
 import type { TokenResolveContext } from './types.js';
 

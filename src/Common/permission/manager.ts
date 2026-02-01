@@ -1,9 +1,9 @@
 import type { IFlowMember } from '../Type/FlowContext.js';
-import { BuildPermissionEmitter } from './Emitter.js';
-import { HasPermanentGrant } from './Store.js';
+import { BuildPermissionEmitter } from './emitter.js';
+import { HasPermanentGrant } from './store.js';
 import type { PermissionCheckResult, PermissionState, PermissionTokenInput, PermissionsObject } from './types.js';
-import { NormalizeToken } from './NormalizeToken.js';
-import { FormatPermissionToken } from './FormatPermissionToken.js';
+import { NormalizeToken } from './normalizeToken.js';
+import { FormatPermissionToken } from './formatPermissionToken.js';
 import { EvaluateToken } from './EvaluateToken.js';
 /**
  * Translates a permission state into a standardized permission check result.

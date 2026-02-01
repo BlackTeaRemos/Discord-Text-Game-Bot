@@ -1,7 +1,7 @@
 /**
- * @deprecated Images are now referenced directly from user-provided URLs or attachments.
- * This helper is retained only for backward compatibility and should not be used.
+ * REMOVED: Helper removed (2026-02-01).
+ * Original content archived at `src/_deprecated_backup/Repository/Common/UploadImageViaDiscord.ts`.
+ * Use direct attachment URLs instead.
  */
-export async function UploadImageViaDiscord(): Promise<string> {
-    throw new Error(`UploadImageViaDiscord is deprecated. Use direct attachment URLs instead.`);
-}
+export {}; // intentionally empty
+

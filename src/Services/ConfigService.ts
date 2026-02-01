@@ -48,6 +48,8 @@ export class ConfigService {
                     password: Joi.string().required(),
                     database: Joi.string().optional(),
                 }).required(),
+                defaultLocale: Joi.string().default(`en`),
+                supportedLocales: Joi.array().items(Joi.string()).default([`en`,`ru`]),
             })
                 .unknown(true)
                 .empty(null)
@@ -76,6 +78,8 @@ export class ConfigService {
                 tempRoot,
                 taskAdminUserIds: (value.taskAdminUserIds as string[]) ?? [],
                 neo4j: value.neo4j as Neo4jConfig,
+                defaultLocale: (value.defaultLocale as string) ?? `en`,
+                supportedLocales: (value.supportedLocales as string[]) ?? [`en`,`ru`],
             };
             this._eventBus.emit(`config:loaded`, validated);
             return validated;

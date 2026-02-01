@@ -9,8 +9,8 @@ import {
     REL_PART_OF_GAME,
     REL_RELATES_TO,
     TASK_LABEL,
-} from './TaskConstants.js';
-import { MapTaskRecord } from './MapTaskRecord.js';
+} from './taskConstants.js';
+import { MapTaskRecord } from './mapTaskRecord.js';
 import type { CreateTaskInput } from './TaskFlowTypes.js';
 
 /**

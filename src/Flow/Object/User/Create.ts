@@ -18,11 +18,14 @@ export interface CreateUserOptions {
     friendlyName?: string;
     /** Optional image URL to display on the user profile. */
     imageUrl?: string;
+    /** Optional preferred locale (e.g. 'en', 'ru') to persist on the user node. */
+    preferredLocale?: string;
 }
 
 export interface CreatedUser extends DBObject {
     discord_id: string;
     image?: string;
+    preferred_locale?: string | null;
 }
 
 /**
@@ -38,6 +41,7 @@ export async function CreateUser(options: CreateUserOptions): Promise<CreatedUse
         const name = options.name?.trim() || null;
         const friendlyName = options.friendlyName?.trim() || null;
         const image = options.imageUrl?.trim() || null;
+        const preferredLocale = options.preferredLocale?.trim() || null;
 
         const query = `
             MERGE (u:User { discord_id: $discordId })
@@ -46,7 +50,8 @@ export async function CreateUser(options: CreateUserOptions): Promise<CreatedUse
                 u.id = $uid,
                 u.name = $name,
                 u.friendly_name = $friendlyName,
-                u.image = $image
+                u.image = $image,
+                u.preferred_locale = $preferredLocale
             ON MATCH SET
                 u.name = coalesce($name, u.name),
                 u.friendly_name = coalesce($friendlyName, u.friendly_name),
@@ -56,7 +61,8 @@ export async function CreateUser(options: CreateUserOptions): Promise<CreatedUse
                 u.discord_id AS discord_id,
                 u.name AS name,
                 u.friendly_name AS friendly_name,
-                u.image AS image`;
+                u.image AS image,
+                u.preferred_locale AS preferred_locale`;
         const result = await session.run(query, {
             discordId: options.discordId,
             uid,

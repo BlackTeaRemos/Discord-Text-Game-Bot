@@ -9,7 +9,7 @@ import {
     MessageFlags,
 } from 'discord.js';
 import { GrantForever, type PermissionDecision, type PermissionToken } from '../../Common/Permission/index.js';
-import { FormatPermissionToken } from '../../Common/Permission/FormatPermissionToken.js';
+import { FormatPermissionToken } from '../../Common/Permission/formatPermissionToken.js';
 import { PermissionApprovalError } from '../../Common/Errors.js';
 import { log } from '../../Common/Log.js';
 

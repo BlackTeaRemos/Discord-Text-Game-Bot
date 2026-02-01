@@ -1,5 +1,5 @@
-import { NormalizeToken } from './NormalizeToken.js';
-import { TokenKey } from './TokenKey.js';
+import { NormalizeToken } from './normalizeToken.js';
+import { TokenKey } from './tokenKey.js';
 import type { PermissionTokenInput } from './types.js';
 import { PermissionGrantRepository } from '../../Repository/Permission/index.js';
 import type { Neo4jClient } from '../../Repository/Neo4jClient.js';

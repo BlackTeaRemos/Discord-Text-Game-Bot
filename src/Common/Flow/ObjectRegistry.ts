@@ -207,18 +207,24 @@ export async function buildEmbedFor(
             return embed;
         }
         case `task`: {
-            const task = await FetchTaskById(neo4jClient, { taskId: id, viewerDiscordId: ``, allowOverride: true, organizationUid: orgUid ?? `` });
-            if (task) {
-                embed
-                    .addFields({ name: `ID`, value: task.id, inline: true })
-                    .addFields({ name: `Status`, value: String(task.status), inline: true })
-                    .addFields({ name: `Short`, value: task.shortDescription || `n/a`, inline: true })
-                    .addFields({ name: `Org`, value: task.organizationName || `n/a`, inline: true });
-                if (task.description) {
-                    embed.addFields({ name: `Description`, value: task.description.slice(0, 1024) });
-                }
+            const task = await FetchTaskById(neo4jClient, { taskId: id, viewerDiscordId: ``, allowOverride: true, organizationUid: characterOrganizationUid ?? `` });
+            if (!task) {
+                return null;
             }
-            break;
+
+            const embed = new EmbedBuilder()
+                .setColor(`Blue`)
+                .setTitle(`Task details`)
+                .addFields({ name: `ID`, value: task.id, inline: true })
+                .addFields({ name: `Status`, value: String(task.status), inline: true })
+                .addFields({ name: `Short`, value: task.shortDescription || `n/a`, inline: true })
+                .addFields({ name: `Org`, value: task.organizationName || `n/a`, inline: true });
+
+            if (task.description) {
+                embed.addFields({ name: `Description`, value: task.description.slice(0, 1024) });
+            }
+
+            return embed;
         }
         case `building`: {
             const factory = context?.factory ?? (await GetFactory(id));

@@ -1,10 +1,10 @@
 import { log } from '../../Log.js';
-import { CheckPermission } from '../Manager.js';
+import { CheckPermission } from '../manager.js';
 import type { PermissionToken, PermissionTokenInput } from '../types.js';
 import type { ResolveEnsureOptions, ResolveEnsureResult } from './types.js';
 import type { IFlowMember } from '../../Type/FlowContext.js';
-import { CollectEnsureTokens } from './CollectEnsureTokens.js';
-import { ToInputs } from './ToInputs.js';
+import { CollectEnsureTokens } from './collectEnsureTokens.js';
+import { ToInputs } from './toInputs.js';
 
 /**
  * Resolves permission templates into tokens, evaluates them against the provided permissions,

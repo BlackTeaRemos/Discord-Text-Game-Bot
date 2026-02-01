@@ -13,4 +13,8 @@ export interface ValidatedConfig {
     tempRoot?: string;
     taskAdminUserIds?: string[];
     neo4j: Neo4jConfig;
+    /** Default locale used when user/guild have no preference ('en') */
+    defaultLocale?: string;
+    /** Array of supported locale identifiers (['en','ru']) */
+    supportedLocales?: string[];
 }
