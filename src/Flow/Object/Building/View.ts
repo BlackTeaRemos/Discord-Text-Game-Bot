@@ -6,7 +6,7 @@ import { Factory } from './Create.js';
  * @param uid Factory UID
  * @returns Factory properties or null if not found
  */
-export async function getFactory(uid: string): Promise<Factory | null> {
+export async function GetFactory(uid: string): Promise<Factory | null> {
     const session = await neo4jClient.GetSession(`READ`);
     try {
         const query = `

@@ -6,6 +6,10 @@
 // Object & Versioning Model
 export type { ObjectEnvelope, ObjectMeta, TransactionRecord, JsonMutationOp, FieldTagsDelta } from './Object.js';
 
+// Task Model
+export type { TaskEntity, TaskListItem, TaskStatus } from './Task.js';
+export { DEFAULT_TASK_STATUSES } from './Task.js';
+
 // Query & Pagination Helpers
 export type { CursorToken } from './Query.js';
 
@@ -19,7 +23,13 @@ export type { EventName } from './Utility.js';
 export { EVENT_NAMES } from './Utility.js';
 
 // Command Module
-export type { CommandModuleMeta, CommandExecutionContext, CommandResult, CommandModule, ExecutionContext } from './Command.js';
+export type {
+    CommandModuleMeta,
+    CommandExecutionContext,
+    CommandResult,
+    CommandModule,
+    ExecutionContext,
+} from './Command.js';
 
 // Execution Context Implementation
 export { CommandExecutionContextImpl, createExecutionContext } from './ExecutionContext.js';

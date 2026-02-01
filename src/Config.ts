@@ -21,6 +21,8 @@ export interface AppConfig {
     dbPath: string; // SQLite database file path
     maxFileSize?: number; // optional maximum file size limit
     logLevel?: `debug` | `info` | `warn` | `error`; // optional logging level
+    /** TODO: Temporary shim, Discord user ids allowed to view and manage tasks. */
+    taskAdminUserIds?: string[];
     /** Optional Neo4j configuration for graph repository integration. */
     neo4j?: {
         uri: string; // e.g., bolt://localhost:7687

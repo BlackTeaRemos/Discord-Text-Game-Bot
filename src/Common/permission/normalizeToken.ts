@@ -1,10 +1,10 @@
 import type { PermissionToken, PermissionTokenInput, TokenSegmentInput } from './types.js';
-import { normalizeSegment } from './normalizeSegment.js';
+import { NormalizeSegment } from './NormalizeSegment.js';
 
-export function normalizeToken(token: PermissionTokenInput): PermissionToken {
+export function NormalizeToken(token: PermissionTokenInput): PermissionToken {
     if (Array.isArray(token)) {
         return token.map(segment => {
-            return normalizeSegment(segment);
+            return NormalizeSegment(segment);
         }) as PermissionToken;
     }
     if (typeof token === `string`) {
@@ -13,7 +13,7 @@ export function normalizeToken(token: PermissionTokenInput): PermissionToken {
             return [];
         }
         return trimmed.split(`:`).map(part => {
-            return normalizeSegment(part);
+            return NormalizeSegment(part);
         }) as PermissionToken;
     }
     return [];

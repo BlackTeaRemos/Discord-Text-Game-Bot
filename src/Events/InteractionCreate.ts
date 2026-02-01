@@ -1,6 +1,9 @@
-import type { Interaction } from 'discord.js';
+import type { ButtonInteraction, Interaction, StringSelectMenuInteraction } from 'discord.js';
 import { log } from '../Common/Log.js';
 import { flowManager } from '../Common/Flow/Manager.js';
+import { HandleGameCreateControlInteraction } from '../SubCommand/Object/Game/GameCreateControls.js';
+import { HandleUserCreateControlInteraction } from '../SubCommand/Object/User/UserCreateControls.js';
+import { HandleOrganizationSelectControlInteraction } from '../SubCommand/Object/Organization/OrganizationSelectControls/index.js';
 
 /**
  * Handles the 'interactionCreate' event from Discord by delegating processing to the shared flow manager.
@@ -9,14 +12,29 @@ import { flowManager } from '../Common/Flow/Manager.js';
  * @example
  * client.on('interactionCreate', onInteractionCreate);
  */
-export async function onInteractionCreate(interaction: Interaction): Promise<void> {
+export async function OnInteractionCreate(interaction: Interaction): Promise<void> {
     log.info(
         `Interaction received: type=${interaction.type}, id=${interaction.id}, user=${interaction.user?.tag}`,
         `Interaction`,
     );
 
     try {
-        await flowManager.onInteraction(interaction);
+        let handled = false;
+        if (interaction.isButton()) {
+            handled = await HandleGameCreateControlInteraction(interaction as ButtonInteraction);
+            if (!handled) {
+                handled = await HandleUserCreateControlInteraction(interaction as ButtonInteraction);
+            }
+
+        }
+
+        if (!handled && interaction.isStringSelectMenu()) {
+            handled = await HandleOrganizationSelectControlInteraction(interaction as StringSelectMenuInteraction);
+        }
+
+        if (!handled) {
+            await flowManager.onInteraction(interaction);
+        }
     } catch(error) {
         log.error(`Flow manager failed to process interaction ${interaction.id}: ${(error as Error).message}`, `Flow`);
     }

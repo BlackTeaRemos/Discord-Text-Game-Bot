@@ -1,5 +1,6 @@
 import type { Interaction, Message } from 'discord.js';
 import type { ExecutionContext } from '../../Domain/Command.js';
+import { createExecutionContext } from '../../Domain/index.js';
 import type { FlowStep } from './Types.js';
 import { FlowInstance } from './Instance.js';
 import { FlowBuilder } from './Builder.js';
@@ -103,7 +104,8 @@ export class FlowManager {
         initialState: State,
         executionContext?: ExecutionContext,
     ): FlowBuilder<State> {
-        return new FlowBuilder(this, userId, initialInteraction, initialState, executionContext);
+        const ctx = executionContext ?? (initialInteraction as any).executionContext;
+        return new FlowBuilder(this, userId, initialInteraction, initialState, ctx);
     }
 }
 

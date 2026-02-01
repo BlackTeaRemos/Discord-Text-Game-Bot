@@ -4,6 +4,7 @@
 import { ChannelType, type Client } from 'discord.js';
 import { log } from '../Common/Log.js';
 import { commands, commandsReady } from '../Commands/index.js';
+import { LoadGrantsForGuild } from '../Common/Permission/Store.js';
 
 /**
  * Handles the ready event. Logs bot readiness, lists application and guild commands,
@@ -11,8 +12,19 @@ import { commands, commandsReady } from '../Commands/index.js';
  * @param client {Client} - The Discord.js client instance
  * @returns {Promise<void>} - Resolves when setup is complete
  */
-export async function onReady(client: Client): Promise<void> {
+export async function OnReady(client: Client): Promise<void> {
     log.info(`Bot is ready as ${client.user?.tag}`, `Ready`);
+
+    // Load permission grants for all guilds
+    try {
+        const guilds = client.guilds.cache;
+        for (const [guildId] of guilds) {
+            await LoadGrantsForGuild(guildId);
+        }
+        log.info(`Loaded permission grants for ${guilds.size} guilds`, `Ready`);
+    } catch(error) {
+        log.error(`Failed to load permission grants: ${(error as Error).message}`, `Ready`);
+    }
 
     // Diagnostic: list registered application commands (global and guild)
     try {
@@ -22,9 +34,11 @@ export async function onReady(client: Client): Promise<void> {
             // Fetch existing global commands
             const global = await application.commands.fetch();
             log.info(
-                `Global commands (${global.size}): ${[...global.values()].map(c => {
-                    return `/${c.name}`;
-                }).join(`, `)}`,
+                `Global commands (${global.size}): ${[...global.values()]
+                    .map(c => {
+                        return `/${c.name}`;
+                    })
+                    .join(`, `)}`,
                 `Ready`,
             );
             // Ensure command loader has completed, then propagate loaded commands globally

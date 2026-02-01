@@ -1,9 +1,4 @@
 /**
- * Interfaces and types for Neo4j object translation and repository operations.
- * Defines schematics for mapping domain objects to Neo4j nodes and back.
- */
-
-/**
  * Represents a Neo4j node with its properties and labels.
  */
 export interface Neo4jNode {

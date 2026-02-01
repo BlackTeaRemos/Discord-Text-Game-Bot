@@ -61,20 +61,41 @@ export class FlowInstance<State> {
         if (!step) {
             return;
         }
-        if (step.customId && `customId` in interaction && (interaction as any).customId === step.customId) {
-            const snapshot = step.tag ? this.ensureSnapshot(step, this.current) : undefined;
-            const ctx = this.buildContext(step, this.current, interaction);
-            if (snapshot) {
-                snapshot.lastInteraction = interaction;
-            }
-            this.manager.events.emitEvent(flowStepInteractionId(this.userId, this.current), {
-                userId: this.userId,
-                stepIndex: this.current,
-                step,
-                ctx,
-                interaction,
-            });
+        if (!step.customId || !(`customId` in interaction)) {
+            return;
         }
+        const interactionCustomId = (interaction as any).customId;
+        const stepCustomId = step.customId;
+        let matches = false;
+        if (Array.isArray(stepCustomId)) {
+            matches = stepCustomId.some(id => {
+                if (id.endsWith(`*`)) {
+                    return interactionCustomId.startsWith(id.slice(0, -1));
+                }
+                return interactionCustomId === id;
+            });
+        } else {
+            if (stepCustomId.endsWith(`*`)) {
+                matches = interactionCustomId.startsWith(stepCustomId.slice(0, -1));
+            } else {
+                matches = interactionCustomId === stepCustomId;
+            }
+        }
+        if (!matches) {
+            return;
+        }
+        const snapshot = step.tag ? this.ensureSnapshot(step, this.current) : undefined;
+        const ctx = this.buildContext(step, this.current, interaction);
+        if (snapshot) {
+            snapshot.lastInteraction = interaction;
+        }
+        this.manager.events.emitEvent(flowStepInteractionId(this.userId, this.current), {
+            userId: this.userId,
+            stepIndex: this.current,
+            step,
+            ctx,
+            interaction,
+        });
     }
 
     /**

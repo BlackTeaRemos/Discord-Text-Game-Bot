@@ -3,7 +3,7 @@ import type { EventIdentifierSubset } from '../ComplexEventEmitter.js';
 
 const NUMERIC_SEGMENT = /^(?:-?(?:0|[1-9]\d*))$/;
 
-export function normalizeSegment(segment: TokenSegmentInput): EventIdentifierSubset {
+export function NormalizeSegment(segment: TokenSegmentInput): EventIdentifierSubset {
     if (segment === undefined || segment === null) {
         return undefined;
     }

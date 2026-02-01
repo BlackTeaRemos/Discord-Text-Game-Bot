@@ -21,7 +21,7 @@ const defaultDictionary: Record<string, string> = {
 };
 
 /** Tokenize simple word boundaries */
-function tokenize(text: string): Array<{ word: string; index: number }> {
+function Tokenize(text: string): Array<{ word: string; index: number }> {
     const regex = /\b([a-zA-Z]+)\b/g;
     const out: Array<{ word: string; index: number }> = [];
     let match: RegExpExecArray | null;
@@ -32,8 +32,8 @@ function tokenize(text: string): Array<{ word: string; index: number }> {
     return out;
 }
 
-export function lintContent(text: string, dict: Record<string, string> = defaultDictionary, apply = false): LintResult {
-    const tokens = tokenize(text);
+export function LintContent(text: string, dict: Record<string, string> = defaultDictionary, apply = false): LintResult {
+    const tokens = Tokenize(text);
     const issues: LintIssue[] = [];
     let result = text;
 

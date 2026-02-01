@@ -8,13 +8,12 @@ import {
     createExecutionContext,
 } from '../Domain/index.js';
 import {
-    checkPermission,
-    resolveTokens as resolvePermission,
-    formatPermissionToken,
+    resolve,
     type PermissionTokenInput,
     type PermissionsObject,
-} from '../Common/permission/index.js';
+} from '../Common/Permission/index.js';
 import type { GuildMember } from 'discord.js';
+import { ExtractFlowMember } from '../Common/Type/FlowContext.js';
 
 /** Error thrown when attempting to register a duplicate command id. */
 export class DuplicateCommandError extends Error {
@@ -114,6 +113,8 @@ export class CommandRegistry {
             skipApproval?: boolean; // when true, do not attempt any interactive approval (programmatic execution)
             skipPermissionCheck?: boolean; // allow caller to bypass permission evaluation
             userRoles?: string[]; // optional role ids for evaluation when member is not available
+            organizationUid?: string; // organization scope to allow bypass when user belongs
+            targetUserId?: string; // target Discord ID to allow bypass when matching actor
         },
     ): Promise<CommandResult> {
         const mod = this.Get(id);
@@ -166,15 +167,17 @@ export class CommandRegistry {
             // Permission token evaluation (skip when caller asks to bypass)
             if (!opts?.skipPermissionCheck) {
                 const cmdAny = mod as any;
+                // TODO restore broad command token fallback
+                // const broadTokenFallback = `command:${mod.meta.id}`
                 let rawTemplates: string | string[] | Function | undefined =
-                    cmdAny.permissionTokens ?? `command:${mod.meta.id}`;
+                    cmdAny.permissionTokens;
 
                 // If the module exported a function for templates we cannot reliably execute it
                 // in a programmatic context that is not a Discord interaction. Fall back to
                 // the canonical command token in that case.
                 const templates: (string | any[])[] = [];
                 if (typeof rawTemplates === `function`) {
-                    templates.push(`command:${mod.meta.id}`);
+                    // TODO restore broad command token fallback
                 } else if (typeof rawTemplates === `string`) {
                     templates.push(rawTemplates);
                 } else if (Array.isArray(rawTemplates)) {
@@ -192,7 +195,7 @@ export class CommandRegistry {
                     userId: ctx.userId,
                     guildId: ctx.guildId ?? undefined,
                     executionContext: ctx.executionContext,
-                    getMember: async() => {
+                    getMember: async () => {
                         if (opts?.member) {
                             return opts.member;
                         }
@@ -203,25 +206,8 @@ export class CommandRegistry {
                 } as const;
 
                 // Resolve templates into concrete tokens (most-specific first)
-                const tokens: any[] = [];
-                const seen = new Set<string>();
-                for (const tmpl of templates) {
-                    const resolved = resolvePermission(tmpl as any, resolverCtx as any);
-                    for (const token of resolved) {
-                        const display = formatPermissionToken(token);
-                        if (seen.has(display)) {
-                            continue;
-                        }
-                        seen.add(display);
-                        tokens.push(token);
-                    }
-                }
-
-                const inputs: PermissionTokenInput[] = tokens.length
-                    ? tokens.map(t => {
-                        return [...t];
-                    })
-                    : [`command:${mod.meta.id}`];
+                // TODO restore broad command token fallback
+                const inputs: PermissionTokenInput[] = templates.length ? templates : [];
 
                 // Build a minimal member-like object when none provided so permanent grants can be checked
                 let member = opts?.member ?? null;
@@ -229,31 +215,52 @@ export class CommandRegistry {
                     member = {
                         id: ctx.userId,
                         guild: { id: ctx.guildId },
-                        permissions: { has: (_: any) => {
-                            return false;
-                        } },
+                        permissions: {
+                            has: (_: any) => {
+                                return false;
+                            },
+                        },
                     } as unknown as GuildMember;
                 }
 
-                // Allow callers to override the permissions map via opts.permissions; otherwise
-                // use undefined which will make checkPermission consult the default source.
-                const evaluation = await checkPermission(opts?.permissions ?? undefined, member, inputs);
+                let bypassPermission = false;
 
-                if (!evaluation.allowed) {
-                    if (evaluation.requiresApproval && !opts?.skipApproval) {
-                        // Programmatic callers cannot request interactive admin approval here.
+                if (!bypassPermission && opts?.targetUserId && opts.targetUserId === ctx.userId) {
+                    bypassPermission = true;
+                }
+
+                if (!bypassPermission) {
+                    // Allow callers to override the permissions map via opts.permissions; otherwise
+                    // use undefined which will make checkPermission consult the default source.
+                    const flowMember = member ? ExtractFlowMember(member) : null;
+
+                    const resolution = await resolve(inputs as any, {
+                        context: resolverCtx as any,
+                        member: flowMember,
+                        permissions: opts?.permissions ?? undefined,
+                        skipApproval: true,
+                    });
+
+                    if (!resolution.success) {
+                        if (resolution.detail.requiresApproval && !opts?.skipApproval) {
+                            // Programmatic callers cannot request interactive admin approval here.
+                            return {
+                                ok: false,
+                                error: `PERMISSION_REQUIRES_APPROVAL`,
+                                message: resolution.detail.reason ?? `Permission requires approval`,
+                            };
+                        }
                         return {
                             ok: false,
-                            error: `PERMISSION_REQUIRES_APPROVAL`,
-                            message: evaluation.reason ?? `Permission requires approval`,
+                            error: `PERMISSION_DENIED`,
+                            message: resolution.detail.reason ?? `Permission denied`,
                         };
                     }
-                    return { ok: false, error: `PERMISSION_DENIED`, message: evaluation.reason ?? `Permission denied` };
                 }
             }
 
             return await mod.execute(ctx);
-        } catch(err: any) {
+        } catch (err: any) {
             return { ok: false, error: err?.message || `UNKNOWN_ERROR` };
         }
     }

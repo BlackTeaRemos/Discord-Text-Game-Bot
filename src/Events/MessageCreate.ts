@@ -12,7 +12,7 @@ import { flowManager } from '../Common/Flow/Manager.js';
  * @example
  * client.on('messageCreate', onMessageCreate);
  */
-export async function onMessageCreate(message: Message): Promise<void> {
+export async function OnMessageCreate(message: Message): Promise<void> {
     // Passive-aggressive commentary for empty messages
     if (!message.content && message.attachments.size === 0 && message.embeds.length === 0) {
         log.info(`...Wow, an empty message. Inspiring.`, `Message`);
@@ -22,7 +22,7 @@ export async function onMessageCreate(message: Message): Promise<void> {
     // Delegate to flow manager for any active user flows expecting message input
     try {
         await flowManager.onMessage(message);
-    } catch(error) {
+    } catch (error) {
         log.error(`Flow manager failed to process message ${message.id}: ${(error as Error).message}`, `Flow`);
     }
 }

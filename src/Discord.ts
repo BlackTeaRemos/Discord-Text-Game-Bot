@@ -66,7 +66,7 @@ export class DiscordService {
             log.warning(`Warning: ${info}`, `DiscordService`);
         });
 
-        this.client.once(Events.ClientReady, async() => {
+        this.client.once(Events.ClientReady, async () => {
             try {
                 // Fetch the guild (server) and log it
                 const guild = await this.client.guilds.fetch(guildId);
@@ -83,11 +83,9 @@ export class DiscordService {
                 log.info(`Using category: ${category.name} (${category.id})`, `DiscordService`);
 
                 // Fetch all text channels in the category
-                const allChannels = (category as CategoryChannel).children.cache.filter(
-                    (ch: any) => {
-                        return ch.type === ChannelType.GuildText;
-                    },
-                );
+                const allChannels = (category as CategoryChannel).children.cache.filter((ch: any) => {
+                    return ch.type === ChannelType.GuildText;
+                });
                 this._channels = Array.from(allChannels.values()) as TextChannel[];
                 log.info(`Found ${this._channels.length} text channel(s) in category.`, `DiscordService`);
                 this._channels.forEach(ch => {
@@ -111,7 +109,7 @@ export class DiscordService {
                         });
                         this._channels.push(cmdChannel);
                         log.info(`'${uniqueName}' channel created.`, `DiscordService`);
-                    } catch(err) {
+                    } catch (err) {
                         log.error(
                             `Failed to create cmd- channel: ${err instanceof Error ? err.stack || err.message : String(err)}`,
                             `DiscordService`,
@@ -120,7 +118,7 @@ export class DiscordService {
                 }
 
                 MAIN_EVENT_BUS.emit(`discord:ready`, this.client, this._category, this._channels);
-            } catch(err) {
+            } catch (err) {
                 log.error(
                     `Error during ready event: ${err instanceof Error ? err.stack || err.message : String(err)}`,
                     `DiscordService`,
@@ -167,16 +165,15 @@ export class DiscordService {
             }
             log.info(logLines.join(`\n`), `DiscordService`);
 
-            // Emit raw message event for all messages in the category
-            if (inCategory) {
-                MAIN_EVENT_BUS.emit(`discord:message:raw`, msg);
-            }
+            // Emit raw message events for downstream consumers (prompts, editors, diagnostics).
+            // Individual listeners are responsible for ignoring irrelevant channels.
+            MAIN_EVENT_BUS.emit(`discord:message:raw`, msg);
         });
 
         // Wrap send for all text channels to log when the bot sends a message
         const _this = this;
         const origSend = TextChannel.prototype.send;
-        TextChannel.prototype.send = async function(
+        TextChannel.prototype.send = async function (
             ...args: [string | import('discord.js').MessagePayload | import('discord.js').MessageCreateOptions]
         ) {
             const content = args[0];
@@ -189,7 +186,7 @@ export class DiscordService {
             try {
                 const result = await origSend.apply(this, [content]);
                 return result;
-            } catch(err) {
+            } catch (err) {
                 log.error(
                     `Error sending message: ${err instanceof Error ? err.stack || err.message : String(err)}`,
                     `DiscordService`,

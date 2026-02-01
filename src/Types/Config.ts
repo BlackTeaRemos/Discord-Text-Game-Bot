@@ -11,5 +11,6 @@ export interface ValidatedConfig {
     dataRoot?: string;
     mirrorRoot?: string;
     tempRoot?: string;
+    taskAdminUserIds?: string[];
     neo4j: Neo4jConfig;
 }

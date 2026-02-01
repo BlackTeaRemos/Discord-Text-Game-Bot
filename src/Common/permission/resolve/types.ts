@@ -1,4 +1,4 @@
-import type { GuildMember } from 'discord.js';
+import type { IFlowMember, FlowMemberProvider } from '../../Type/FlowContext.js';
 import type { PermissionToken, PermissionsObject, PermissionDecision, TokenSegmentInput } from '../types.js';
 
 /**
@@ -26,8 +26,8 @@ export interface ResolveApprovalPayload {
 export interface ResolveEnsureOptions {
     context?: TokenResolveContext;
     permissions?: PermissionsObject;
-    member?: GuildMember | null;
-    getMember?: () => Promise<GuildMember | null>;
+    member?: IFlowMember | null;
+    getMember?: FlowMemberProvider;
     requestApproval?: (payload: ResolveApprovalPayload) => Promise<PermissionDecision | undefined>;
     skipApproval?: boolean;
 }

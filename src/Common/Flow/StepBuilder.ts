@@ -12,7 +12,7 @@ export class StepBuilder<State> {
 
     constructor(
         private builder: FlowBuilder<State>,
-        customId?: string,
+        customId?: string | string[],
         tag?: string,
     ) {
         this.step.customId = customId;

@@ -1,12 +1,13 @@
 import { log } from '../../Log.js';
-import { formatPermissionToken, normalizeToken } from '../tokens.js';
+import { FormatPermissionToken } from '../FormatPermissionToken.js';
+import { NormalizeToken } from '../NormalizeToken.js';
 import type { PermissionToken, TokenSegmentInput } from '../types.js';
 import type { TokenResolveContext } from './types.js';
 
 /**
  * Replace placeholders like `{name}` using values from context.
  */
-function substitutePlaceholders(value: string, context: TokenResolveContext): string {
+function SubstitutePlaceholders(value: string, context: TokenResolveContext): string {
     return value.replace(/\{([^}]+)\}/g, (_m, name) => {
         const valFromOptions =
             context.options && Object.prototype.hasOwnProperty.call(context.options, name)
@@ -31,7 +32,7 @@ function substitutePlaceholders(value: string, context: TokenResolveContext): st
 /**
  * Convert a template (string or array) into ordered tokens from most-specific to least-specific.
  */
-export function resolveTokens(
+export function ResolveTokens(
     template: string | TokenSegmentInput[],
     context: TokenResolveContext = {},
 ): PermissionToken[] {
@@ -55,22 +56,21 @@ export function resolveTokens(
     for (const tmpl of templates) {
         if (Array.isArray(tmpl)) {
             const resolvedSegments = tmpl.map(part => {
-                return typeof part === `string` ? substitutePlaceholders(part, context) : part;
-            },
-            );
-            const normalized = normalizeToken(resolvedSegments);
+                return typeof part === `string` ? SubstitutePlaceholders(part, context) : part;
+            });
+            const normalized = NormalizeToken(resolvedSegments);
             if (!normalized.length) {
                 continue;
             }
             for (let i = normalized.length; i >= 1; i--) {
                 const candidate = normalized.slice(0, i) as PermissionToken;
-                const key = formatPermissionToken(candidate);
+                const key = FormatPermissionToken(candidate);
                 if (seen.has(key)) {
                     continue;
                 }
                 seen.add(key);
                 log.info(
-                    `Permission resolve: resolved token [${formatPermissionToken(candidate)}] from array template`,
+                    `Permission resolve: resolved token [${FormatPermissionToken(candidate)}] from array template`,
                     `Permission.resolve`,
                 );
                 results.push(candidate);
@@ -79,7 +79,7 @@ export function resolveTokens(
         }
 
         log.info(`Permission resolve: expanding template: "${tmpl}"`, `Permission.resolve`);
-        const resolved = substitutePlaceholders(tmpl, context);
+        const resolved = SubstitutePlaceholders(tmpl, context);
         const parts = resolved
             .split(`:`)
             .map(p => {
@@ -88,19 +88,19 @@ export function resolveTokens(
             .filter(p => {
                 return p !== ``;
             });
-        const normalized = normalizeToken(parts);
+        const normalized = NormalizeToken(parts);
         if (!normalized.length) {
             continue;
         }
         for (let i = normalized.length; i >= 1; i--) {
             const candidate = normalized.slice(0, i) as PermissionToken;
-            const key = formatPermissionToken(candidate);
+            const key = FormatPermissionToken(candidate);
             if (seen.has(key)) {
                 continue;
             }
             seen.add(key);
             log.info(
-                `Permission resolve: adding fallback token: "${formatPermissionToken(candidate)}"`,
+                `Permission resolve: adding fallback token: "${FormatPermissionToken(candidate)}"`,
                 `Permission.resolve`,
             );
             results.push(candidate);

@@ -1,8 +1,7 @@
-export * from './buildPermissionEmitter.js';
-export * from './evaluateToken.js';
+export * from './BuildPermissionEmitter.js';
 import ComplexEventEmitter from '../ComplexEventEmitter.js';
-import type { PermissionEvaluationPayload, PermissionState, PermissionToken, PermissionsObject } from './types.js';
-import { normalizeToken } from './tokens.js';
+import { NormalizeToken } from './NormalizeToken.js';
+import type { PermissionEvaluationPayload, PermissionsObject } from './types.js';
 
 /**
  * Builds a ComplexEventEmitter instance populated with permission listeners.
@@ -11,7 +10,7 @@ import { normalizeToken } from './tokens.js';
  * @example
  * const emitter = buildPermissionEmitter({ 'command:create': 'allowed' });
  */
-export function buildPermissionEmitter(
+export function BuildPermissionEmitter(
     permissions: PermissionsObject,
 ): ComplexEventEmitter<PermissionEvaluationPayload> {
     const emitter = new ComplexEventEmitter<PermissionEvaluationPayload>();
@@ -19,7 +18,7 @@ export function buildPermissionEmitter(
         if (!state || state === `undefined`) {
             continue;
         }
-        const token = normalizeToken(rawToken);
+        const token = NormalizeToken(rawToken);
         if (!token.length) {
             continue;
         }
@@ -29,30 +28,4 @@ export function buildPermissionEmitter(
         });
     }
     return emitter;
-}
-
-/**
- * Evaluates a token against the configured emitter and returns the most specific state.
- * @param emitter ComplexEventEmitter<PermissionEvaluationPayload> Emitter populated with permission listeners (example: buildPermissionEmitter({...})).
- * @param token PermissionToken Token under evaluation (example: ['command','create']).
- * @returns PermissionState | undefined Resolved permission state if any listener responded (example: 'allowed').
- * @example
- * const state = evaluateToken(emitter, ['command', 'create']);
- */
-export function evaluateToken(
-    emitter: ComplexEventEmitter<PermissionEvaluationPayload>,
-    token: PermissionToken,
-): PermissionState | undefined {
-    const evaluation = { specificity: -1, state: undefined as PermissionState | undefined };
-    const payload: PermissionEvaluationPayload = {
-        consider: (state, specificity) => {
-            if (specificity < evaluation.specificity) {
-                return;
-            }
-            evaluation.specificity = specificity;
-            evaluation.state = state;
-        },
-    };
-    emitter.emit(token, payload);
-    return evaluation.state;
 }
