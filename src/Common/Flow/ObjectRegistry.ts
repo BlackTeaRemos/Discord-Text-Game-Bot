@@ -13,8 +13,9 @@ import { sanitizeDescriptionText } from '../../Flow/Object/Description/BuildDefi
 import { GetPriorityScopedDescription } from '../../Flow/Object/Description/Scope/GetPriorityScopedDescription.js';
 import { GetUserOrganizations } from '../../Flow/Object/Organization/View/GetUserOrganizations.js';
 import { ResolveEmbedThumbnailUrl } from './ResolveEmbedThumbnailUrl.js';
+import { FetchTaskById } from '../../Flow/Task/FetchTaskById.js';
 
-export type ObjectTypeKey = `game` | `organization` | `user` | `building`;
+export type ObjectTypeKey = `game` | `organization` | `user` | `building` | `task`;
 
 export interface ObjectTypeConfig {
     label: string;
@@ -37,6 +38,10 @@ export const OBJECT_TYPES: Record<ObjectTypeKey, ObjectTypeConfig> = {
     building: {
         label: `Factories`,
         listQuery: `MATCH (f:Factory) RETURN f.uid AS uid, f.type AS label`,
+    },
+    task: {
+        label: `Tasks`,
+        listQuery: `MATCH (t:Task) RETURN t.id AS uid, t.short_description AS label`,
     },
 };
 
