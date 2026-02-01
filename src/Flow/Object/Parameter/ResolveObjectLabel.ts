@@ -15,6 +15,8 @@ export function ResolveObjectLabel(objectType: ObjectTypeKey): string {
             return `User`;
         case `building`:
             return `Factory`;
+        case `task`:
+            return `Task`;
         default:
             return `Entity`;
     }
