@@ -1,6 +1,3 @@
-/**
- * Aggregate exports for user creation control utilities.
- */
 export { UserCreateControlService } from './UserCreateControlService.js';
 export { UserCreateSessionStore } from './UserCreateSessionStore.js';
 export type { UserCreateSession } from './UserCreateSessionStore.js';

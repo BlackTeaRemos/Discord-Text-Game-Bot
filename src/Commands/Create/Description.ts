@@ -5,6 +5,11 @@ import type { PermissionsObject, PermissionState } from '../../Common/Permission
 import { RunDescriptionEditorFlow } from '../../Flow/Object/Description/Editor/index.js';
 import { log } from '../../Common/Log.js';
 import { ResolveObjectByUid } from '../../Flow/Object/ResolveByUid.js';
+import {
+    ResolveExecutionOrganization,
+    ResolveOrganization,
+} from '../../Flow/Object/Organization/index.js';
+import { resolve } from '../../Common/Permission/index.js';
 
 /**
  * Open description editor for any object by id
@@ -36,18 +41,64 @@ export async function ExecuteCreateDescription(
             return;
         }
 
+        if (objectInfo.type === `description`) {
+            await interaction.editReply({
+                content: `Descriptions cannot target other descriptions.`,
+            });
+            return;
+        }
+
+        const requestedOrganizationUid = interaction.options.getString(`organization`)?.trim() || null; // optional org override
+        const executionOrganization = await ResolveExecutionOrganization(
+            interaction.user.id,
+            requestedOrganizationUid,
+        ); // resolved execution scope
+
+        if (executionOrganization.scopeType === `organization` && executionOrganization.organizationUid) {
+            const organizationPermission = await ResolveOrganization({
+                context: {
+                    organizationUid: executionOrganization.organizationUid,
+                    userId: interaction.user.id,
+                    action: `create_description`,
+                },
+                skipApproval: false,
+            });
+
+            if (!organizationPermission.allowed) {
+                await interaction.editReply({
+                    content: `Permission denied (${executionOrganization.organizationName}).`,
+                });
+                return;
+            }
+        } else {
+            const resolution = await resolve([`user:${interaction.user.id}:create_description`], {
+                member: await interaction.guild?.members.fetch(interaction.user.id).then(m => {
+                    return m ? { id: m.id, guildId: m.guild.id, permissions: m.permissions } as any : null;
+                }),
+                permissions: {
+                    [`user:${interaction.user.id}:create_description`]: `allowed`,
+                },
+            });
+            if (!resolution.success) {
+                await interaction.editReply({
+                    content: `Permission denied (User).`,
+                });
+                return;
+            }
+        }
+
         const canEditGlobal = interaction.memberPermissions?.has(`Administrator`) ?? false;
         const permissions = __BuildEditorPermissions(canEditGlobal);
 
         await interaction.editReply({
-            content: `Opening description editor for **${objectInfo.type}** \`${objectInfo.uid}\`...`,
+            content: `Opening description editor for **${objectInfo.type}** \`${objectInfo.uid}\` as ${executionOrganization.organizationName}...`,
         });
 
         await RunDescriptionEditorFlow(interaction as unknown as ChatInputCommandInteraction, {
             objectType: objectInfo.type,
             objectUid: objectInfo.uid,
             userUid: interaction.user.id,
-            organizationUid: null,
+            organizationUid: executionOrganization.organizationUid,
             canEditGlobal,
             permissions,
         });

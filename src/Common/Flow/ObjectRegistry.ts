@@ -3,15 +3,15 @@ import { neo4jClient } from '../../Setup/Neo4j.js';
 import { GetGame } from '../../Flow/Object/Game/View.js';
 import { GameCreateFlowConstants } from '../../Flow/Object/Game/CreateState.js';
 import type { Game } from '../../Flow/Object/Game/CreateRecord.js';
-import { GetOrganizationWithMembers } from '../../Flow/Object/Organization/View.js';
-import type { OrganizationWithMembers } from '../../Flow/Object/Organization/View.js';
+import { GetOrganizationWithMembers } from '../../Flow/Object/Organization/View/index.js';
+import type { OrganizationView, OrganizationWithMembers } from '../../Flow/Object/Organization/View/index.js';
 import { GetUserByUid } from '../../Flow/Object/User/View.js';
 import type { ViewUser } from '../../Flow/Object/User/View/ViewUser.js';
 import { GetFactory } from '../../Flow/Object/Building/View.js';
 import type { Factory } from '../../Flow/Object/Building/Create.js';
 import { sanitizeDescriptionText } from '../../Flow/Object/Description/BuildDefinition.js';
 import { GetPriorityScopedDescription } from '../../Flow/Object/Description/Scope/GetPriorityScopedDescription.js';
-import { GetUserOrganizations } from '../../Flow/Command/Description/GetUserOrganizations.js';
+import { GetUserOrganizations } from '../../Flow/Object/Organization/View/GetUserOrganizations.js';
 import { ResolveEmbedThumbnailUrl } from './ResolveEmbedThumbnailUrl.js';
 
 export type ObjectTypeKey = `game` | `organization` | `user` | `building`;
@@ -102,8 +102,8 @@ async function __ResolvePriorityDescription(options: {
         organizationUids = [options.characterOrganizationUid];
     } else {
         const organizations = await GetUserOrganizations(options.viewerUserUid);
-        organizationUids = organizations.map(org => {
-            return org.uid;
+        organizationUids = organizations.map((organization: OrganizationView) => {
+            return organization.uid;
         });
     }
 
@@ -169,7 +169,7 @@ export async function buildEmbedFor(
                 .setColor(`Blue`)
                 .setTitle(organization.organization.name || `Organization details`)
                 .addFields({ name: `Name`, value: organization.organization.name || `n/a`, inline: true })
-                .addFields({ name: `Friendly`, value: organization.organization.friendly_name, inline: true })
+                .addFields({ name: `Friendly`, value: organization.organization.friendlyName, inline: true })
                 .addFields({ name: `Identifier`, value: `Stored internally.`, inline: true })
                 .addFields({ name: `Members`, value: String(organization.users.length), inline: true });
             const resolved = await __ResolvePriorityDescription({

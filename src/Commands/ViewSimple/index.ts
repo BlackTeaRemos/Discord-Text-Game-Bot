@@ -12,7 +12,13 @@ export const data = new SlashCommandBuilder()
     .addSubcommand(subcommand => {
         return subcommand
             .setName(`game`)
-            .setDescription(`View game description`);
+            .setDescription(`View game description`)
+            .addStringOption(option => {
+                return option
+                    .setName(`organization`)
+                    .setDescription(`Organization UID to execute as (use 'global' for shared org)`)
+                    .setRequired(false);
+            });
     })
     .addSubcommand(subcommand => {
         return subcommand
@@ -35,6 +41,12 @@ export const data = new SlashCommandBuilder()
                     .setName(`creator`)
                     .setDescription(`Filter by task creator`)
                     .setRequired(false);
+            })
+            .addStringOption(option => {
+                return option
+                    .setName(`organization`)
+                    .setDescription(`Organization UID to execute as (use 'global' for shared org)`)
+                    .setRequired(false);
             });
     })
     .addSubcommand(subcommand => {
@@ -46,6 +58,12 @@ export const data = new SlashCommandBuilder()
                     .setName(`id`)
                     .setDescription(`Object identifier to view`)
                     .setRequired(true);
+            })
+            .addStringOption(option => {
+                return option
+                    .setName(`organization`)
+                    .setDescription(`Organization UID to execute as (use 'global' for shared org)`)
+                    .setRequired(false);
             });
     });
 

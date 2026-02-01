@@ -1,6 +1,3 @@
-/**
- * Aggregate exports for the game creation control utilities.
- */
 export { GameCreateControlService } from './GameCreateControlService.js';
 export { GameCreateSessionStore } from './GameCreateSessionStore.js';
 export type { GameCreateSession } from './GameCreateSessionStore.js';

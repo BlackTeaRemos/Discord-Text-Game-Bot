@@ -1,12 +1,14 @@
-import { MessageFlags } from 'discord.js';
+import { MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import type { ChatInputCommandInteraction, Message, MessageContextMenuCommandInteraction } from 'discord.js';
 import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
 import { ListGamesForServer } from '../../Flow/Object/Game/ListGamesForServer.js';
 import { GetGameCurrentTurn } from '../../Flow/Object/Game/Turn.js';
 import { CreateTaskRecord } from '../../Flow/Task/CreateTaskRecord.js';
+import { RemoveTask } from '../../Flow/Task/RemoveTask.js';
 import { neo4jClient } from '../../Setup/Neo4j.js';
+import { flowManager } from '../../Common/Flow/Manager.js';
 import { log } from '../../Common/Log.js';
-// import { FindOrganizationForServer } from '../../Flow/Object/Organization/FindForServer.js';
+import { ResolveExecutionOrganization } from '../../Flow/Object/Organization/Selection/ResolveExecutionOrganization.js';
 
 /**
  * Create task from replied message for current turn
@@ -80,20 +82,14 @@ async function __CreateTaskFromInteraction(
         const currentTurn = await GetGameCurrentTurn(game.uid);
         const targetTurn = currentTurn + delay;
 
-        // TODO restore organization lookup later
-        // const organization = await FindOrganizationForServer(serverId);
-        // if (!organization) {
-        //     await interaction.editReply({
-        //         content: `No organization found for this server`,
-        //     });
-        //     return;
-        // }
+        const executionOrganization = await ResolveExecutionOrganization(interaction.user.id, null);
+        const organizationUid = executionOrganization.scopeType === 'organization' && executionOrganization.organizationUid ? executionOrganization.organizationUid : '';
 
         const task = await CreateTaskRecord(neo4jClient, {
-            organizationUid: ``,
+            organizationUid: organizationUid || '',
             gameUid: game.uid,
             turnNumber: targetTurn,
-            creatorDiscordId: targetMessage.author.id,
+            creatorDiscordId: interaction.user.id,
             shortDescription,
             description: messageContent,
         });
@@ -102,9 +98,54 @@ async function __CreateTaskFromInteraction(
             ? `current turn (${targetTurn})`
             : `turn ${targetTurn} (delay: ${delay > 0 ? `+` : ``}${delay})`;
 
-        await interaction.editReply({
-            content: `Task created for ${turnLabel}\nID: \`${task.id}\`\nDescription: ${messageContent.slice(0, 100)}${messageContent.length > 100 ? `...` : ``}`,
-        });
+        const organizationName = executionOrganization.organizationName || `User`;
+        const REMOVE_ID = `remove_task_${task.id}`;
+
+        await flowManager
+            .builder(interaction.user.id, interaction, { task, organizationUid })
+            .step([REMOVE_ID], `create_task_success`)
+            .prompt(async (ctx) => {
+                const removeButton = new ButtonBuilder()
+                    .setCustomId(REMOVE_ID)
+                    .setLabel(`Remove Task`)
+                    .setStyle(ButtonStyle.Danger);
+
+                const row = new ActionRowBuilder<ButtonBuilder>().addComponents(removeButton);
+
+                await interaction.editReply({
+                    content: `Task created (${organizationName}) — ID: \`${task.id}\` — ${messageContent.slice(0, 100)}${messageContent.length > 100 ? `...` : ``}`,
+                    components: [row],
+                });
+            })
+            .onInteraction(async (ctx, incomingInteraction) => {
+                if (!incomingInteraction.isButton() || incomingInteraction.customId !== REMOVE_ID) {
+                    return false;
+                }
+
+                await incomingInteraction.deferUpdate();
+
+                const deleted = await RemoveTask(neo4jClient, {
+                    taskId: ctx.state.task.id,
+                    organizationUid: ctx.state.organizationUid,
+                    viewerDiscordId: interaction.user.id,
+                });
+
+                if (deleted) {
+                    await interaction.editReply({
+                        content: `Task \`${ctx.state.task.id}\` has been removed.`,
+                        components: [],
+                    });
+                } else {
+                    await interaction.followUp({
+                        content: `Failed to remove task. It may have already been deleted.`,
+                        flags: MessageFlags.Ephemeral,
+                    });
+                }
+
+                return true;
+            })
+            .next()
+            .start();
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         const stack = error instanceof Error ? error.stack : undefined;

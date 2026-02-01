@@ -1,11 +1,3 @@
-/**
- * Configuration for validating text prompt input.
- * @property value string | undefined Raw user-provided text. @example 'Game name'
- * @property minLength number | undefined Minimum allowed length in characters. @example 3
- * @property maxLength number | undefined Maximum allowed length in characters. @example 120
- * @property cancelWords string[] | undefined Words that signal prompt cancellation. @example ['cancel', 'stop']
- * @property validator (value: string) => boolean | string | undefined Optional extra validation logic. @example (text) => text !== 'forbidden' || 'Reserved word.'
- */
 export interface TextPromptValidationOptions {
     value?: string;
     minLength?: number;

@@ -1,10 +1,3 @@
-/**
- * Options for validating select menu input (no Discord API calls).
- * @property value string | undefined Selected value to validate. @example 'option_1'
- * @property validOptions string[] | undefined List of valid option values. @example ['option_1', 'option_2']
- * @property validator (value: string) => boolean | string | undefined Optional custom validation. @example (v) => v !== 'invalid' || 'Invalid choice'
- * @property cancelWords string[] | undefined Words that indicate cancellation. @example ['cancel', 'skip']
- */
 export interface SelectPromptValidationOptions {
     value?: string;
     validOptions?: string[];

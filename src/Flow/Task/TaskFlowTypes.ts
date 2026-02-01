@@ -60,3 +60,13 @@ export interface FetchTaskByIdInput {
     viewerDiscordId: string; // caller discord id
     allowOverride?: boolean; // bypass viewer restrictions when true
 }
+
+/**
+ * Payload for deleting a task while checking permissions.
+ */
+export interface RemoveTaskInput {
+    taskId: string; // target task id
+    organizationUid: string; // owning organization uid
+    viewerDiscordId: string; // creator or admin discord id
+    allowOverride?: boolean; // bypass creator restriction
+}

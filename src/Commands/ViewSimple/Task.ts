@@ -19,6 +19,10 @@ import { flowManager } from '../../Common/Flow/Manager.js';
 import { log } from '../../Common/Log.js';
 import { resolve } from '../../Common/Permission/index.js';
 import type { IFlowMember } from '../../Common/Type/FlowContext.js';
+import {
+    ResolveExecutionOrganization,
+    ResolveOrganization,
+} from '../../Flow/Object/Organization/index.js';
 
 const VIEW_TASK_PREV_ID = `view_task_prev`;
 const VIEW_TASK_NEXT_ID = `view_task_next`;
@@ -34,6 +38,7 @@ interface ViewTaskState {
     pageIndex: number; // current page index
     totalPages: number; // total page count
     baseInteraction: ChatInputCommandInteraction; // original interaction
+    organizationName: string; // execution organization label
 }
 
 /**
@@ -42,6 +47,7 @@ interface ViewTaskState {
 interface ViewTaskDetailState {
     task: TaskListItem; // current task item
     baseInteraction: ChatInputCommandInteraction; // original interaction
+    organizationName: string; // execution organization label
 }
 
 /**
@@ -65,6 +71,7 @@ export async function ExecuteViewTask(
     const turnOption = interaction.options.getInteger(`turn`);
     const statusOption = interaction.options.getString(`status`)?.trim();
     const creatorOption = interaction.options.getUser(`creator`);
+    const requestedOrganizationUid = interaction.options.getString(`organization`)?.trim() || null; // optional org override
 
     if (!interaction.deferred && !interaction.replied) {
         await interaction.deferReply({ flags: MessageFlags.Ephemeral });
@@ -72,6 +79,44 @@ export async function ExecuteViewTask(
 
     try {
         let allowOverride = false;
+        const executionOrganization = await ResolveExecutionOrganization(
+            interaction.user.id,
+            requestedOrganizationUid,
+        ); // resolved execution scope
+
+        if (executionOrganization.scopeType === `organization` && executionOrganization.organizationUid) {
+            const organizationPermission = await ResolveOrganization({
+                context: {
+                    organizationUid: executionOrganization.organizationUid,
+                    userId: interaction.user.id,
+                    action: `view_tasks`,
+                },
+                skipApproval: false,
+            });
+
+            if (!organizationPermission.allowed) {
+                await interaction.editReply({
+                    content: `Permission denied (${executionOrganization.organizationName}).`,
+                });
+                return;
+            }
+        } else {
+            const resolution = await resolve([`user:${interaction.user.id}:view_tasks`], {
+                member: await interaction.guild?.members.fetch(interaction.user.id).then(m => {
+                    return m ? { id: m.id, guildId: m.guild.id, permissions: m.permissions } as any : null;
+                }),
+                permissions: {
+                    [`user:${interaction.user.id}:view_tasks`]: `allowed`,
+                },
+            });
+            if (!resolution.success) {
+                await interaction.editReply({
+                    content: `Permission denied (User).`,
+                });
+                return;
+            }
+        }
+
         try {
             const member: IFlowMember = {
                 id: interaction.user.id,
@@ -110,6 +155,8 @@ export async function ExecuteViewTask(
                 interaction as unknown as ChatInputCommandInteraction,
                 taskIdOption,
                 allowOverride,
+                executionOrganization.organizationUid,
+                executionOrganization.organizationName,
             );
             return;
         }
@@ -138,7 +185,7 @@ export async function ExecuteViewTask(
         const statuses = __ResolveStatusGroup(statusGroup);
 
         const tasks = await FetchTasksForViewer(neo4jClient, {
-            organizationUid: null,
+            organizationUid: executionOrganization.organizationUid,
             viewerDiscordId: interaction.user.id,
             gameUid,
             turnNumber: targetTurn,
@@ -161,13 +208,14 @@ export async function ExecuteViewTask(
             pageIndex: 0,
             totalPages,
             baseInteraction: interaction as unknown as ChatInputCommandInteraction,
+            organizationName: executionOrganization.organizationName,
         };
 
         await flowManager
             .builder(interaction.user.id, interaction, initialState)
             .step([VIEW_TASK_PREV_ID, VIEW_TASK_NEXT_ID], `view_task`)
             .prompt(async ctx => {
-                await __RenderTaskList(ctx.state);
+                await __RenderTaskList(ctx.state, ctx.state.organizationName);
             })
             .onInteraction(async (ctx, incomingInteraction) => {
                 if (!incomingInteraction.isButton()) {
@@ -181,7 +229,7 @@ export async function ExecuteViewTask(
                 }
 
                 await incomingInteraction.deferUpdate();
-                await __RenderTaskList(ctx.state);
+                await __RenderTaskList(ctx.state, ctx.state.organizationName);
                 return false;
             })
             .next()
@@ -200,7 +248,7 @@ export async function ExecuteViewTask(
  * @param state ViewTaskState Current flow state
  * @returns Promise<void> Resolves when reply is updated
  */
-async function __RenderTaskList(state: ViewTaskState): Promise<void> {
+async function __RenderTaskList(state: ViewTaskState, organizationName: string): Promise<void> {
     const startIndex = state.pageIndex * PAGE_SIZE;
     const pageTasks = state.tasks.slice(startIndex, startIndex + PAGE_SIZE);
 
@@ -214,7 +262,8 @@ async function __RenderTaskList(state: ViewTaskState): Promise<void> {
         .setTitle(`Tasks`)
         .setDescription(lines.join(`\n\n`))
         .setColor(`Blue`)
-        .setFooter({ text: `Page ${state.pageIndex + 1} of ${state.totalPages} (${state.tasks.length} total)` });
+        .setFooter({ text: `Page ${state.pageIndex + 1} of ${state.totalPages} (${state.tasks.length} total)` })
+        .addFields({ name: `Org`, value: organizationName || `User`, inline: true });
 
     const prevButton = new ButtonBuilder()
         .setCustomId(VIEW_TASK_PREV_ID)
@@ -241,7 +290,7 @@ async function __RenderTaskList(state: ViewTaskState): Promise<void> {
  * @param state ViewTaskDetailState Current detail state
  * @returns Promise<void> Resolves when reply is updated
  */
-async function __RenderTaskDetail(state: ViewTaskDetailState): Promise<void> {
+async function __RenderTaskDetail(state: ViewTaskDetailState, organizationName: string): Promise<void> {
     const task = state.task;
     const embed = new EmbedBuilder()
         .setTitle(`Task ${task.id}`)
@@ -250,6 +299,7 @@ async function __RenderTaskDetail(state: ViewTaskDetailState): Promise<void> {
         .addFields([
             { name: `Status`, value: String(task.status), inline: true },
             { name: `Short`, value: task.shortDescription || `None`, inline: true },
+            { name: `Org`, value: organizationName || `User`, inline: true },
         ]);
 
     const finishButton = new ButtonBuilder()
@@ -280,10 +330,12 @@ async function __ShowTaskDetail(
     interaction: ChatInputCommandInteraction,
     taskId: string,
     allowOverride: boolean,
+    organizationUid: string | null,
+    organizationName: string,
 ): Promise<void> {
     const task = await FetchTaskById(neo4jClient, {
         taskId,
-        organizationUid: ``,
+        organizationUid: organizationUid ?? ``,
         viewerDiscordId: interaction.user.id,
         allowOverride,
     });
@@ -295,16 +347,17 @@ async function __ShowTaskDetail(
         return;
     }
 
-    const initialState: ViewTaskDetailState = {
+        const initialState: ViewTaskDetailState = {
         task,
         baseInteraction: interaction,
+            organizationName,
     };
 
     await flowManager
         .builder(interaction.user.id, interaction, initialState)
         .step([VIEW_TASK_FINISH_ID, VIEW_TASK_CANCEL_ID], `view_task_detail`)
         .prompt(async ctx => {
-            await __RenderTaskDetail(ctx.state);
+            await __RenderTaskDetail(ctx.state, ctx.state.organizationName);
         })
         .onInteraction(async (ctx, incomingInteraction) => {
             if (!incomingInteraction.isButton()) {
@@ -326,7 +379,7 @@ async function __ShowTaskDetail(
 
             const updated = await UpdateTaskStatus(neo4jClient, {
                 taskId: ctx.state.task.id,
-                organizationUid: ``,
+                organizationUid: organizationUid ?? ``,
                 viewerDiscordId: interaction.user.id,
                 status: nextStatus as any,
                 allowOverride,
@@ -341,7 +394,7 @@ async function __ShowTaskDetail(
             }
 
             ctx.state.task = updated;
-            await __RenderTaskDetail(ctx.state);
+            await __RenderTaskDetail(ctx.state, ctx.state.organizationName);
             return false;
         })
         .next()

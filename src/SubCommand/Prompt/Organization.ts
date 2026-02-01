@@ -1,11 +1,20 @@
 import { ActionRowBuilder, StringSelectMenuBuilder } from 'discord.js';
-import { GetOrganizationSelection } from '../../Flow/Command/Description/GetUserOrganizations.js';
 
 /**
  * States returned when preparing an organization selection prompt.
  * @example const status: OrganizationPromptStatus = 'prompt';
  */
 export type OrganizationPromptStatus = `empty` | `auto` | `prompt`;
+
+/**
+ * Minimal organization selection payload for prompts.
+ * @property selected Whether a selection has been made.
+ * @property orgs List of organization choices.
+ */
+export interface OrganizationSelection {
+    selected: boolean;
+    orgs: Array<{ uid: string; name: string }>;
+}
 
 /**
  * Options accepted when building an organization selection prompt.
@@ -35,7 +44,7 @@ export interface OrganizationPromptOptions {
  */
 export interface OrganizationPromptResult {
     status: OrganizationPromptStatus;
-    selection: Awaited<ReturnType<typeof GetOrganizationSelection>>;
+    selection: OrganizationSelection;
     components?: ActionRowBuilder<StringSelectMenuBuilder>[];
     message?: string;
     organization?: { uid: string; name: string };

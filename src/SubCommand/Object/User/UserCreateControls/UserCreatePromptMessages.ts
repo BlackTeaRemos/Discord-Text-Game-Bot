@@ -1,6 +1,3 @@
-/**
- * Shared messaging helpers used throughout the user creation flow.
- */
 export const UserCreatePromptMessages = {
     discordIdCancel: `Discord ID unchanged. Use the button again when you want to update it.`,
     discordIdTimeout: `No Discord ID received. Press the button again when you are ready to provide one.`,

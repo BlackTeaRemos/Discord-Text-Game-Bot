@@ -87,6 +87,10 @@ async function __SelectType(interaction: ChatInputCommandInteraction): Promise<O
         return { label: item.label, value: item.value } as any;
     });
 
+    if (typeOptions.length === 1) {
+        return typeOptions[0].value;
+    }
+
     const menu = new StringSelectMenuBuilder()
         .setCustomId(DESCRIPTION_TYPE_SELECT_ID)
         .setPlaceholder(`Select object type`)
@@ -214,6 +218,10 @@ async function __SelectObject(interaction: ChatInputCommandInteraction, type: Ob
     if (options.length === 0) {
         await interaction.editReply({ content: `No ${type} records found.`, components: [] });
         return null;
+    }
+
+    if (options.length === 1) {
+        return options[0].value;
     }
 
     const menu = new StringSelectMenuBuilder()

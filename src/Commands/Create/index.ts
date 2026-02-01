@@ -28,6 +28,12 @@ export const data = new SlashCommandBuilder()
                     .setName(`id`)
                     .setDescription(`Object identifier to edit description for`)
                     .setRequired(true);
+            })
+            .addStringOption(option => {
+                return option
+                    .setName(`organization`)
+                    .setDescription(`Organization UID to execute as (use 'global' for shared org)`)
+                    .setRequired(false);
             });
     });
 

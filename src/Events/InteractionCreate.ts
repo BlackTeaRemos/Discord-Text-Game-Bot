@@ -1,9 +1,9 @@
-import type { ButtonInteraction, Interaction } from 'discord.js';
+import type { ButtonInteraction, Interaction, StringSelectMenuInteraction } from 'discord.js';
 import { log } from '../Common/Log.js';
 import { flowManager } from '../Common/Flow/Manager.js';
 import { HandleGameCreateControlInteraction } from '../SubCommand/Object/Game/GameCreateControls.js';
-import { HandleOrganizationCreateControlInteraction } from '../SubCommand/Object/Organization/OrganizationCreateControls.js';
 import { HandleUserCreateControlInteraction } from '../SubCommand/Object/User/UserCreateControls.js';
+import { HandleOrganizationSelectControlInteraction } from '../SubCommand/Object/Organization/OrganizationSelectControls/index.js';
 
 /**
  * Handles the 'interactionCreate' event from Discord by delegating processing to the shared flow manager.
@@ -23,12 +23,13 @@ export async function OnInteractionCreate(interaction: Interaction): Promise<voi
         if (interaction.isButton()) {
             handled = await HandleGameCreateControlInteraction(interaction as ButtonInteraction);
             if (!handled) {
-                handled = await HandleOrganizationCreateControlInteraction(interaction as ButtonInteraction);
-            }
-            if (!handled) {
                 handled = await HandleUserCreateControlInteraction(interaction as ButtonInteraction);
             }
 
+        }
+
+        if (!handled && interaction.isStringSelectMenu()) {
+            handled = await HandleOrganizationSelectControlInteraction(interaction as StringSelectMenuInteraction);
         }
 
         if (!handled) {

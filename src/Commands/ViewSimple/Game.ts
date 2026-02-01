@@ -6,6 +6,11 @@ import { GetGame } from '../../Flow/Object/Game/View.js';
 import { GetGameCurrentTurn } from '../../Flow/Object/Game/Turn.js';
 import { FetchDescriptionForObject } from '../../Flow/Object/Description/FetchForObject.js';
 import { log } from '../../Common/Log.js';
+import {
+    ResolveExecutionOrganization,
+    ResolveOrganization,
+} from '../../Flow/Object/Organization/index.js';
+import { resolve } from '../../Common/Permission/index.js';
 
 /**
  * View game description immediately
@@ -38,6 +43,45 @@ export async function ExecuteViewGame(
             return;
         }
 
+        const requestedOrganizationUid = interaction.options.getString(`organization`)?.trim() || null; // optional org override
+        const executionOrganization = await ResolveExecutionOrganization(
+            interaction.user.id,
+            requestedOrganizationUid,
+        ); // resolved execution scope
+
+        if (executionOrganization.scopeType === `organization` && executionOrganization.organizationUid) {
+            const organizationPermission = await ResolveOrganization({
+                context: {
+                    organizationUid: executionOrganization.organizationUid,
+                    userId: interaction.user.id,
+                    action: `view`,
+                },
+                skipApproval: false,
+            });
+
+            if (!organizationPermission.allowed) {
+                await interaction.editReply({
+                    content: `Permission denied (${executionOrganization.organizationName}).`,
+                });
+                return;
+            }
+        } else {
+            const resolution = await resolve([`user:${interaction.user.id}:view`], {
+                member: await interaction.guild?.members.fetch(interaction.user.id).then(m => {
+                    return m ? { id: m.id, guildId: m.guild.id, permissions: m.permissions } as any : null;
+                }),
+                permissions: {
+                    [`user:${interaction.user.id}:view`]: `allowed`,
+                },
+            });
+            if (!resolution.success) {
+                await interaction.editReply({
+                    content: `Permission denied (User).`,
+                });
+                return;
+            }
+        }
+
         const gameData = await GetGame(game.uid);
         if (!gameData) {
             await interaction.editReply({
@@ -52,7 +96,8 @@ export async function ExecuteViewGame(
         const embed = new EmbedBuilder()
             .setTitle(gameData.name)
             .setColor(`Blue`)
-            .addFields({ name: `Current Turn`, value: String(currentTurn), inline: true });
+            .addFields({ name: `Current Turn`, value: String(currentTurn), inline: true })
+            .addFields({ name: `Org`, value: executionOrganization.organizationName || `User`, inline: true });
 
         if (gameData.image) {
             embed.setThumbnail(gameData.image);

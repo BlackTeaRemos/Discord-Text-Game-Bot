@@ -2,7 +2,7 @@ import { ResolveCommandPermission, type CommandPermissionResult } from './Permis
 import type { PermissionsObject } from '../../Common/Permission/index.js';
 import type { IFlowInteractionContext, FlowMemberProvider } from '../../Common/Type/FlowContext.js';
 import { GetGame } from '../Object/Game/View.js';
-import { GetOrganizationWithMembers } from '../Object/Organization/View.js';
+import { GetOrganizationWithMembers } from '../Object/Organization/View/index.js';
 import { GetUserByUid } from '../Object/User/View.js';
 import { GetFactory } from '../Object/Building/View.js';
 
@@ -67,7 +67,7 @@ async function __BuildViewPermissionOverrides(
                     break;
                 }
                 const isMember = organization.users.some(member => {
-                    return member.discord_id === userId;
+                    return member.discordId === userId;
                 });
                 if (isMember) {
                     allow(`view:organization`);
@@ -101,7 +101,7 @@ async function __BuildViewPermissionOverrides(
             } else {
                 const organization = await GetOrganizationWithMembers(factory.organizationUid);
                 const belongsToOrganization = organization?.users.some(member => {
-                    return member.discord_id === userId;
+                    return member.discordId === userId;
                 });
                 if (belongsToOrganization) {
                     allow(`view:building`);

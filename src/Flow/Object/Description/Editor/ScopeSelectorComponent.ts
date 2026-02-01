@@ -1,9 +1,6 @@
 import { ActionRowBuilder, StringSelectMenuBuilder } from 'discord.js';
 import type { DescriptionScope } from '../Scope/Types.js';
 
-/**
- * Custom ID prefix for scope selector interactions.
- */
 export const SCOPE_SELECTOR_CUSTOM_ID = `description_scope_select`;
 
 /**
@@ -15,7 +12,7 @@ export const SCOPE_SELECTOR_CUSTOM_ID = `description_scope_select`;
  */
 export function BuildScopeSelectorComponent(
     scopes: DescriptionScope[],
-    selectedScopeUid: string | null,
+    selectedScopeUid: string | null | undefined,
 ): ActionRowBuilder<StringSelectMenuBuilder> {
     const selectMenu = new StringSelectMenuBuilder()
         .setCustomId(SCOPE_SELECTOR_CUSTOM_ID)

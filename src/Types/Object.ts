@@ -1,6 +1,3 @@
-/**
- * BaseObject represents an arbitrary stored object payload with minimal envelope.
- */
 export interface BaseObject {
     id: string;
     objectType: string;

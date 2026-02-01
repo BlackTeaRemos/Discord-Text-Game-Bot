@@ -1,4 +1,4 @@
-import { GetUserOrganizations } from '../../../Command/Description/GetUserOrganizations.js';
+import { GetUserOrganizations } from '../../Organization/View/GetUserOrganizations.js';
 import type { DescriptionScope } from './Types.js';
 
 /**

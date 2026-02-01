@@ -1,7 +1,7 @@
 import type { PermissionsObject } from '../../../Common/Permission/index.js';
 import type { IFlowInteractionContext, FlowMemberProvider } from '../../../Common/Type/FlowContext.js';
 import { ResolveCommandPermission, type CommandPermissionResult } from '../PermissionResolver.js';
-import { GetOrganizationWithMembers } from '../../Object/Organization/View.js';
+import { GetOrganizationWithMembers } from '../../Object/Organization/View/index.js';
 import { GetUserByUid } from '../../Object/User/View.js';
 
 /**
@@ -52,7 +52,7 @@ async function __BuildDescriptionTargetPermissionOverrides(
         } else {
             const org = await GetOrganizationWithMembers(target.id);
             const isMember = org?.users.some(member => {
-                return member.discord_id === userId;
+                return member.discordId === userId;
             });
             if (isMember) {
                 allow(`description:target:organization:${target.id}:edit`);

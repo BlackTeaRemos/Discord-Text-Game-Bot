@@ -1,6 +1,3 @@
-/**
- * Shared prompt messaging utilities used by the game creation control handlers.
- */
 export const GameCreatePromptMessages = {
     nameCancel: `Name unchanged. Send a new value using the button when ready.`,
     descriptionCancel: `Description unchanged. Press the button again when you want to update it.`,

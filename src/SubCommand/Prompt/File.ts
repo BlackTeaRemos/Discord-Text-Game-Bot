@@ -1,10 +1,3 @@
-/**
- * Options for validating file or image input (no Discord API calls).
- * @property content string | undefined Text content to check for URL or cancel words. @example 'http://example.com/image.png'
- * @property attachment any | undefined Discord attachment object to validate. @example { contentType: 'image/png', size: 500000 }
- * @property validator (attachment: any) => boolean | string | undefined Optional custom validation. @example (a) => a.size < 1000000 || 'File too large'
- * @property cancelWords string[] | undefined Words that indicate cancellation. @example ['cancel', 'stop']
- */
 export interface FilePromptValidationOptions {
     content?: string;
     attachment?: any;

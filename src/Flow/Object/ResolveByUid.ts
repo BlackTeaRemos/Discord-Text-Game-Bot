@@ -1,8 +1,5 @@
 import { neo4jClient } from '../../Setup/Neo4j.js';
 
-/**
- * Resolved object information from database
- */
 export interface ResolvedObject {
     uid: string; // object unique identifier
     type: string; // object type (game, task, organization, etc)
@@ -11,7 +8,7 @@ export interface ResolvedObject {
 
 /**
  * Resolve any object by its unique identifier
- * Searches across all Entity labeled nodes in the database
+ * Searches across all nodes with a uid property in the database
  * @param uid string Object unique identifier @example 'game_abc123'
  * @returns Promise<ResolvedObject | null> Object info or null if not found
  */
@@ -19,7 +16,7 @@ export async function ResolveObjectByUid(uid: string): Promise<ResolvedObject | 
     const session = await neo4jClient.GetSession(`READ`);
     try {
         const query = `
-            MATCH (n:Entity { uid: $uid })
+            MATCH (n { uid: $uid })
             RETURN n.uid AS uid, 
                    labels(n) AS labels, 
                    coalesce(n.name, n.friendly_name, n.description, n.uid) AS name

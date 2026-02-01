@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto';
 import type { DBObject } from '../../../Repository/Object/Object.js';
 import { neo4jClient } from '../../../Setup/Neo4j.js';
+import { EnsureGlobalOrganizationMembership } from '../Organization/Global/index.js';
 
 export interface CreateUserOptions {
     /**
@@ -64,14 +65,16 @@ export async function CreateUser(options: CreateUserOptions): Promise<CreatedUse
             image,
         });
         const record = result.records[0];
-        return {
+        const createdUser: CreatedUser = {
             uid: record.get(`uid`),
             id: record.get(`id`),
             discord_id: record.get(`discord_id`),
             name: record.get(`name`) ?? undefined,
             friendly_name: record.get(`friendly_name`) ?? undefined,
             image: record.get(`image`) ?? undefined,
-        };
+        }; // persisted user snapshot
+        await EnsureGlobalOrganizationMembership(options.discordId, false);
+        return createdUser;
     } finally {
         await session.close();
     }
