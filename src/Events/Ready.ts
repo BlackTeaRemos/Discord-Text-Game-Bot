@@ -41,17 +41,13 @@ export async function OnReady(client: Client): Promise<void> {
                     .join(`, `)}`,
                 `Ready`,
             );
-            // Ensure command loader has completed, then propagate loaded commands globally
+            // Ensure command loader has completed. Registration is handled centrally in Boot.
             try {
                 await commandsReady;
-                const data = Object.values(commands).map(cmd => {
-                    return cmd.data.toJSON();
-                });
-                const registered = await application.commands.set(data);
-                log.info(`Registered ${registered.size} global commands`, `Ready`);
+                log.info(`Command loader ready; skipping automatic global registration in Ready handler.`, `Ready`);
             } catch(err) {
                 log.error(
-                    `Failed to register global commands`,
+                    `Command loader readiness check failed`,
                     err instanceof Error ? err.message : String(err),
                     `Ready`,
                 );

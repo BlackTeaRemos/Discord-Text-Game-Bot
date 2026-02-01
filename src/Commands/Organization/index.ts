@@ -1,71 +1,54 @@
 import { SlashCommandBuilder, MessageFlags } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
+import { dirname, resolve } from 'path';
+import { fileURLToPath } from 'url';
 import type { TokenSegmentInput } from '../../Common/Permission/index.js';
 import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
-import { ExecuteOrganizationCreate } from './Create.js';
-import { ExecuteOrganizationView } from './View.js';
-import { ExecuteOrganizationSetParent } from './SetParent.js';
-import { ExecuteOrganizationSelect } from './Select.js';
+import { log } from '../../Common/Log.js';
+import { BuildCommandSubcommandIndex, LoadCommandSubcommands } from '../CommandSubcommand.js';
+import type { CommandBuilder } from '../CommandSubcommand.js';
 
-export const data = new SlashCommandBuilder()
-    .setName(`organization`)
-    .setDescription(`Manage organizations and hierarchy`)
-    .addSubcommand(subcommand => {
-        return subcommand
-            .setName(`create`)
-            .setDescription(`Create a new organization`)
-            .addStringOption(option => {
-                return option
-                    .setName(`name`)
-                    .setDescription(`Organization name (used in permission tokens)`)
-                    .setRequired(true);
-            })
-            .addStringOption(option => {
-                return option
-                    .setName(`display_name`)
-                    .setDescription(`Friendly display name for the organization`)
-                    .setRequired(false);
-            })
-            .addStringOption(option => {
-                return option
-                    .setName(`parent`)
-                    .setDescription(`Parent organization UID for hierarchy`)
-                    .setRequired(false);
-            });
-    })
-    .addSubcommand(subcommand => {
-        return subcommand
-            .setName(`view`)
-            .setDescription(`View organization details and hierarchy`)
-            .addStringOption(option => {
-                return option
-                    .setName(`id`)
-                    .setDescription(`Organization UID to view (use 'global' for shared org)`)
-                    .setRequired(true);
-            });
-    })
-    .addSubcommand(subcommand => {
-        return subcommand
-            .setName(`set_parent`)
-            .setDescription(`Change organization parent (hierarchy)`)
-            .addStringOption(option => {
-                return option
-                    .setName(`id`)
-                    .setDescription(`Organization UID to modify`)
-                    .setRequired(true);
-            })
-            .addStringOption(option => {
-                return option
-                    .setName(`parent`)
-                    .setDescription(`New parent organization UID (leave empty to make root)`)
-                    .setRequired(false);
-            });
-    })
-    .addSubcommand(subcommand => {
-        return subcommand
-            .setName(`select`)
-            .setDescription(`Select default organization for commands`);
-    });
+const _filePath = fileURLToPath(import.meta.url); // module file path
+const _dirPath = dirname(_filePath); // module directory path
+const _subcommandsRootPath = resolve(_dirPath, `Subcommands`); // subcommands directory path
+
+const _organizationSubcommands = await LoadCommandSubcommands(_subcommandsRootPath); // discovered subcommand modules
+const _organizationSubcommandIndex = BuildCommandSubcommandIndex(_organizationSubcommands); // grouped subcommand index
+
+export const data = (() => {
+    let builder: CommandBuilder = new SlashCommandBuilder()
+        .setName(`organization`)
+        .setDescription(`Manage organizations and hierarchy`);
+
+    for (const subcommand of _organizationSubcommandIndex.ungrouped.values()) {
+        builder = builder.addSubcommand(sub => {
+            return subcommand.BuildSubcommand(sub);
+        });
+    }
+
+    const groupNames = Array.from(_organizationSubcommandIndex.grouped.keys()).sort();
+    for (const groupName of groupNames) {
+        const groupMap = _organizationSubcommandIndex.grouped.get(groupName);
+        if (!groupMap) {
+            continue;
+        }
+
+        const description = _organizationSubcommandIndex.groupDescriptions.get(groupName) ?? `Manage ${groupName}`;
+        builder = builder.addSubcommandGroup(group => {
+            group.setName(groupName).setDescription(description);
+
+            for (const subcommand of groupMap.values()) {
+                group.addSubcommand(sub => {
+                    return subcommand.BuildSubcommand(sub);
+                });
+            }
+
+            return group;
+        });
+    }
+
+    return builder;
+})();
 
 export const permissionTokens: TokenSegmentInput[][] = [[`organization`]];
 
@@ -78,24 +61,38 @@ export async function execute(
     interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
 ): Promise<void> {
     const subcommand = interaction.options.getSubcommand();
+    try {
+        const group = interaction.options.getSubcommandGroup(false);
+        if (group) {
+            const groupMap = _organizationSubcommandIndex.grouped.get(group.toLowerCase());
+            const groupedSubcommand = groupMap?.get(subcommand.toLowerCase());
+            if (groupedSubcommand) {
+                await groupedSubcommand.Execute(interaction);
+                return;
+            }
+        }
 
-    switch (subcommand) {
-        case `create`:
-            await ExecuteOrganizationCreate(interaction);
-            break;
-        case `view`:
-            await ExecuteOrganizationView(interaction);
-            break;
-        case `set_parent`:
-            await ExecuteOrganizationSetParent(interaction);
-            break;
-        case `select`:
-            await ExecuteOrganizationSelect(interaction);
-            break;
-        default:
-            await interaction.reply({
-                content: `Unknown subcommand: ${subcommand}`,
-                flags: MessageFlags.Ephemeral,
-            });
+        const resolvedSubcommand = _organizationSubcommandIndex.ungrouped.get(subcommand.toLowerCase());
+        if (resolvedSubcommand) {
+            await resolvedSubcommand.Execute(interaction);
+            return;
+        }
+
+        await interaction.reply({
+            content: `Unknown subcommand: ${subcommand}`,
+            flags: MessageFlags.Ephemeral,
+        });
+    } catch(error) {
+        const message = error instanceof Error ? error.message : String(error);
+        log.error(`Organization command failed`, message, `OrganizationCommand`);
+
+        if (!interaction.replied && !interaction.deferred) {
+            await interaction.reply({ content: `Command failed: ${message}`, flags: MessageFlags.Ephemeral });
+            return;
+        }
+
+        await interaction.editReply({ content: `Command failed: ${message}` });
+    } finally {
+        // no-op
     }
 }

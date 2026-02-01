@@ -22,7 +22,7 @@ async function __LoadPermissionGrants(client: Client): Promise<void> {
             loadedGuilds += 1;
         }
         log.info(`Loaded permission grants for ${loadedGuilds} guilds`, `Boot`);
-    } catch (error) {
+    } catch(error) {
         log.error(`Failed to load permission grants: ${String(error)}`, `Boot`);
     } finally {
         if (guilds.size === 0) {
@@ -92,6 +92,8 @@ export async function bootDiscordClient(options: {
 
     // Command registration happens once the client is ready
     let didReady = false;
+
+
     const handleReady = CreateSafeEventListener(
         async() => {
             if (didReady) {
@@ -102,37 +104,40 @@ export async function bootDiscordClient(options: {
             try {
                 await commandsReady;
 
-                // Wipe all commands first (global)
-                await client.application!.commands.set([]);
-
-                // Prepare command bodies
                 const commandData = Object.values(loadedCommands).map((cmd: any) => {
                     return cmd.data.toJSON();
                 });
 
-                if (config.discordGuildId) {
-                    try {
-                        const registeredGuild = await client.application!.commands.set(commandData, config.discordGuildId);
-                        eventBus.emit(
-                            `output`,
-                            `Registered ${registeredGuild.size ?? commandData.length} guild commands to guild ${config.discordGuildId}.`,
-                        );
-                    } catch (err) {
-                        eventBus.emit(`output`, `Guild command registration failed: ${String(err)}`);
-                    }
-                } else {
-                    try {
-                        const registeredGlobal = await client.application!.commands.set(commandData);
-                        eventBus.emit(
-                            `output`,
-                            `Registered ${registeredGlobal.size ?? commandData.length} global commands.`,
-                        );
-                    } catch (err) {
-                        eventBus.emit(`output`, `Global command registration failed: ${String(err)}`);
-                    }
+                // Remove all existing commands at startup (global and per-guild) to avoid stale definitions
+                try {
+                    // Clear global commands
+                    await client.application!.commands.set([]);
+                    eventBus.emit(`output`, `Cleared global application commands at startup.`);
+                } catch(err) {
+                    eventBus.emit(`output`, `Failed to clear global commands: ${String(err)}`);
                 }
 
-            } catch (error) {
+                try {
+                    const guilds = Array.from(client.guilds.cache.values());
+                    for (const g of guilds) {
+                        try {
+                            await client.application!.commands.set([], g.id);
+                            eventBus.emit(`output`, `Cleared guild commands for guild ${g.id}.`);
+                        } catch(err) {
+                            eventBus.emit(`output`, `Failed to clear guild commands for ${g.id}: ${String(err)}`);
+                        }
+                    }
+                } catch {}
+
+                // Register global commands only
+                try {
+                    const registeredGlobal = await client.application!.commands.set(commandData);
+                    eventBus.emit(`output`, `Registered ${registeredGlobal.size ?? commandData.length} global commands.`);
+                } catch(err) {
+                    eventBus.emit(`output`, `Global command registration failed: ${String(err)}`);
+                }
+
+            } catch(error) {
                 eventBus.emit(`output`, `Ready handler failed: ${String(error)}`);
             } finally {
                 await __LoadPermissionGrants(client);
@@ -156,22 +161,22 @@ export async function bootDiscordClient(options: {
     const interactionHandler = CreateInteractionHandler({ loadedCommands });
     client.on(
         Events.InteractionCreate,
-            CreateSafeEventListener(
-                async interaction => {
-                    if (!interaction.isChatInputCommand() && !interaction.isMessageContextMenuCommand()) {
-                        return;
-                    }
-                    await interactionHandler(interaction);
+        CreateSafeEventListener(
+            async interaction => {
+                if (!interaction.isChatInputCommand() && !interaction.isMessageContextMenuCommand()) {
+                    return;
+                }
+                await interactionHandler(interaction);
+            },
+            {
+                name: `discord:chatInputCommand`,
+                onError: error => {
+                    try {
+                        log.error(`Chat input or message command handler failed: ${String(error)}`, `Boot`);
+                    } catch {}
                 },
-                {
-                    name: `discord:chatInputCommand`,
-                    onError: error => {
-                        try {
-                            log.error(`Chat input or message command handler failed: ${String(error)}`, `Boot`);
-                        } catch {}
-                    },
-                },
-            ) as any,
+            },
+        ) as any,
     );
 
     // ensure we return the client and config as before

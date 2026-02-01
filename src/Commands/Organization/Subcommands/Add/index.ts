@@ -1,0 +1,71 @@
+import { MessageFlags } from 'discord.js';
+import type { ChatInputCommandInteraction, SlashCommandSubcommandBuilder } from 'discord.js';
+import type { InteractionExecutionContextCarrier } from '../../../../Common/Type/Interaction.js';
+import { log } from '../../../../Common/Log.js';
+import { GetOrganizationByUid } from '../../../../Flow/Object/Organization/View/GetOrganizationByUid.js';
+import { ResolveObjectByUid } from '../../../../Flow/Object/ResolveByUid.js';
+import { AssignObjectToOrganization } from '../../../../Flow/Object/Organization/Association/AssignObjectToOrganization.js';
+import type { CommandSubcommand } from '../../../CommandSubcommand.js';
+
+const _subcommandName = `add`; // subcommand name
+
+export function BuildOrganizationAddSubcommand(
+    subcommand: SlashCommandSubcommandBuilder,
+): SlashCommandSubcommandBuilder {
+    return subcommand
+        .setName(_subcommandName)
+        .setDescription(`Assign an object to an organization`)
+        .addStringOption(opt => {
+            return opt.setName(`id`).setDescription(`Organization UID`).setRequired(true);
+        })
+        .addStringOption(opt => {
+            return opt.setName(`object`).setDescription(`Object UID to assign`).setRequired(true);
+        });
+}
+
+export async function ExecuteOrganizationAddSubcommand(
+    interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
+): Promise<void> {
+    if (!interaction.deferred && !interaction.replied) {
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    }
+
+    try {
+        const organizationUidRaw = interaction.options.getString(`id`, true);
+        const organizationUid = organizationUidRaw.trim();
+        const objectUid = interaction.options.getString(`object`, true).trim();
+
+        const organization = await GetOrganizationByUid(organizationUid);
+        if (!organization) {
+            await interaction.editReply({ content: `Organization \`${organizationUid}\` not found.` });
+            return;
+        }
+
+        const resolved = await ResolveObjectByUid(objectUid);
+        if (!resolved) {
+            await interaction.editReply({ content: `Object \`${objectUid}\` not found.` });
+            return;
+        }
+
+        const result = await AssignObjectToOrganization(objectUid, organizationUid);
+        if (!result.success) {
+            await interaction.editReply({ content: `Failed to assign object: ${result.error ?? `Unknown error`}` });
+            return;
+        }
+
+        await interaction.editReply({ content: `Assigned \`${resolved.name}\` (${resolved.uid}) to organization \`${organizationUid}\`.` });
+        log.info(`Object assigned to organization via command`, `OrganizationAddSubcommand`, `object=${objectUid} org=${organizationUid} by=${interaction.user.id}`);
+    } catch(error) {
+        const message = error instanceof Error ? error.message : String(error);
+        log.error(`Organization add subcommand failed`, message, `OrganizationAddSubcommand`);
+        await interaction.editReply({ content: `Failed to assign object: ${message}` });
+    } finally {
+        // no-op
+    }
+}
+
+export const OrganizationAddSubcommand: CommandSubcommand = {
+    subcommandName: _subcommandName,
+    BuildSubcommand: BuildOrganizationAddSubcommand,
+    Execute: ExecuteOrganizationAddSubcommand,
+};
