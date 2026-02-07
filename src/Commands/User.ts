@@ -1,27 +1,28 @@
-import { SlashCommandBuilder } from 'discord.js';
+import { SlashCommandBuilder, MessageFlags } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 import { GetCachedConfig } from '../Services/ConfigCache.js';
 import { SetUserLocale, GetUserLocale } from '../Flow/Object/User/Locale.js';
 import type { InteractionExecutionContextCarrier } from '../Common/Type/Interaction.js';
+import { Translate, TranslateFromContext } from '../Services/I18nService.js';
 
 export const data = new SlashCommandBuilder()
     .setName(`user`)
-    .setDescription(`Manage user settings`)
+    .setDescription(Translate(`commands.user.description`))
     .addSubcommand(sub => {
         return sub
             .setName(`config`)
-            .setDescription(`Set or get a user configuration value`)
+            .setDescription(Translate(`commands.user.config.description`))
             .addStringOption(option => {
                 return option
                     .setName(`option`)
-                    .setDescription(`Configuration key to modify`)
+                    .setDescription(Translate(`commands.user.config.option.description`))
                     // known options as choices for convenience
-                    .addChoices({ name: `Preferred language`, value: `preferred_locale` })
+                    .addChoices({ name: Translate(`commands.user.config.option.choice.preferredLanguage`), value: `preferred_locale` })
                     .setRequired(true);
             },
             )
             .addStringOption(option => {
-                return option.setName(`value`).setDescription(`Value to set (omit to view)`);
+                return option.setName(`value`).setDescription(Translate(`commands.user.config.value.description`));
             });
     },
     );
@@ -40,59 +41,97 @@ function isKnownOption(key: string): boolean {
  * Validate value for an option. Return null on success or error message on failure.
  */
 export async function ValidateOptionValue(option: string, value: string): Promise<string | null> {
-    if (option === `preferred_locale`) {
-        const cfg = await GetCachedConfig();
-        const supported = cfg.supportedLocales ?? [`en`];
-        const normalized = normalizeLocale(value);
-        if (!supported.includes(normalized)) {
-            return `Unsupported locale. Supported: ${supported.join(`, `)}`;
+    try {
+        if (option === `preferred_locale`) {
+            const cfg = await GetCachedConfig();
+            const supported = cfg.supportedLocales ?? [`en`];
+            const normalized = normalizeLocale(value);
+            if (!supported.includes(normalized)) {
+                return Translate(`commands.user.errors.unsupportedLocale`, {
+                    params: { supported: supported.join(`, `) },
+                });
+            }
+            return null;
         }
-        return null;
+        return Translate(`commands.user.errors.unknownOptionValue`, { params: { option } });
+    } catch(error) {
+        void error;
+        return Translate(`commands.user.errors.validationFailed`);
+    } finally {
+        // no-op
     }
-    return `Unknown option '${option}'`;
 }
 
 export async function execute(interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>): Promise<void> {
-    const sub = interaction.options.getSubcommand(true);
-    if (sub !== `config`) {
-        await interaction.reply({ content: `Subcommand not implemented.`, ephemeral: true });
-        return;
-    }
-
-    const option = interaction.options.getString(`option`, true);
-    const value = interaction.options.getString(`value`, false);
-
-    if (!isKnownOption(option)) {
-        await interaction.reply({ content: `Unknown configuration option.`, ephemeral: true });
-        return;
-    }
-
-    const discordId = interaction.user.id;
-
-    if (!value) {
-        // read current value
-        if (option === `preferred_locale`) {
-            const current = await GetUserLocale(discordId);
-            await interaction.reply({ content: `Current preferred locale: ${current ?? `not set`}`, ephemeral: true });
+    try {
+        const sub = interaction.options.getSubcommand(true);
+        if (sub !== `config`) {
+            await interaction.reply({
+                content: TranslateFromContext(interaction.executionContext, `commands.user.errors.subcommandNotImplemented`),
+                flags: MessageFlags.Ephemeral,
+            });
             return;
         }
-        await interaction.reply({ content: `No value and no reader for ${option}.`, ephemeral: true });
-        return;
-    }
 
-    const validationError = await ValidateOptionValue(option, value);
-    if (validationError) {
-        await interaction.reply({ content: `Invalid value: ${validationError}`, ephemeral: true });
-        return;
-    }
+        const option = interaction.options.getString(`option`, true);
+        const value = interaction.options.getString(`value`, false);
 
-    // apply
-    if (option === `preferred_locale`) {
-        const normalized = normalizeLocale(value);
-        await SetUserLocale(discordId, normalized);
-        await interaction.reply({ content: `Preferred locale set to ${normalized}`, ephemeral: true });
-        return;
-    }
+        if (!isKnownOption(option)) {
+            await interaction.reply({
+                content: TranslateFromContext(interaction.executionContext, `commands.user.errors.unknownOption`),
+                flags: MessageFlags.Ephemeral,
+            });
+            return;
+        }
 
-    await interaction.reply({ content: `Option handler missing for ${option}`, ephemeral: true });
+        const discordId = interaction.user.id;
+
+        if (!value) {
+            if (option === `preferred_locale`) {
+                const current = await GetUserLocale(discordId);
+                const content = current
+                    ? TranslateFromContext(interaction.executionContext, `commands.user.messages.currentLocale`, { params: { locale: current } })
+                    : TranslateFromContext(interaction.executionContext, `commands.user.messages.currentLocaleUnset`);
+                await interaction.reply({ content, flags: MessageFlags.Ephemeral });
+                return;
+            }
+            await interaction.reply({
+                content: TranslateFromContext(interaction.executionContext, `commands.user.errors.noValueReader`, { params: { option } }),
+                flags: MessageFlags.Ephemeral,
+            });
+            return;
+        }
+
+        const validationError = await ValidateOptionValue(option, value);
+        if (validationError) {
+            await interaction.reply({
+                content: TranslateFromContext(interaction.executionContext, `commands.user.errors.invalidValue`, { params: { reason: validationError } }),
+                flags: MessageFlags.Ephemeral,
+            });
+            return;
+        }
+
+        if (option === `preferred_locale`) {
+            const normalized = normalizeLocale(value);
+            await SetUserLocale(discordId, normalized);
+            await interaction.reply({
+                content: TranslateFromContext(interaction.executionContext, `commands.user.messages.localeSet`, { params: { locale: normalized } }),
+                flags: MessageFlags.Ephemeral,
+            });
+            return;
+        }
+
+        await interaction.reply({
+            content: TranslateFromContext(interaction.executionContext, `commands.user.errors.optionHandlerMissing`, { params: { option } }),
+            flags: MessageFlags.Ephemeral,
+        });
+    } catch(error) {
+        void error;
+        await interaction.reply({
+            content: TranslateFromContext(interaction.executionContext, `commands.user.errors.unexpected`),
+            flags: MessageFlags.Ephemeral,
+        });
+    } finally {
+        // no-op
+    }
 }

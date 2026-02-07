@@ -9,6 +9,7 @@ import { neo4jClient } from '../../Setup/Neo4j.js';
 import { flowManager } from '../../Common/Flow/Manager.js';
 import { log } from '../../Common/Log.js';
 import { ResolveExecutionOrganization } from '../../Flow/Object/Organization/Selection/ResolveExecutionOrganization.js';
+import { TranslateFromContext } from '../../Services/I18nService.js';
 
 /**
  * Create task from replied message for current turn
@@ -41,7 +42,7 @@ async function __CreateTaskFromInteraction(
     const serverId = interaction.guildId;
     if (!serverId) {
         await interaction.reply({
-            content: `This command must be used in a server`,
+            content: TranslateFromContext(interaction.executionContext, `commands.create.task.errors.serverOnly`),
             flags: MessageFlags.Ephemeral,
         });
         return;
@@ -55,7 +56,7 @@ async function __CreateTaskFromInteraction(
         const targetMessage = await __FetchTargetMessage(interaction);
         if (!targetMessage) {
             await interaction.editReply({
-                content: `Select a message to create a task`,
+                content: TranslateFromContext(interaction.executionContext, `commands.create.task.errors.noTargetMessage`),
             });
             return;
         }
@@ -63,7 +64,7 @@ async function __CreateTaskFromInteraction(
         const messageContent = targetMessage.content?.trim();
         if (!messageContent) {
             await interaction.editReply({
-                content: `The selected message has no text content`,
+                content: TranslateFromContext(interaction.executionContext, `commands.create.task.errors.noMessageContent`),
             });
             return;
         }
@@ -74,7 +75,7 @@ async function __CreateTaskFromInteraction(
         const game = games[0];
         if (!game) {
             await interaction.editReply({
-                content: `No game exists in this server. Create one first with \`/create game\``,
+                content: TranslateFromContext(interaction.executionContext, `commands.create.task.errors.noGame`),
             });
             return;
         }
@@ -83,10 +84,10 @@ async function __CreateTaskFromInteraction(
         const targetTurn = currentTurn + delay;
 
         const executionOrganization = await ResolveExecutionOrganization(interaction.user.id, null);
-        const organizationUid = executionOrganization.scopeType === 'organization' && executionOrganization.organizationUid ? executionOrganization.organizationUid : '';
+        const organizationUid = executionOrganization.scopeType === `organization` && executionOrganization.organizationUid ? executionOrganization.organizationUid : ``;
 
         const task = await CreateTaskRecord(neo4jClient, {
-            organizationUid: organizationUid || '',
+            organizationUid: organizationUid || ``,
             gameUid: game.uid,
             turnNumber: targetTurn,
             creatorDiscordId: interaction.user.id,
@@ -98,26 +99,31 @@ async function __CreateTaskFromInteraction(
             ? `current turn (${targetTurn})`
             : `turn ${targetTurn} (delay: ${delay > 0 ? `+` : ``}${delay})`;
 
-        const organizationName = executionOrganization.organizationName || `User`;
+        const userLabel = TranslateFromContext(interaction.executionContext, `commands.view.common.user`);
+        const organizationName = executionOrganization.organizationName || userLabel;
         const REMOVE_ID = `remove_task_${task.id}`;
+        const executionContext = interaction.executionContext;
 
         await flowManager
             .builder(interaction.user.id, interaction, { task, organizationUid })
             .step([REMOVE_ID], `create_task_success`)
-            .prompt(async (ctx) => {
+            .prompt(async(ctx) => {
                 const removeButton = new ButtonBuilder()
                     .setCustomId(REMOVE_ID)
-                    .setLabel(`Remove Task`)
+                    .setLabel(TranslateFromContext(executionContext, `commands.create.task.actions.remove`))
                     .setStyle(ButtonStyle.Danger);
 
                 const row = new ActionRowBuilder<ButtonBuilder>().addComponents(removeButton);
+                const preview = `${messageContent.slice(0, 100)}${messageContent.length > 100 ? `...` : ``}`;
 
                 await interaction.editReply({
-                    content: `Task created (${organizationName}) — ID: \`${task.id}\` — ${messageContent.slice(0, 100)}${messageContent.length > 100 ? `...` : ``}`,
+                    content: TranslateFromContext(executionContext, `commands.create.task.messages.created`, {
+                        params: { organization: organizationName, id: task.id, preview },
+                    }),
                     components: [row],
                 });
             })
-            .onInteraction(async (ctx, incomingInteraction) => {
+            .onInteraction(async(ctx, incomingInteraction) => {
                 if (!incomingInteraction.isButton() || incomingInteraction.customId !== REMOVE_ID) {
                     return false;
                 }
@@ -132,12 +138,14 @@ async function __CreateTaskFromInteraction(
 
                 if (deleted) {
                     await interaction.editReply({
-                        content: `Task \`${ctx.state.task.id}\` has been removed.`,
+                        content: TranslateFromContext(executionContext, `commands.create.task.messages.removed`, {
+                            params: { id: ctx.state.task.id },
+                        }),
                         components: [],
                     });
                 } else {
                     await interaction.followUp({
-                        content: `Failed to remove task. It may have already been deleted.`,
+                        content: TranslateFromContext(executionContext, `commands.create.task.errors.removeFailed`),
                         flags: MessageFlags.Ephemeral,
                     });
                 }
@@ -146,12 +154,14 @@ async function __CreateTaskFromInteraction(
             })
             .next()
             .start();
-    } catch (error) {
+    } catch(error) {
         const message = error instanceof Error ? error.message : String(error);
         const stack = error instanceof Error ? error.stack : undefined;
         log.error(`Failed to create task: ${message}`, `CreateTask`, stack);
         await interaction.editReply({
-            content: `Failed to create task: ${message}`,
+            content: TranslateFromContext(interaction.executionContext, `commands.create.task.errors.failed`, {
+                params: { message },
+            }),
         });
     }
 }

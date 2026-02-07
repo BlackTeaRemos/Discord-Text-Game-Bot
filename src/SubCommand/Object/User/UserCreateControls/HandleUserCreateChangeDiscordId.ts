@@ -6,7 +6,8 @@ import { ClearUserCreateSessionTimeout } from './ClearUserCreateSessionTimeout.j
 import { RefreshUserCreateSessionTimeout } from './RefreshUserCreateSessionTimeout.js';
 import { ExpireUserCreateSession } from './ExpireUserCreateSession.js';
 import { UpdateUserCreateSessionControls, UpdateUserCreateSessionPreview } from './UserCreateSessionRenderer.js';
-import { UserCreatePromptMessages, NormalizeUserCreatePromptErrorMessage } from './UserCreatePromptMessages.js';
+import { GetUserCreatePromptMessages, NormalizeUserCreatePromptErrorMessage } from './UserCreatePromptMessages.js';
+import { TranslateFromContext } from '../../../../Services/I18nService.js';
 
 export interface HandleUserCreateChangeDiscordIdOptions {
     /**
@@ -33,7 +34,7 @@ export async function HandleUserCreateChangeDiscordId(options: HandleUserCreateC
     try {
         const newDiscordId = await PromptText({
             interaction: session.baseInteraction,
-            prompt: `Send the Discord user ID you want to register. Type **cancel** to keep the current value.`,
+            prompt: TranslateFromContext((session.baseInteraction as any).executionContext, `userCreate.prompt.discordIdPrompt`),
             minLength: 2,
             maxLength: 32,
             cancelWords: [`cancel`],
@@ -44,7 +45,7 @@ export async function HandleUserCreateChangeDiscordId(options: HandleUserCreateC
                 }
                 return /^\d{15,25}$/.test(trimmed)
                     ? true
-                    : `Discord IDs must contain only digits and be between 15 and 25 characters long.`;
+                    : TranslateFromContext((session.baseInteraction as any).executionContext, `userCreate.prompt.discordIdValidation`);
             },
         });
         const trimmed = newDiscordId.trim();
@@ -53,13 +54,14 @@ export async function HandleUserCreateChangeDiscordId(options: HandleUserCreateC
             await UpdateUserCreateSessionPreview(session);
         }
     } catch (error) {
-        const message = error instanceof Error ? error.message : UserCreatePromptMessages.genericError;
+        const promptMessages = GetUserCreatePromptMessages((session.baseInteraction as any).executionContext);
+        const message = error instanceof Error ? error.message : promptMessages.genericError;
         const normalized = NormalizeUserCreatePromptErrorMessage({
             message,
-            cancelMessage: UserCreatePromptMessages.discordIdCancel,
-            timeoutMessage: UserCreatePromptMessages.discordIdTimeout,
-            defaultMessage: UserCreatePromptMessages.genericError,
-        });
+            cancelMessage: promptMessages.discordIdCancel,
+            timeoutMessage: promptMessages.discordIdTimeout,
+            defaultMessage: promptMessages.genericError,
+        }, (session.baseInteraction as any).executionContext);
         await session.baseInteraction.followUp({ content: normalized, flags: MessageFlags.Ephemeral });
     } finally {
         session.state.awaitingDiscordId = false;

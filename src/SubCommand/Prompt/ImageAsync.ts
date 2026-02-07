@@ -2,6 +2,9 @@ import { Attachment, ChatInputCommandInteraction, Message, MessageFlags } from '
 import { MAIN_EVENT_BUS } from '../../Events/MainEventBus.js';
 import { log } from '../../Common/Log.js';
 import { ValidateFileOrImageInput } from './File.js';
+import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
+import { TranslateFromContext } from '../../Services/I18nService.js';
+import type { ExecutionContext } from '../../Domain/Command.js';
 
 /**
  * Options controlling awaited image collection from a Discord user.
@@ -12,7 +15,7 @@ import { ValidateFileOrImageInput } from './File.js';
  * @property maxFileSizeBytes number | undefined Maximum accepted file size in bytes. @example 10485760
  */
 export interface AwaitImageInputOptions {
-    interaction: ChatInputCommandInteraction;
+    interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>;
     prompt: string;
     timeoutMs?: number;
     cancelWords?: string[];
@@ -27,10 +30,10 @@ export interface AwaitImageInputResult {
 
 const DEFAULT_TIMEOUT_MS = 2 * 60 * 1000;
 const DEFAULT_CANCEL_WORDS = [`cancel`];
-const TIMEOUT_ERROR_MESSAGE = `User response timeout reached while waiting for image input.`;
-const CANCELLATION_ERROR_MESSAGE = `User cancelled the image prompt.`;
-const HTTPS_REQUIRED_MESSAGE = `Provide an image that is hosted over https.`;
-const UPLOAD_ERROR_MESSAGE = `Processing the image failed. Please try again.`;
+const TIMEOUT_ERROR_KEY = `prompt.image.timeout`;
+const CANCELLATION_ERROR_KEY = `prompt.image.cancelled`;
+const HTTPS_REQUIRED_KEY = `prompt.image.httpsRequired`;
+const UPLOAD_ERROR_KEY = `prompt.image.uploadFailed`;
 const ATTACHMENT_DELETE_DELAY_MS = 5000;
 
 /**
@@ -50,7 +53,7 @@ export async function AwaitImageInput(options: AwaitImageInputOptions): Promise<
 
     const channelId = options.interaction.channelId;
     if (!channelId) {
-        throw new Error(`Unable to determine channel for image capture.`);
+        throw new Error(TranslateFromContext(options.interaction.executionContext, `prompt.image.missingChannel`));
     }
 
     const reportIssue = async (message: string): Promise<void> => {
@@ -155,41 +158,49 @@ export async function AwaitImageInput(options: AwaitImageInputOptions): Promise<
                 content,
                 attachment,
                 cancelWords,
-                validator: fileValidator(maxSize),
+                validator: fileValidator(maxSize, options.interaction.executionContext),
             });
 
             if (validation.status === `cancel`) {
-                await rejectWith(new Error(CANCELLATION_ERROR_MESSAGE));
+                await rejectWith(new Error(TranslateFromContext(options.interaction.executionContext, CANCELLATION_ERROR_KEY)));
                 return;
             }
 
             if (validation.status === `error`) {
-                await reportIssue(validation.errorMessage ?? UPLOAD_ERROR_MESSAGE);
+                await reportIssue(
+                    validation.errorMessage ?? TranslateFromContext(options.interaction.executionContext, UPLOAD_ERROR_KEY),
+                );
                 return;
             }
 
             if (!validation.value) {
-                await reportIssue(`No image detected. Send an attachment or direct image URL.`);
+                await reportIssue(TranslateFromContext(options.interaction.executionContext, `prompt.image.noImageDetected`));
                 return;
             }
 
             try {
                 if (validation.value.type === `attachment`) {
-                    const result = await uploadAttachment(validation.value.value as Attachment, maxSize);
+                    const result = await uploadAttachment(
+                        validation.value.value as Attachment,
+                        maxSize,
+                        options.interaction.executionContext,
+                    );
                     await resolveWith(result, message, false);
                 } else {
-                    const result = resolveExternalImage(validation.value.value as string);
+                    const result = resolveExternalImage(validation.value.value as string, options.interaction.executionContext);
                     await resolveWith(result, message, true);
                 }
             } catch (error) {
-                const messageText = error instanceof Error ? error.message : UPLOAD_ERROR_MESSAGE;
+                const messageText = error instanceof Error
+                    ? error.message
+                    : TranslateFromContext(options.interaction.executionContext, UPLOAD_ERROR_KEY);
                 await reportIssue(messageText);
             }
         };
 
         timeoutHandle = setTimeout(
             () => {
-                void rejectWith(new Error(TIMEOUT_ERROR_MESSAGE));
+                void rejectWith(new Error(TranslateFromContext(options.interaction.executionContext, TIMEOUT_ERROR_KEY)));
             },
             Math.max(0, timeoutMs),
         );
@@ -198,28 +209,38 @@ export async function AwaitImageInput(options: AwaitImageInputOptions): Promise<
     });
 }
 
-function fileValidator(maxSize?: number) {
+function fileValidator(maxSize?: number, executionContext?: ExecutionContext) {
     if (!maxSize) {
         return undefined;
     }
     return (attachment: Attachment) => {
         if (typeof attachment.size === `number` && attachment.size > maxSize) {
-            return `Image exceeds the maximum size of ${(maxSize / (1024 * 1024)).toFixed(1)} MB.`;
+            return TranslateFromContext(executionContext, `prompt.image.maxSize`, {
+                params: { maxSizeMb: (maxSize / (1024 * 1024)).toFixed(1) },
+            });
         }
         return true;
     };
 }
 
-async function uploadAttachment(attachment: Attachment, maxSize?: number): Promise<AwaitImageInputResult> {
+async function uploadAttachment(
+    attachment: Attachment,
+    maxSize?: number,
+    executionContext?: ExecutionContext,
+): Promise<AwaitImageInputResult> {
     if (maxSize && typeof attachment.size === `number` && attachment.size > maxSize) {
-        throw new Error(`Image exceeds the maximum size of ${(maxSize / (1024 * 1024)).toFixed(1)} MB.`);
+        throw new Error(
+            TranslateFromContext(executionContext, `prompt.image.maxSize`, {
+                params: { maxSizeMb: (maxSize / (1024 * 1024)).toFixed(1) },
+            }),
+        );
     }
-    const url = ensureHttpsUrl(attachment.url);
+    const url = ensureHttpsUrl(attachment.url, executionContext);
     return { url, objectName: attachment.name ?? `image` };
 }
 
-function resolveExternalImage(url: string): AwaitImageInputResult {
-    const normalized = ensureHttpsUrl(url);
+function resolveExternalImage(url: string, executionContext?: ExecutionContext): AwaitImageInputResult {
+    const normalized = ensureHttpsUrl(url, executionContext);
     const parsed = new URL(normalized);
     const objectName = extractFileName(parsed.pathname) ?? `image`;
     return { url: normalized, objectName };
@@ -233,15 +254,15 @@ function extractFileName(path: string): string | undefined {
     return segments[segments.length - 1];
 }
 
-function ensureHttpsUrl(raw: string): string {
+function ensureHttpsUrl(raw: string, executionContext?: ExecutionContext): string {
     let parsed: URL;
     try {
         parsed = new URL(raw);
     } catch {
-        throw new Error(`Provide a valid image URL starting with https.`);
+        throw new Error(TranslateFromContext(executionContext, `prompt.image.invalidUrl`));
     }
     if (parsed.protocol !== `https:`) {
-        throw new Error(HTTPS_REQUIRED_MESSAGE);
+        throw new Error(TranslateFromContext(executionContext, HTTPS_REQUIRED_KEY));
     }
     return parsed.toString();
 }

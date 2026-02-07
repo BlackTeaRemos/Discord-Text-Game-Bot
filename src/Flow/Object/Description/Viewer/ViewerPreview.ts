@@ -1,6 +1,7 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Colors } from 'discord.js';
 import type { DescriptionViewerState } from './Types.js';
 import { GetPageContent, CalculatePageCount } from '../Scope/Types.js';
+import { Translate } from '../../../../Services/I18nService.js';
 
 /** Custom ID for previous page button. */
 export const VIEWER_PAGE_PREV_BUTTON_ID = `description_viewer_page_prev`;
@@ -47,7 +48,7 @@ export function BuildViewerPreview(
     const embed = new EmbedBuilder()
         .setColor(Colors.Blue)
         .setTitle(__BuildPreviewTitle(state))
-        .setDescription(pageContent || `No description yet.`)
+        .setDescription(pageContent || Translate(`descriptionViewer.noDescription`))
         .setFooter({ text: __BuildFooterText(currentPage, totalPages, state) });
 
     const components = __BuildNavigationButtons(currentPage, totalPages, options.showEditButton);
@@ -61,7 +62,7 @@ export function BuildViewerPreview(
  * @returns string Title text including scope label.
  */
 function __BuildPreviewTitle(state: DescriptionViewerState): string {
-    const scopeLabel = state.selectedScope?.label ?? `Description`;
+    const scopeLabel = state.selectedScope?.label ?? Translate(`descriptionViewer.scopeDefault`);
     return `${state.objectReference.objectType} - ${scopeLabel}`;
 }
 
@@ -77,7 +78,9 @@ function __BuildFooterText(
     totalPages: number,
     state: DescriptionViewerState,
 ): string {
-    const pageIndicator = totalPages > 1 ? `Page ${currentPage + 1}/${totalPages}` : ``;
+    const pageIndicator = totalPages > 1
+        ? Translate(`descriptionViewer.pageIndicator`, { params: { index: currentPage + 1, total: totalPages } })
+        : ``;
     const scopeIndicator = state.selectedScope ? state.selectedScope.scopeType : ``;
     return [pageIndicator, scopeIndicator].filter(Boolean).join(` | `);
 }
@@ -99,13 +102,13 @@ function __BuildNavigationButtons(
     if (totalPages > 1) {
         const prevButton = new ButtonBuilder()
             .setCustomId(VIEWER_PAGE_PREV_BUTTON_ID)
-            .setLabel(`Previous`)
+            .setLabel(Translate(`descriptionViewer.previous`))
             .setStyle(ButtonStyle.Secondary)
             .setDisabled(currentPage === 0);
 
         const nextButton = new ButtonBuilder()
             .setCustomId(VIEWER_PAGE_NEXT_BUTTON_ID)
-            .setLabel(`Next`)
+            .setLabel(Translate(`descriptionViewer.next`))
             .setStyle(ButtonStyle.Secondary)
             .setDisabled(currentPage >= totalPages - 1);
 
@@ -115,7 +118,7 @@ function __BuildNavigationButtons(
     if (showEditButton) {
         const editButton = new ButtonBuilder()
             .setCustomId(VIEWER_EDIT_BUTTON_ID)
-            .setLabel(`Edit`)
+            .setLabel(Translate(`descriptionViewer.edit`))
             .setStyle(ButtonStyle.Primary);
 
         buttons.push(editButton);

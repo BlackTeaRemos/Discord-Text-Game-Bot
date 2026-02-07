@@ -6,7 +6,7 @@ import { CalculatePageCount } from '../Scope/Types.js';
 import { RunDescriptionViewerFlow } from '../Viewer/DescriptionViewerFlow.js';
 import { SaveScopedDescription } from '../Scope/SaveScopedDescription.js';
 import { RunDescriptionComposerFlow } from '../Composer/DescriptionComposerFlow.js';
-
+import { TranslateFromContext } from '../../../../Services/I18nService.js';
 /** Timeout for text input collection in milliseconds. */
 const TEXT_INPUT_TIMEOUT_MS = 300000;
 
@@ -67,7 +67,9 @@ function __CreateEditCallback(
             {
                 initialContent: state.currentContent,
                 maxLength: 4000,
-                prompt: `Type your new description for **${state.selectedScope.label}** in this channel.\nYour next message will replace the current content.\nType **cancel** to abort.`,
+                prompt: TranslateFromContext((buttonInteraction as any).executionContext, `descriptionEditor.prompt`, {
+                    params: { scope: state.selectedScope.label },
+                }),
                 timeoutMs: TEXT_INPUT_TIMEOUT_MS,
                 userUid: state.userUid,
                 organizationUid: state.organizationUid,
@@ -79,7 +81,7 @@ function __CreateEditCallback(
         if (!composerResult.success || !composerResult.content) {
             if (composerResult.cancelled) {
                 await buttonInteraction.followUp({
-                    content: `Edit cancelled.`,
+                    content: TranslateFromContext((buttonInteraction as any).executionContext, `descriptionEditor.messages.cancelled`),
                     flags: MessageFlags.Ephemeral,
                 }).catch(() => {});
             }
@@ -96,7 +98,7 @@ function __CreateEditCallback(
             });
 
             await buttonInteraction.followUp({
-                content: `Description updated successfully.`,
+                content: TranslateFromContext((buttonInteraction as any).executionContext, `descriptionEditor.messages.updated`),
                 flags: MessageFlags.Ephemeral,
             });
 
@@ -107,7 +109,9 @@ function __CreateEditCallback(
                 totalPages: CalculatePageCount(composerResult.content),
             };
         } catch(error) {
-            const errorMessage = error instanceof Error ? error.message : `Save failed.`;
+            const errorMessage = error instanceof Error
+                ? error.message
+                : TranslateFromContext((buttonInteraction as any).executionContext, `descriptionEditor.errors.saveFailed`);
             await buttonInteraction.followUp({
                 content: errorMessage,
                 flags: MessageFlags.Ephemeral,

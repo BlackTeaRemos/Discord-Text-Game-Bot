@@ -6,6 +6,7 @@ import { GetScopedDescription } from '../Scope/GetScopedDescription.js';
 import { BuildScopeSelectorComponent, ResolveScopeFromSelection, SCOPE_SELECTOR_CUSTOM_ID } from '../Editor/ScopeSelectorComponent.js';
 import { BuildViewerPreview } from './ViewerPreview.js';
 import { HandleViewerPreviewLoop } from './ViewerNavigationHandler.js';
+import { TranslateFromContext } from '../../../../Services/I18nService.js';
 
 /** Timeout for component interactions in milliseconds. */
 export const VIEWER_INTERACTION_TIMEOUT_MS = 300000;
@@ -68,7 +69,10 @@ export async function HandleViewerScopeSelection(
     const selectedScope = ResolveScopeFromSelection(state.availableScopes, selectedValue);
 
     if (!selectedScope) {
-        await interaction.reply({ content: `Invalid scope selection.`, ephemeral: true });
+        await interaction.reply({
+            content: TranslateFromContext((interaction as any).executionContext, `descriptionViewer.invalidScope`),
+            flags: MessageFlags.Ephemeral,
+        });
         return state;
     }
 

@@ -4,35 +4,39 @@ import type { TokenSegmentInput } from '../../Common/Permission/index.js';
 import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
 import { ExecuteCreateGame } from './Game.js';
 import { ExecuteCreateDescription } from './Description.js';
+import { Translate, TranslateFromContext, BuildLocalizations } from '../../Services/I18nService.js';
 
 export const data = new SlashCommandBuilder()
     .setName(`create`)
-    .setDescription(`Create game entities`)
+    .setDescription(Translate(`commands.create.description`))
+    .setDescriptionLocalizations(BuildLocalizations(`commands.create.description`))
     .addSubcommand(subcommand => {
         return subcommand
             .setName(`game`)
-            .setDescription(`Create a new game for this server`)
+            .setDescription(Translate(`commands.create.subcommands.game.description`))
+            .setDescriptionLocalizations(BuildLocalizations(`commands.create.subcommands.game.description`))
             .addStringOption(option => {
                 return option
                     .setName(`name`)
-                    .setDescription(`Name for the game`)
+                    .setDescription(Translate(`commands.create.options.game.name`))
+                    .setDescriptionLocalizations(BuildLocalizations(`commands.create.options.game.name`))
                     .setRequired(true);
             });
     })
     .addSubcommand(subcommand => {
         return subcommand
             .setName(`description`)
-            .setDescription(`Edit description for an object`)
+            .setDescription(Translate(`commands.create.subcommands.description.description`))
             .addStringOption(option => {
                 return option
                     .setName(`id`)
-                    .setDescription(`Object identifier to edit description for`)
+                    .setDescription(Translate(`commands.create.options.description.id`))
                     .setRequired(true);
             })
             .addStringOption(option => {
                 return option
                     .setName(`organization`)
-                    .setDescription(`Organization UID to execute as (use 'global' for shared org)`)
+                    .setDescription(Translate(`commands.create.options.description.organization`))
                     .setRequired(false);
             });
     });
@@ -58,7 +62,9 @@ export async function execute(
             break;
         default:
             await interaction.reply({
-                content: `Unknown subcommand: ${subcommand}`,
+                content: TranslateFromContext(interaction.executionContext, `commands.create.errors.unknownSubcommand`, {
+                    params: { subcommand },
+                }),
                 flags: MessageFlags.Ephemeral,
             });
     }

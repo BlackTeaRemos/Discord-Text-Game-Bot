@@ -2,6 +2,8 @@ import { Attachment, ChatInputCommandInteraction, Message, MessageFlags } from '
 import { MAIN_EVENT_BUS } from '../../Events/MainEventBus.js';
 import { ValidateFileOrImageInput } from './File.js';
 import { log } from '../../Common/Log.js';
+import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
+import { TranslateFromContext } from '../../Services/I18nService.js';
 
 /**
  * Options for awaiting file input via Discord messages.
@@ -12,7 +14,7 @@ import { log } from '../../Common/Log.js';
  * @property validator (attachment: AttachmentBuilder) => boolean | string Optional additional validation logic. @example (att) => att.size < MAX
  */
 export interface AwaitFileInputOptions {
-    interaction: ChatInputCommandInteraction;
+    interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>;
     prompt: string;
     timeoutMs?: number;
     cancelWords?: string[];
@@ -21,6 +23,10 @@ export interface AwaitFileInputOptions {
 
 /** Default timeout (in milliseconds) applied when options.timeoutMs is not defined. */
 const DEFAULT_TIMEOUT_MS = 2 * 60 * 1000;
+const FILE_TIMEOUT_KEY = `prompt.file.timeout`;
+const FILE_CANCEL_KEY = `prompt.file.cancelled`;
+const FILE_INVALID_KEY = `prompt.file.invalid`;
+const FILE_MISSING_CHANNEL_KEY = `prompt.file.missingChannel`;
 
 /**
  * Await an image attachment or direct image URL from the invoking user.
@@ -41,7 +47,7 @@ export async function AwaitFileInput(options: AwaitFileInputOptions): Promise<{
 
     const channelId = interaction.channelId;
     if (!channelId) {
-        throw new Error(`Unable to determine channel for file input.`);
+        throw new Error(TranslateFromContext(interaction.executionContext, FILE_MISSING_CHANNEL_KEY));
     }
 
     return await new Promise((resolve, reject) => {
@@ -128,13 +134,14 @@ export async function AwaitFileInput(options: AwaitFileInputOptions): Promise<{
             });
 
             if (validation.status === `cancel`) {
-                await rejectWith(new Error(`User cancelled the file prompt.`));
+                await rejectWith(new Error(TranslateFromContext(interaction.executionContext, FILE_CANCEL_KEY)));
                 return;
             }
 
             if (validation.status === `error` || !validation.value) {
                 await message.reply(
-                    validation.errorMessage ?? `Invalid file input. Upload an image or paste a direct URL.`,
+                    validation.errorMessage
+                        ?? TranslateFromContext(interaction.executionContext, FILE_INVALID_KEY),
                 );
                 return;
             }
@@ -144,7 +151,7 @@ export async function AwaitFileInput(options: AwaitFileInputOptions): Promise<{
 
         timeoutHandle = setTimeout(
             () => {
-                void rejectWith(new Error(`User response timeout reached while waiting for file input.`));
+                void rejectWith(new Error(TranslateFromContext(interaction.executionContext, FILE_TIMEOUT_KEY)));
             },
             Math.max(0, timeoutMs),
         );

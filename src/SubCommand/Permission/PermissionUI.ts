@@ -12,6 +12,7 @@ import { GrantForever, type PermissionDecision, type PermissionToken } from '../
 import { FormatPermissionToken } from '../../Common/Permission/formatPermissionToken.js';
 import { PermissionApprovalError } from '../../Common/Errors.js';
 import { log } from '../../Common/Log.js';
+import { TranslateFromContext } from '../../Services/I18nService.js';
 
 /**
  * Requests administrator approval for a set of permission tokens tied to an interaction.
@@ -27,6 +28,9 @@ export async function RequestPermissionFromAdmin(
     options: { tokens: PermissionToken[]; reason?: string },
     timeoutMs = 5 * 60 * 1000,
 ): Promise<PermissionDecision> {
+    const __Translate = (key: string, params?: Record<string, unknown>): string => {
+        return TranslateFromContext((interaction as any).executionContext, key, { params });
+    };
     log.info(
         `PermissionUI.RequestPermissionFromAdmin`,
         import.meta.filename,
@@ -62,11 +66,11 @@ export async function RequestPermissionFromAdmin(
                 `RequestPermissionFromAdmin`,
             );
         }
-    };
+    }; 
 
     const guild = interaction.guild;
     if (!guild) {
-        const message = `Unable to locate the server context for approval. Try again from within the guild.`;
+        const message = __Translate(`permission.missingGuild`);
         await _respondToUser(message);
         throw new PermissionApprovalError(message, {
             reason: `missing_guild`,
@@ -157,7 +161,7 @@ export async function RequestPermissionFromAdmin(
     );
 
     if (!admins || admins.size === 0) {
-        const message = `No eligible administrator could be contacted. Ask an admin to review permissions.`;
+        const message = __Translate(`permission.noAdminAvailable`);
         await _respondToUser(message);
         throw new PermissionApprovalError(message, {
             reason: `no_admin`,
@@ -177,20 +181,20 @@ export async function RequestPermissionFromAdmin(
     // Build message
     const tokensStr = options.tokens.map(FormatPermissionToken).join(`, `);
     const embed = new EmbedBuilder()
-        .setTitle(`Permission request`)
+        .setTitle(__Translate(`permission.requestTitle`))
         .setColor(Colors.Orange)
-        .setDescription(`User <@${interaction.user.id}> requested to run command(s): ${tokensStr}`)
-        .addFields([{ name: `Reason`, value: options.reason || `No reason provided` }]);
+        .setDescription(__Translate(`permission.requestDescription`, { userId: interaction.user.id, tokens: tokensStr }))
+        .addFields([{ name: __Translate(`permission.reasonLabel`), value: options.reason || __Translate(`permission.noReason`) }]);
 
     const approveOnceBtn = new ButtonBuilder()
         .setCustomId(`perm_approve_once`)
-        .setLabel(`Approve once`)
+        .setLabel(__Translate(`permission.approveOnce`))
         .setStyle(ButtonStyle.Primary);
     const approveForeverBtn = new ButtonBuilder()
         .setCustomId(`perm_approve_forever`)
-        .setLabel(`Approve forever`)
+        .setLabel(__Translate(`permission.approveForever`))
         .setStyle(ButtonStyle.Success);
-    const denyBtn = new ButtonBuilder().setCustomId(`perm_deny`).setLabel(`Deny`).setStyle(ButtonStyle.Danger);
+    const denyBtn = new ButtonBuilder().setCustomId(`perm_deny`).setLabel(__Translate(`permission.deny`)).setStyle(ButtonStyle.Danger);
 
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(approveOnceBtn, approveForeverBtn, denyBtn);
 
@@ -198,6 +202,15 @@ export async function RequestPermissionFromAdmin(
     const channelAny = interaction.channel as any;
     const botMember =
         interaction.guild.members.me ?? (await interaction.guild.members.fetch(interaction.client.user.id));
+    if (!botMember) {
+        const message = __Translate(`permission.membersUnavailable`);
+        await _respondToUser(message);
+        throw new PermissionApprovalError(message, {
+            reason: `members_unavailable`,
+            guildId: guild.id,
+            userId: interaction.user.id,
+        });
+    }
     const botCanSend =
         typeof channelAny?.permissionsFor === `function`
             ? channelAny.permissionsFor(botMember)?.has(PermissionsBitField.Flags.SendMessages)
@@ -209,7 +222,7 @@ export async function RequestPermissionFromAdmin(
             import.meta.filename,
             JSON.stringify({ channelId: interaction.channel?.id, botId: botMember?.id }),
         );
-        const message = `I don't have permission to send messages in this channel. Ask a server admin to grant me Send Messages permission.`;
+        const message = __Translate(`permission.botCannotSend`);
         await _respondToUser(message);
         throw new PermissionApprovalError(message, {
             reason: `bot_no_send`,
@@ -241,13 +254,7 @@ export async function RequestPermissionFromAdmin(
                 adminId: admin.id,
             }),
         );
-        const message = `Failed to deliver approval request in the current channel.`;
-        await _respondToUser(message);
-        throw new PermissionApprovalError(message, {
-            reason: `delivery_failed`,
-            guildId: guild.id,
-            userId: interaction.user.id,
-        });
+        throw new Error(__Translate(`permission.channelNoSend`));
     }
 
     // Wait for button from the selected admin
@@ -277,10 +284,9 @@ export async function RequestPermissionFromAdmin(
             }
             return `approve_forever`;
         }
-        const message = `Administrator denied the permission request.`;
+        const message = __Translate(`permission.adminDenied`);
         await _respondToUser(message);
         throw new PermissionApprovalError(message, {
-            reason: `deny`,
             guildId: guild.id,
             userId: interaction.user.id,
             adminId: admin.id,
@@ -288,12 +294,15 @@ export async function RequestPermissionFromAdmin(
     } catch(err) {
         // Timeout or other error
         try {
-            await msg.edit({ content: `${admin} (no response)`, components: [] });
+            await msg.edit({
+                content: __Translate(`permission.adminNoResponse`, { admin: String(admin) }),
+                components: [],
+            });
         } catch {}
         if (err instanceof PermissionApprovalError) {
             throw err;
         }
-        const message = `No administrator responded in time. Try again later.`;
+        const message = __Translate(`permission.adminTimeout`);
         await _respondToUser(message);
         throw new PermissionApprovalError(message, {
             reason: `timeout`,

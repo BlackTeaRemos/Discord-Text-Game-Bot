@@ -14,6 +14,8 @@ import { ListGamesForServer } from '../../Flow/Object/Game/ListGamesForServer.js
 import { GetGameCurrentTurn, UpdateGameTurn } from '../../Flow/Object/Game/Turn.js';
 import { flowManager } from '../../Common/Flow/Manager.js';
 import { log } from '../../Common/Log.js';
+import type { ExecutionContext } from '../../Domain/Command.js';
+import { TranslateFromContext } from '../../Services/I18nService.js';
 
 const MANAGE_GAME_NEXT_TURN_ID = `manage_game_next_turn`;
 const MANAGE_GAME_SET_TURN_ID = `manage_game_set_turn`;
@@ -28,6 +30,7 @@ interface ManageGameState {
     gameName: string; // game display name
     currentTurn: number; // current turn value
     baseInteraction: ChatInputCommandInteraction; // original interaction
+    executionContext: ExecutionContext; // interaction execution context
 }
 
 /**
@@ -41,7 +44,7 @@ export async function ExecuteManageGame(
     const serverId = interaction.guildId;
     if (!serverId) {
         await interaction.reply({
-            content: `This command must be used in a server`,
+            content: TranslateFromContext(interaction.executionContext, `commands.manage.game.errors.serverOnly`),
             flags: MessageFlags.Ephemeral,
         });
         return;
@@ -56,7 +59,7 @@ export async function ExecuteManageGame(
         const game = games[0];
         if (!game) {
             await interaction.editReply({
-                content: `No game exists in this server. Create one first with \`/create game\``,
+                content: TranslateFromContext(interaction.executionContext, `commands.manage.game.errors.noGame`),
             });
             return;
         }
@@ -67,6 +70,7 @@ export async function ExecuteManageGame(
             gameName: game.name,
             currentTurn,
             baseInteraction: interaction as unknown as ChatInputCommandInteraction,
+            executionContext: interaction.executionContext,
         };
 
         await flowManager
@@ -90,7 +94,9 @@ export async function ExecuteManageGame(
         const message = error instanceof Error ? error.message : String(error);
         log.error(`Failed to manage game`, message, `ManageGame`);
         await interaction.editReply({
-            content: `Failed to manage game: ${message}`,
+            content: TranslateFromContext(interaction.executionContext, `commands.manage.game.errors.failed`, {
+                params: { message },
+            }),
         });
     }
 }
@@ -101,19 +107,23 @@ export async function ExecuteManageGame(
  * @returns Promise<void> Resolves when reply is updated
  */
 async function __RenderManageGameUi(state: ManageGameState): Promise<void> {
+    const title = TranslateFromContext(state.executionContext, `commands.manage.game.labels.title`);
+    const currentTurnLabel = TranslateFromContext(state.executionContext, `commands.manage.game.labels.currentTurn`);
+    const description = `**${state.gameName}**\n\n${currentTurnLabel}: **${state.currentTurn}**`;
+
     const embed = new EmbedBuilder()
-        .setTitle(`Game Management`)
-        .setDescription(`**${state.gameName}**\n\nCurrent Turn: **${state.currentTurn}**`)
+        .setTitle(title)
+        .setDescription(description)
         .setColor(`Blue`);
 
     const nextTurnButton = new ButtonBuilder()
         .setCustomId(MANAGE_GAME_NEXT_TURN_ID)
-        .setLabel(`Next Turn`)
+        .setLabel(TranslateFromContext(state.executionContext, `commands.manage.game.actions.nextTurn`))
         .setStyle(ButtonStyle.Primary);
 
     const setTurnButton = new ButtonBuilder()
         .setCustomId(MANAGE_GAME_SET_TURN_ID)
-        .setLabel(`Set Turn`)
+        .setLabel(TranslateFromContext(state.executionContext, `commands.manage.game.actions.setTurn`))
         .setStyle(ButtonStyle.Secondary);
 
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(nextTurnButton, setTurnButton);
@@ -142,12 +152,12 @@ async function __HandleButton(state: ManageGameState, interaction: ButtonInterac
     if (interaction.customId === MANAGE_GAME_SET_TURN_ID) {
         const modal = new ModalBuilder()
             .setCustomId(MANAGE_GAME_SET_TURN_MODAL_ID)
-            .setTitle(`Set Turn Number`)
+            .setTitle(TranslateFromContext(state.executionContext, `commands.manage.game.modal.title`))
             .addComponents(
                 new ActionRowBuilder<TextInputBuilder>().addComponents(
                     new TextInputBuilder()
                         .setCustomId(MANAGE_GAME_TURN_INPUT_ID)
-                        .setLabel(`Turn Number`)
+                        .setLabel(TranslateFromContext(state.executionContext, `commands.manage.game.modal.inputLabel`))
                         .setStyle(TextInputStyle.Short)
                         .setValue(state.currentTurn.toString())
                         .setRequired(true),
@@ -176,7 +186,7 @@ async function __HandleModal(state: ManageGameState, interaction: ModalSubmitInt
 
     if (isNaN(newTurn) || newTurn < 1) {
         await interaction.reply({
-            content: `Invalid turn number. Must be a positive integer`,
+            content: TranslateFromContext(state.executionContext, `commands.manage.game.errors.invalidTurn`),
             flags: MessageFlags.Ephemeral,
         });
         return false;

@@ -1,3 +1,5 @@
+import { Translate } from '../../Services/I18nService.js';
+
 export interface SelectPromptValidationOptions {
     value?: string;
     validOptions?: string[];
@@ -26,7 +28,7 @@ export function ValidateSelectInput(options: SelectPromptValidationOptions): Sel
     const { value, validOptions = [], validator, cancelWords = [] } = options;
 
     if (!value) {
-        return { status: `error`, errorMessage: `Selection required.` };
+        return { status: `error`, errorMessage: Translate(`prompt.select.required`) };
     }
 
     if (cancelWords.includes(value.toLowerCase())) {
@@ -34,13 +36,13 @@ export function ValidateSelectInput(options: SelectPromptValidationOptions): Sel
     }
 
     if (validOptions.length > 0 && !validOptions.includes(value)) {
-        return { status: `error`, errorMessage: `Invalid selection.` };
+        return { status: `error`, errorMessage: Translate(`prompt.select.invalid`) };
     }
 
     if (validator) {
         const result = validator(value);
         if (result === false) {
-            return { status: `error`, errorMessage: `Selection validation failed.` };
+            return { status: `error`, errorMessage: Translate(`prompt.select.validationFailed`) };
         }
         if (typeof result === `string`) {
             return { status: `error`, errorMessage: result };

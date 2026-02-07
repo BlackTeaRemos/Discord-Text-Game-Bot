@@ -7,6 +7,7 @@ import type { InteractionExecutionContextCarrier } from '../../Common/Type/Inter
 import { log } from '../../Common/Log.js';
 import { BuildCommandSubcommandIndex, LoadCommandSubcommands } from '../CommandSubcommand.js';
 import type { CommandBuilder } from '../CommandSubcommand.js';
+import { Translate, TranslateFromContext } from '../../Services/I18nService.js';
 
 const _filePath = fileURLToPath(import.meta.url); // module file path
 const _dirPath = dirname(_filePath); // module directory path
@@ -18,7 +19,7 @@ const _organizationSubcommandIndex = BuildCommandSubcommandIndex(_organizationSu
 export const data = (() => {
     let builder: CommandBuilder = new SlashCommandBuilder()
         .setName(`organization`)
-        .setDescription(`Manage organizations and hierarchy`);
+        .setDescription(Translate(`commands.organization.description`));
 
     for (const subcommand of _organizationSubcommandIndex.ungrouped.values()) {
         builder = builder.addSubcommand(sub => {
@@ -33,7 +34,8 @@ export const data = (() => {
             continue;
         }
 
-        const description = _organizationSubcommandIndex.groupDescriptions.get(groupName) ?? `Manage ${groupName}`;
+        const description = _organizationSubcommandIndex.groupDescriptions.get(groupName)
+            ?? Translate(`commands.organization.group.defaultDescription`, { params: { groupName } });
         builder = builder.addSubcommandGroup(group => {
             group.setName(groupName).setDescription(description);
 
@@ -79,7 +81,9 @@ export async function execute(
         }
 
         await interaction.reply({
-            content: `Unknown subcommand: ${subcommand}`,
+            content: TranslateFromContext(interaction.executionContext, `commands.organization.errors.unknownSubcommand`, {
+                params: { subcommand },
+            }),
             flags: MessageFlags.Ephemeral,
         });
     } catch(error) {
@@ -87,11 +91,20 @@ export async function execute(
         log.error(`Organization command failed`, message, `OrganizationCommand`);
 
         if (!interaction.replied && !interaction.deferred) {
-            await interaction.reply({ content: `Command failed: ${message}`, flags: MessageFlags.Ephemeral });
+            await interaction.reply({
+                content: TranslateFromContext(interaction.executionContext, `commands.organization.errors.commandFailed`, {
+                    params: { message },
+                }),
+                flags: MessageFlags.Ephemeral,
+            });
             return;
         }
 
-        await interaction.editReply({ content: `Command failed: ${message}` });
+        await interaction.editReply({
+            content: TranslateFromContext(interaction.executionContext, `commands.organization.errors.commandFailed`, {
+                params: { message },
+            }),
+        });
     } finally {
         // no-op
     }

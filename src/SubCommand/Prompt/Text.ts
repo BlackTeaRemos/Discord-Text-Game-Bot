@@ -1,3 +1,5 @@
+import { Translate } from '../../Services/I18nService.js';
+
 export interface TextPromptValidationOptions {
     value?: string;
     minLength?: number;
@@ -19,10 +21,10 @@ export interface TextPromptValidationResult {
 }
 
 /** Default error returned when custom validation rejects the submitted text. */
-const DEFAULT_VALIDATOR_FAILURE_MESSAGE = `The provided text did not pass validation.`;
+const DEFAULT_VALIDATOR_FAILURE_MESSAGE = Translate(`prompt.text.validatorFailed`);
 
 /** Default error returned when the user submits an empty value. */
-const DEFAULT_EMPTY_VALUE_MESSAGE = `Please provide a response before continuing.`;
+const DEFAULT_EMPTY_VALUE_MESSAGE = Translate(`prompt.text.emptyValue`);
 
 /**
  * Validate text prompt input prior to resolving asynchronous prompt workflows.
@@ -50,13 +52,13 @@ export function ValidateTextInput(options: TextPromptValidationOptions): TextPro
     if (typeof minLength === `number` && Number.isFinite(minLength) && normalizedValue.length < minLength) {
         const minimumMessage =
             minLength === 1
-                ? `Response must contain at least one character.`
-                : `Response must contain at least ${minLength} characters.`;
+                ? Translate(`prompt.text.minLengthOne`)
+                : Translate(`prompt.text.minLengthMany`, { params: { minLength } });
         return { status: `error`, errorMessage: minimumMessage };
     }
 
     if (typeof maxLength === `number` && Number.isFinite(maxLength) && normalizedValue.length > maxLength) {
-        return { status: `error`, errorMessage: `Response must not exceed ${maxLength} characters.` };
+        return { status: `error`, errorMessage: Translate(`prompt.text.maxLength`, { params: { maxLength } }) };
     }
 
     if (validator) {

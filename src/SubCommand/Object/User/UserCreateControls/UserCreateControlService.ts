@@ -10,6 +10,7 @@ import { HandleUserCreateChangeDisplayName } from './HandleUserCreateChangeDispl
 import { HandleUserCreateChangeFriendlyName } from './HandleUserCreateChangeFriendlyName.js';
 import { HandleUserCreateChangeDescription } from './HandleUserCreateChangeDescription.js';
 import { HandleUserCreateConfirmAction } from './HandleUserCreateConfirmAction.js';
+import { TranslateFromContext } from '../../../../Services/I18nService.js';
 
 /**
  * Handles button interactions for the user creation controls.
@@ -40,7 +41,7 @@ export class UserCreateControlService {
         if (session.state.controlsLocked) {
             if (!interaction.replied && !interaction.deferred) {
                 await interaction.reply({
-                    content: `This user creation session is no longer active. Run the command again to make changes.`,
+                    content: TranslateFromContext((interaction as any).executionContext, `userCreate.sessionInactive`),
                     flags: MessageFlags.Ephemeral,
                 });
             }

@@ -10,6 +10,7 @@ import {
     ResolveOrganization,
 } from '../../Flow/Object/Organization/index.js';
 import { resolve } from '../../Common/Permission/index.js';
+import { TranslateFromContext } from '../../Services/I18nService.js';
 
 /**
  * Open description editor for any object by id
@@ -22,7 +23,7 @@ export async function ExecuteCreateDescription(
     const objectId = interaction.options.getString(`id`, true);
     if (!objectId.trim()) {
         await interaction.reply({
-            content: `Object ID cannot be empty`,
+            content: TranslateFromContext(interaction.executionContext, `commands.create.descriptionFlow.errors.emptyId`),
             flags: MessageFlags.Ephemeral,
         });
         return;
@@ -36,14 +37,16 @@ export async function ExecuteCreateDescription(
         const objectInfo = await ResolveObjectByUid(objectId.trim());
         if (!objectInfo) {
             await interaction.editReply({
-                content: `Object with ID \`${objectId}\` not found`,
+                content: TranslateFromContext(interaction.executionContext, `commands.create.descriptionFlow.errors.notFound`, {
+                    params: { id: objectId },
+                }),
             });
             return;
         }
 
         if (objectInfo.type === `description`) {
             await interaction.editReply({
-                content: `Descriptions cannot target other descriptions.`,
+                content: TranslateFromContext(interaction.executionContext, `commands.create.descriptionFlow.errors.invalidTarget`),
             });
             return;
         }
@@ -66,7 +69,9 @@ export async function ExecuteCreateDescription(
 
             if (!organizationPermission.allowed) {
                 await interaction.editReply({
-                    content: `Permission denied (${executionOrganization.organizationName}).`,
+                    content: TranslateFromContext(interaction.executionContext, `commands.create.descriptionFlow.errors.permissionDeniedOrg`, {
+                        params: { organization: executionOrganization.organizationName },
+                    }),
                 });
                 return;
             }
@@ -81,7 +86,7 @@ export async function ExecuteCreateDescription(
             });
             if (!resolution.success) {
                 await interaction.editReply({
-                    content: `Permission denied (User).`,
+                    content: TranslateFromContext(interaction.executionContext, `commands.create.descriptionFlow.errors.permissionDeniedUser`),
                 });
                 return;
             }
@@ -91,7 +96,13 @@ export async function ExecuteCreateDescription(
         const permissions = __BuildEditorPermissions(canEditGlobal);
 
         await interaction.editReply({
-            content: `Opening description editor for **${objectInfo.type}** \`${objectInfo.uid}\` as ${executionOrganization.organizationName}...`,
+            content: TranslateFromContext(interaction.executionContext, `commands.create.descriptionFlow.messages.opening`, {
+                params: {
+                    type: objectInfo.type,
+                    uid: objectInfo.uid,
+                    organization: executionOrganization.organizationName,
+                },
+            }),
         });
 
         await RunDescriptionEditorFlow(interaction as unknown as ChatInputCommandInteraction, {
@@ -106,7 +117,9 @@ export async function ExecuteCreateDescription(
         const message = error instanceof Error ? error.message : String(error);
         log.error(`Failed to open description editor`, message, `CreateDescription`);
         await interaction.editReply({
-            content: `Failed to open description editor: ${message}`,
+            content: TranslateFromContext(interaction.executionContext, `commands.create.descriptionFlow.errors.failed`, {
+                params: { message },
+            }),
         });
     }
 }

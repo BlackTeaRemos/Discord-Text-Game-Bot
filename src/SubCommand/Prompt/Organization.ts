@@ -1,4 +1,5 @@
 import { ActionRowBuilder, StringSelectMenuBuilder } from 'discord.js';
+import { Translate } from '../../Services/I18nService.js';
 
 /**
  * States returned when preparing an organization selection prompt.
@@ -60,7 +61,7 @@ export async function PrepareOrganizationPrompt(options: OrganizationPromptOptio
     return {
         status: `empty`,
         selection: { selected: false, orgs: [] },
-        message: options.emptyMessage ?? `Organization functionality is disabled.`,
+        message: options.emptyMessage ?? Translate(`organizationPrompt.disabled`),
     };
 }
 

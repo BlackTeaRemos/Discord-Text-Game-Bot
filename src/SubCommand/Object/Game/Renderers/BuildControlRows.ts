@@ -1,6 +1,7 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import type { GameCreateFlowState } from '../../../../Flow/Object/Game/CreateState.js';
 import { GameCreateFlowConstants } from '../../../../Flow/Object/Game/CreateState.js';
+import { Translate } from '../../../../Services/I18nService.js';
 
 /**
  * Create the action rows representing the control buttons for the flow.
@@ -11,23 +12,27 @@ export function BuildControlRows(state: GameCreateFlowState): ActionRowBuilder<B
     const controlsLocked = state.controlsLocked === true;
     const uploadPaused = state.uploadInProgress === true;
     const finalizing = state.finalizing === true;
-    const confirmLabel = state.mode === `update` ? `Save changes` : `Create game`;
-    const cancelLabel = state.mode === `update` ? `Cancel update` : `Cancel`;
+    const confirmLabel = state.mode === `update`
+        ? Translate(`gameCreate.controls.saveChanges`)
+        : Translate(`gameCreate.controls.createGame`);
+    const cancelLabel = state.mode === `update`
+        ? Translate(`gameCreate.controls.cancelUpdate`)
+        : Translate(`common.cancel`);
 
     const primaryRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
             .setCustomId(GameCreateFlowConstants.changeNameId)
-            .setLabel(`Change name`)
+            .setLabel(Translate(`gameCreate.controls.changeName`))
             .setStyle(ButtonStyle.Primary)
             .setDisabled(controlsLocked || finalizing || Boolean(state.awaitingName) || uploadPaused),
         new ButtonBuilder()
             .setCustomId(GameCreateFlowConstants.changeDescriptionId)
-            .setLabel(`Change description`)
+            .setLabel(Translate(`gameCreate.controls.changeDescription`))
             .setStyle(ButtonStyle.Primary)
             .setDisabled(controlsLocked || finalizing || Boolean(state.awaitingDescription) || uploadPaused),
         new ButtonBuilder()
             .setCustomId(GameCreateFlowConstants.changeImageId)
-            .setLabel(`Change image`)
+            .setLabel(Translate(`gameCreate.controls.changeImage`))
             .setStyle(ButtonStyle.Secondary)
             .setDisabled(controlsLocked || finalizing || Boolean(state.awaitingImage) || uploadPaused),
     );

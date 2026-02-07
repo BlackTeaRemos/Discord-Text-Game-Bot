@@ -1,14 +1,36 @@
-export const UserCreatePromptMessages = {
-    discordIdCancel: `Discord ID unchanged. Use the button again when you want to update it.`,
-    discordIdTimeout: `No Discord ID received. Press the button again when you are ready to provide one.`,
-    displayNameCancel: `Display name unchanged. Use the button again when you want to update it.`,
-    displayNameTimeout: `No display name received. Press the button again when you are ready to provide one.`,
-    friendlyNameCancel: `Friendly name unchanged. Use the button again when you want to update it.`,
-    friendlyNameTimeout: `No friendly name received. Press the button again when you are ready to provide one.`,
-    descriptionCancel: `Description unchanged. Use the button again when you want to update it.`,
-    descriptionTimeout: `No description received. Press the button again when you are ready to provide one.`,
-    genericError: `Something went wrong while updating the user. Please try again.`,
-} as const;
+import type { ExecutionContext } from '../../../../Domain/Command.js';
+import { TranslateFromContext } from '../../../../Services/I18nService.js';
+
+export interface UserCreatePromptMessages {
+    discordIdCancel: string;
+    discordIdTimeout: string;
+    displayNameCancel: string;
+    displayNameTimeout: string;
+    friendlyNameCancel: string;
+    friendlyNameTimeout: string;
+    descriptionCancel: string;
+    descriptionTimeout: string;
+    genericError: string;
+}
+
+/**
+ * Build localized prompt messages for the user create flow.
+ * @param executionContext ExecutionContext Optional cached context.
+ * @returns UserCreatePromptMessages Localized prompt text.
+ */
+export function GetUserCreatePromptMessages(executionContext?: ExecutionContext): UserCreatePromptMessages {
+    return {
+        discordIdCancel: TranslateFromContext(executionContext, `userCreate.prompt.discordIdCancel`),
+        discordIdTimeout: TranslateFromContext(executionContext, `userCreate.prompt.discordIdTimeout`),
+        displayNameCancel: TranslateFromContext(executionContext, `userCreate.prompt.displayNameCancel`),
+        displayNameTimeout: TranslateFromContext(executionContext, `userCreate.prompt.displayNameTimeout`),
+        friendlyNameCancel: TranslateFromContext(executionContext, `userCreate.prompt.friendlyNameCancel`),
+        friendlyNameTimeout: TranslateFromContext(executionContext, `userCreate.prompt.friendlyNameTimeout`),
+        descriptionCancel: TranslateFromContext(executionContext, `userCreate.prompt.descriptionCancel`),
+        descriptionTimeout: TranslateFromContext(executionContext, `userCreate.prompt.descriptionTimeout`),
+        genericError: TranslateFromContext(executionContext, `userCreate.prompt.genericError`),
+    };
+}
 
 export interface NormalizeUserCreatePromptErrorMessageOptions {
     /**
@@ -34,21 +56,25 @@ export interface NormalizeUserCreatePromptErrorMessageOptions {
  * @param options NormalizeUserCreatePromptErrorMessageOptions Normalization configuration. @example NormalizeUserCreatePromptErrorMessage({ message: 'User cancelled the text prompt.', cancelMessage: 'Cancelled', defaultMessage: 'Something went wrong.' })
  * @returns string Readable message suitable for Discord follow-ups. @example const message = NormalizeUserCreatePromptErrorMessage({ message: 'User cancelled the text prompt.', cancelMessage: 'Cancelled', defaultMessage: 'Something went wrong.' })
  */
-export function NormalizeUserCreatePromptErrorMessage(options: NormalizeUserCreatePromptErrorMessageOptions): string {
-    const { message, cancelMessage, timeoutMessage, defaultMessage = UserCreatePromptMessages.genericError } = options;
+export function NormalizeUserCreatePromptErrorMessage(
+    options: NormalizeUserCreatePromptErrorMessageOptions,
+    executionContext?: ExecutionContext,
+): string {
+    const promptMessages = GetUserCreatePromptMessages(executionContext);
+    const { message, cancelMessage, timeoutMessage, defaultMessage = promptMessages.genericError } = options;
     if (
-        message === `User cancelled the text prompt.` ||
-        message === `User cancelled the file prompt.` ||
-        message === `User cancelled the image prompt.`
+        message === TranslateFromContext(executionContext, `prompt.text.cancelled`) ||
+        message === TranslateFromContext(executionContext, `prompt.file.cancelled`) ||
+        message === TranslateFromContext(executionContext, `prompt.image.cancelled`)
     ) {
         return cancelMessage;
     }
     if (
-        message === `User response timeout reached while waiting for text input.` ||
-        message === `User response timeout reached while waiting for file input.` ||
-        message === `User response timeout reached while waiting for image input.`
+        message === TranslateFromContext(executionContext, `prompt.text.timeout`) ||
+        message === TranslateFromContext(executionContext, `prompt.file.timeout`) ||
+        message === TranslateFromContext(executionContext, `prompt.image.timeout`)
     ) {
-        return timeoutMessage ?? `No response received. Please press the button again when ready.`;
+        return timeoutMessage ?? TranslateFromContext(executionContext, `userCreate.prompt.noResponse`);
     }
     return defaultMessage;
 }

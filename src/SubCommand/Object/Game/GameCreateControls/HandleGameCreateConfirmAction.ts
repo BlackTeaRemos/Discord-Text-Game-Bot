@@ -9,6 +9,7 @@ import { RefreshGameCreateSessionTimeout } from './RefreshGameCreateSessionTimeo
 import { ExpireGameCreateSession } from './ExpireGameCreateSession.js';
 import { UpdateGameCreateSessionControls } from './GameCreateSessionRenderer.js';
 import { GameCreatePromptMessages } from './GameCreatePromptMessages.js';
+import { TranslateFromContext } from '../../../../Services/I18nService.js';
 
 export interface HandleGameCreateConfirmActionOptions {
     /**
@@ -44,10 +45,16 @@ export async function HandleGameCreateConfirmAction(options: HandleGameCreateCon
             session.state.finalizing = false;
             await UpdateGameCreateSessionControls(session);
             RefreshGameCreateSessionTimeout(store, session, ExpireGameCreateSession);
+            const label = ResolveGameCreateFlowLabel(session.state, `title`);
+            const reasonText = result.error
+                ? TranslateFromContext(session.baseInteraction.executionContext, `gameCreate.errors.reason`, {
+                    params: { reason: result.error },
+                })
+                : ``;
             await session.baseInteraction.followUp({
-                content: `${ResolveGameCreateFlowLabel(session.state, `title`)} did not complete.${
-                    result.error ? ` Reason: ${result.error}` : ``
-                }`,
+                content: TranslateFromContext(session.baseInteraction.executionContext, `gameCreate.errors.notCompleted`, {
+                    params: { label, reason: reasonText },
+                }),
                 flags: MessageFlags.Ephemeral,
             });
             return;
@@ -60,7 +67,9 @@ export async function HandleGameCreateConfirmAction(options: HandleGameCreateCon
         RefreshGameCreateSessionTimeout(store, session, ExpireGameCreateSession);
         const message = error instanceof Error ? error.message : GameCreatePromptMessages.genericError;
         await session.baseInteraction.followUp({
-            content: `Failed to finalize ${ResolveGameCreateFlowLabel(session.state)}: ${message}`,
+            content: TranslateFromContext(session.baseInteraction.executionContext, `gameCreate.errors.failedFinalize`, {
+                params: { label: ResolveGameCreateFlowLabel(session.state), message },
+            }),
             flags: MessageFlags.Ephemeral,
         });
     }

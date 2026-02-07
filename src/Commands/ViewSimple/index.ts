@@ -5,64 +5,65 @@ import type { InteractionExecutionContextCarrier } from '../../Common/Type/Inter
 import { ExecuteViewGame } from './Game.js';
 import { ExecuteViewTask } from './Task.js';
 import { ExecuteViewObject } from './Object.js';
+import { Translate, TranslateFromContext } from '../../Services/I18nService.js';
 
 export const data = new SlashCommandBuilder()
     .setName(`view`)
-    .setDescription(`View game entities and descriptions`)
+    .setDescription(Translate(`commands.view.description`))
     .addSubcommand(subcommand => {
         return subcommand
             .setName(`game`)
-            .setDescription(`View game description`)
+            .setDescription(Translate(`commands.view.subcommands.game.description`))
             .addStringOption(option => {
                 return option
                     .setName(`organization`)
-                    .setDescription(`Organization UID to execute as (use 'global' for shared org)`)
+                    .setDescription(Translate(`commands.view.options.organization`))
                     .setRequired(false);
             });
     })
     .addSubcommand(subcommand => {
         return subcommand
             .setName(`task`)
-            .setDescription(`List tasks or view a specific task`)
+            .setDescription(Translate(`commands.view.subcommands.task.description`))
             .addStringOption(option => {
                 return option
                     .setName(`id`)
-                    .setDescription(`Task id to view`)
+                    .setDescription(Translate(`commands.view.options.task.id`))
                     .setRequired(false);
             })
             .addIntegerOption(option => {
                 return option
                     .setName(`turn`)
-                    .setDescription(`View tasks for specific turn`)
+                    .setDescription(Translate(`commands.view.options.task.turn`))
                     .setRequired(false);
             })
             .addUserOption(option => {
                 return option
                     .setName(`creator`)
-                    .setDescription(`Filter by task creator`)
+                    .setDescription(Translate(`commands.view.options.task.creator`))
                     .setRequired(false);
             })
             .addStringOption(option => {
                 return option
                     .setName(`organization`)
-                    .setDescription(`Organization UID to execute as (use 'global' for shared org)`)
+                    .setDescription(Translate(`commands.view.options.organization`))
                     .setRequired(false);
             });
     })
     .addSubcommand(subcommand => {
         return subcommand
             .setName(`object`)
-            .setDescription(`View description for any object`)
+            .setDescription(Translate(`commands.view.subcommands.object.description`))
             .addStringOption(option => {
                 return option
                     .setName(`id`)
-                    .setDescription(`Object identifier to view`)
+                    .setDescription(Translate(`commands.view.options.object.id`))
                     .setRequired(true);
             })
             .addStringOption(option => {
                 return option
                     .setName(`organization`)
-                    .setDescription(`Organization UID to execute as (use 'global' for shared org)`)
+                    .setDescription(Translate(`commands.view.options.organization`))
                     .setRequired(false);
             });
     });
@@ -91,7 +92,9 @@ export async function execute(
             break;
         default:
             await interaction.reply({
-                content: `Unknown subcommand: ${subcommand}`,
+                content: TranslateFromContext(interaction.executionContext, `commands.view.errors.unknownSubcommand`, {
+                    params: { subcommand },
+                }),
                 flags: MessageFlags.Ephemeral,
             });
     }

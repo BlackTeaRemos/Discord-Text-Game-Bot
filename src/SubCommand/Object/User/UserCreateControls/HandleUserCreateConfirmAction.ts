@@ -9,7 +9,8 @@ import { ClearUserCreateSessionTimeout } from './ClearUserCreateSessionTimeout.j
 import { RefreshUserCreateSessionTimeout } from './RefreshUserCreateSessionTimeout.js';
 import { ExpireUserCreateSession } from './ExpireUserCreateSession.js';
 import { UpdateUserCreateSessionControls } from './UserCreateSessionRenderer.js';
-import { UserCreatePromptMessages } from './UserCreatePromptMessages.js';
+import { GetUserCreatePromptMessages } from './UserCreatePromptMessages.js';
+import { Translate, TranslateFromContext } from '../../../../Services/I18nService.js';
 
 export interface HandleUserCreateConfirmActionOptions {
     /**
@@ -40,7 +41,7 @@ export async function HandleUserCreateConfirmAction(options: HandleUserCreateCon
             await UpdateUserCreateSessionControls(session);
             RefreshUserCreateSessionTimeout(store, session, ExpireUserCreateSession);
             await session.baseInteraction.followUp({
-                content: `Set a Discord user ID between 15 and 25 digits before continuing.`,
+                content: TranslateFromContext((session.baseInteraction as any).executionContext, `userCreate.errors.invalidDiscordId`),
                 flags: MessageFlags.Ephemeral,
             });
             return;
@@ -64,7 +65,7 @@ export async function HandleUserCreateConfirmAction(options: HandleUserCreateCon
             scope: {
                 scopeType: `global`,
                 scopeUid: null,
-                label: `Official Description`,
+                label: Translate(`userCreate.officialDescription`),
             },
             content: descriptionText,
             createdBy: session.state.ownerDiscordId,
@@ -72,15 +73,18 @@ export async function HandleUserCreateConfirmAction(options: HandleUserCreateCon
         await ExpireUserCreateSession(
             store,
             session,
-            `User profile linked to Discord ${created.discord_id} created successfully.`,
+            TranslateFromContext((session.baseInteraction as any).executionContext, `userCreate.success`, {
+                params: { discordId: created.discord_id },
+            }),
         );
     } catch(error) {
         session.state.finalizing = false;
         await UpdateUserCreateSessionControls(session);
         RefreshUserCreateSessionTimeout(store, session, ExpireUserCreateSession);
-        const message = error instanceof Error ? error.message : UserCreatePromptMessages.genericError;
+        const promptMessages = GetUserCreatePromptMessages((session.baseInteraction as any).executionContext);
+        const message = error instanceof Error ? error.message : promptMessages.genericError;
         await session.baseInteraction.followUp({
-            content: `Unable to create the user: ${message}`,
+            content: TranslateFromContext((session.baseInteraction as any).executionContext, `userCreate.errors.unableToCreate`, { params: { message } }),
             flags: MessageFlags.Ephemeral,
         });
     }

@@ -2,6 +2,7 @@ import type { Message } from 'discord.js';
 import { GameCreateFlowConstants } from '../../Flow/Object/Game/CreateState.js';
 import { recallRenderers, type GameCreateStepContext } from '../../Flow/Object/Game/CreateTypes.js';
 import { log } from '../../Common/Log.js';
+import { Translate } from '../../Services/I18nService.js';
 
 /**
  * Process an image attachment or URL provided while updating the game preview.
@@ -17,7 +18,7 @@ export async function ProcessImageInput(ctx: GameCreateStepContext, message: Mes
         const looksLikeImage =
             contentType.startsWith(`image/`) || /\.((png)|(jpe?g)|(gif)|(webp))$/i.test(attachment.name ?? ``);
         if (!looksLikeImage) {
-            await message.reply(`Provide an actual image attachment or paste a direct URL.`);
+            await message.reply(Translate(`prompt.image.invalidAttachment`));
             return false;
         }
         ctx.state.uploadInProgress = true;
@@ -28,7 +29,7 @@ export async function ProcessImageInput(ctx: GameCreateStepContext, message: Mes
         try {
             const httpsUrl = ensureHttpsUrl(attachment.url);
             ctx.state.imageUrl = httpsUrl;
-            await message.reply(`Image updated for preview.`);
+            await message.reply(Translate(`prompt.image.updatedPreview`));
             return true;
         } catch (error) {
             log.error(
@@ -36,28 +37,28 @@ export async function ProcessImageInput(ctx: GameCreateStepContext, message: Mes
                 GameCreateFlowConstants.logSource,
                 `ProcessImageInput`,
             );
-            await message.reply(error instanceof Error ? error.message : `Processing the image failed.`);
+            await message.reply(error instanceof Error ? error.message : Translate(`prompt.image.uploadFailed`));
             return false;
         } finally {
             ctx.state.uploadInProgress = false;
         }
     }
     if (!content) {
-        await message.reply(`Send an image attachment or paste a direct image URL.`);
+        await message.reply(Translate(`prompt.image.requestInput`));
         return false;
     }
     if (content.toLowerCase() === `cancel`) {
-        await message.reply(`Image update cancelled.`);
+        await message.reply(Translate(`prompt.image.cancelledShort`));
         return false;
     }
     try {
         const httpsUrl = ensureHttpsUrl(content);
         ctx.state.imageUrl = httpsUrl;
     } catch (error) {
-        await message.reply(error instanceof Error ? error.message : `Provide a direct https image URL.`);
+        await message.reply(error instanceof Error ? error.message : Translate(`prompt.image.httpsRequired`));
         return false;
     }
-    await message.reply(`Image URL set for preview.`);
+    await message.reply(Translate(`prompt.image.urlSet`));
     return true;
 }
 
@@ -66,10 +67,10 @@ function ensureHttpsUrl(raw: string): string {
     try {
         parsed = new URL(raw);
     } catch {
-        throw new Error(`Provide a valid image URL starting with https.`);
+        throw new Error(Translate(`prompt.image.invalidUrl`));
     }
     if (parsed.protocol !== `https:`) {
-        throw new Error(`Image URLs must use https.`);
+        throw new Error(Translate(`prompt.image.httpsRequired`));
     }
     return parsed.toString();
 }

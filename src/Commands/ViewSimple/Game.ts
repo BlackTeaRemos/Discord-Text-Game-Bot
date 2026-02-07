@@ -11,6 +11,7 @@ import {
     ResolveOrganization,
 } from '../../Flow/Object/Organization/index.js';
 import { resolve } from '../../Common/Permission/index.js';
+import { TranslateFromContext } from '../../Services/I18nService.js';
 
 /**
  * View game description immediately
@@ -23,7 +24,7 @@ export async function ExecuteViewGame(
     const serverId = interaction.guildId;
     if (!serverId) {
         await interaction.reply({
-            content: `This command must be used in a server`,
+            content: TranslateFromContext(interaction.executionContext, `commands.view.game.errors.serverOnly`),
             flags: MessageFlags.Ephemeral,
         });
         return;
@@ -38,7 +39,7 @@ export async function ExecuteViewGame(
         const game = games[0];
         if (!game) {
             await interaction.editReply({
-                content: `No game exists in this server. Create one first with \`/create game\``,
+                content: TranslateFromContext(interaction.executionContext, `commands.view.game.errors.noGame`),
             });
             return;
         }
@@ -61,7 +62,9 @@ export async function ExecuteViewGame(
 
             if (!organizationPermission.allowed) {
                 await interaction.editReply({
-                    content: `Permission denied (${executionOrganization.organizationName}).`,
+                    content: TranslateFromContext(interaction.executionContext, `commands.view.common.permissionDeniedOrg`, {
+                        params: { organization: executionOrganization.organizationName },
+                    }),
                 });
                 return;
             }
@@ -76,7 +79,7 @@ export async function ExecuteViewGame(
             });
             if (!resolution.success) {
                 await interaction.editReply({
-                    content: `Permission denied (User).`,
+                    content: TranslateFromContext(interaction.executionContext, `commands.view.common.permissionDeniedUser`),
                 });
                 return;
             }
@@ -85,19 +88,23 @@ export async function ExecuteViewGame(
         const gameData = await GetGame(game.uid);
         if (!gameData) {
             await interaction.editReply({
-                content: `Game data could not be loaded`,
+                content: TranslateFromContext(interaction.executionContext, `commands.view.game.errors.loadFailed`),
             });
             return;
         }
 
         const currentTurn = await GetGameCurrentTurn(game.uid);
         const description = await FetchDescriptionForObject(game.uid, interaction.user.id);
+        const currentTurnLabel = TranslateFromContext(interaction.executionContext, `commands.view.game.labels.currentTurn`);
+        const organizationLabel = TranslateFromContext(interaction.executionContext, `commands.view.game.labels.organization`);
+        const userLabel = TranslateFromContext(interaction.executionContext, `commands.view.common.user`);
+        const noDescription = TranslateFromContext(interaction.executionContext, `commands.view.game.labels.noDescription`);
 
         const embed = new EmbedBuilder()
             .setTitle(gameData.name)
             .setColor(`Blue`)
-            .addFields({ name: `Current Turn`, value: String(currentTurn), inline: true })
-            .addFields({ name: `Org`, value: executionOrganization.organizationName || `User`, inline: true });
+            .addFields({ name: currentTurnLabel, value: String(currentTurn), inline: true })
+            .addFields({ name: organizationLabel, value: executionOrganization.organizationName || userLabel, inline: true });
 
         if (gameData.image) {
             embed.setThumbnail(gameData.image);
@@ -106,7 +113,7 @@ export async function ExecuteViewGame(
         if (description) {
             embed.setDescription(description.slice(0, 2048));
         } else {
-            embed.setDescription(`No description available`);
+            embed.setDescription(noDescription);
         }
 
         await interaction.editReply({ embeds: [embed] });
@@ -114,7 +121,9 @@ export async function ExecuteViewGame(
         const message = error instanceof Error ? error.message : String(error);
         log.error(`Failed to view game`, message, `ViewGame`);
         await interaction.editReply({
-            content: `Failed to view game: ${message}`,
+            content: TranslateFromContext(interaction.executionContext, `commands.view.game.errors.failed`, {
+                params: { message },
+            }),
         });
     }
 }

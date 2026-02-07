@@ -4,6 +4,7 @@ import type { UserCreateSession } from './UserCreateSessionStore.js';
 import { BuildUserPreviewEmbed } from '../Renderers/BuildUserPreviewEmbed.js';
 import { BuildUserCreateControlsContent } from '../Renderers/BuildUserCreateControlsContent.js';
 import { BuildUserCreateControlRows } from '../Renderers/BuildUserCreateControlRows.js';
+import { TranslateFromContext } from '../../../../Services/I18nService.js';
 
 /**
  * Update the preview message for the supplied user creation session.
@@ -13,7 +14,7 @@ import { BuildUserCreateControlRows } from '../Renderers/BuildUserCreateControlR
 export async function UpdateUserCreateSessionPreview(session: UserCreateSession): Promise<void> {
     try {
         await session.baseInteraction.webhook.editMessage(session.previewMessageId, {
-            content: `Preview how this user will appear once registered.`,
+            content: TranslateFromContext((session.baseInteraction as any).executionContext, `userCreate.preview.message`),
             embeds: [BuildUserPreviewEmbed(session.state)],
         });
     } catch (error) {

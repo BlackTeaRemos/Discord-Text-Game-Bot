@@ -1,5 +1,6 @@
 import { ActionRowBuilder, StringSelectMenuBuilder } from 'discord.js';
 import type { DescriptionScope } from '../Scope/Types.js';
+import { Translate } from '../../../../Services/I18nService.js';
 
 export const SCOPE_SELECTOR_CUSTOM_ID = `description_scope_select`;
 
@@ -16,7 +17,7 @@ export function BuildScopeSelectorComponent(
 ): ActionRowBuilder<StringSelectMenuBuilder> {
     const selectMenu = new StringSelectMenuBuilder()
         .setCustomId(SCOPE_SELECTOR_CUSTOM_ID)
-        .setPlaceholder(`Select description scope`)
+        .setPlaceholder(Translate(`descriptionEditor.selectScope`))
         .setMinValues(1)
         .setMaxValues(1);
 

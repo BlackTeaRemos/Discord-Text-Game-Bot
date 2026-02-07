@@ -1,4 +1,5 @@
 import type { ButtonInteraction, ChatInputCommandInteraction, Message, EmbedBuilder } from 'discord.js';
+import { MessageFlags } from 'discord.js';
 import type { DescriptionViewerOptions, DescriptionViewerResult, DescriptionViewerState } from './Types.js';
 import type { DescriptionScope } from '../Scope/Types.js';
 import { GetVisibleScopes } from '../Scope/GetVisibleScopes.js';
@@ -10,6 +11,7 @@ import { HandleViewerPreviewLoop } from './ViewerNavigationHandler.js';
 import { BuildViewerPreview } from './ViewerPreview.js';
 import { GLOBAL_ORGANIZATION_UID } from '../../Organization/Global/Constants.js';
 import { ResolveExecutionOrganization } from '../../Organization/index.js';
+import { TranslateFromContext } from '../../../../Services/I18nService.js';
 
 /**
  * Filter scopes by user permission to view.
@@ -56,7 +58,10 @@ export async function RunDescriptionViewerFlow(
     const availableScopes = await __FilterScopesByPermission(rawScopes, options);
 
     if (availableScopes.length === 0) {
-        await interaction.reply({ content: `No description scopes available.`, ephemeral: true });
+        await interaction.reply({
+            content: TranslateFromContext((interaction as any).executionContext, `descriptionViewer.noScopes`),
+            flags: MessageFlags.Ephemeral,
+        });
         return {
             completed: false,
             finalState: CreateViewerState(options, []),
@@ -132,7 +137,7 @@ export async function RunDescriptionViewerFlow(
     const scopeSelector = BuildScopeSelectorComponent(availableScopes, null);
 
     const reply = await __SendInitialReply(interaction, {
-        content: `Select a description scope to view:`,
+        content: TranslateFromContext((interaction as any).executionContext, `descriptionViewer.selectScopePrompt`),
         components: [scopeSelector],
     });
 
@@ -170,20 +175,22 @@ async function __SendInitialReply(
     }
 
     if (interaction.replied) {
-        return await interaction.followUp({
+        const resp = await interaction.followUp({
             content: payload.content,
             embeds: payload.embeds,
             components: payload.components,
-            ephemeral: true,
-            fetchReply: true,
-        }) as Message;
+            flags: MessageFlags.Ephemeral,
+            withResponse: true,
+        }) as any;
+        return (resp?.resource?.message ?? (await interaction.fetchReply())) as Message;
     }
 
-    return await interaction.reply({
+    const resp = await interaction.reply({
         content: payload.content,
         embeds: payload.embeds,
         components: payload.components,
-        ephemeral: true,
-        fetchReply: true,
-    }) as Message;
+        flags: MessageFlags.Ephemeral,
+        withResponse: true,
+    }) as any;
+    return (resp?.resource?.message ?? (await interaction.fetchReply())) as Message;
 }

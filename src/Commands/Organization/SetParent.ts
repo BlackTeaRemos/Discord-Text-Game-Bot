@@ -7,6 +7,7 @@ import {
     GetOrganizationByUid,
     CheckCircularDependency,
 } from '../../Flow/Object/Organization/index.js';
+import { TranslateFromContext } from '../../Services/I18nService.js';
 
 /**
  * Handle /organization set_parent command.
@@ -22,7 +23,7 @@ export async function ExecuteOrganizationSetParent(
 
     if (!organizationUid.trim()) {
         await interaction.reply({
-            content: `Organization UID cannot be empty.`,
+            content: TranslateFromContext(interaction.executionContext, `commands.organization.setParent.errors.emptyId`),
             flags: MessageFlags.Ephemeral,
         });
         return;
@@ -36,7 +37,9 @@ export async function ExecuteOrganizationSetParent(
         const existingOrganization = await GetOrganizationByUid(organizationUid.trim());
         if (!existingOrganization) {
             await interaction.editReply({
-                content: `Organization \`${organizationUid}\` not found.`,
+                content: TranslateFromContext(interaction.executionContext, `commands.organization.setParent.errors.notFound`, {
+                    params: { id: organizationUid },
+                }),
             });
             return;
         }
@@ -45,19 +48,27 @@ export async function ExecuteOrganizationSetParent(
             const parentOrganization = await GetOrganizationByUid(newParentUid.trim());
             if (!parentOrganization) {
                 await interaction.editReply({
-                    content: `Parent organization \`${newParentUid}\` not found.`,
+                    content: TranslateFromContext(interaction.executionContext, `commands.organization.setParent.errors.parentNotFound`, {
+                        params: { id: newParentUid },
+                    }),
                 });
                 return;
             }
 
             const circularCheck = await CheckCircularDependency(newParentUid.trim(), organizationUid.trim());
             if (!circularCheck.valid) {
-                const chainDisplay = circularCheck.chain
-                    ? `\nDependency chain: ${circularCheck.chain.join(` → `)}`
+                const chainDisplay = circularCheck.chain?.length
+                    ? TranslateFromContext(interaction.executionContext, `commands.organization.setParent.labels.dependencyChain`, {
+                        params: { chain: circularCheck.chain.join(` → `) },
+                    })
                     : ``;
+                const reasonText = TranslateFromContext(interaction.executionContext, `commands.organization.setParent.errors.circularDependency`, {
+                    params: { reason: circularCheck.reason },
+                });
+                const combined = chainDisplay ? `${reasonText}\n${chainDisplay}` : reasonText;
 
                 await interaction.editReply({
-                    content: `Cannot set parent: ${circularCheck.reason}${chainDisplay}`,
+                    content: combined,
                 });
                 return;
             }
@@ -69,8 +80,12 @@ export async function ExecuteOrganizationSetParent(
         );
 
         if (!result.success) {
+            const reason = result.error
+                ?? TranslateFromContext(interaction.executionContext, `commands.organization.setParent.errors.unknownError`);
             await interaction.editReply({
-                content: `Failed to update parent: ${result.error ?? `Unknown error`}`,
+                content: TranslateFromContext(interaction.executionContext, `commands.organization.setParent.errors.failed`, {
+                    params: { reason },
+                }),
             });
             return;
         }
@@ -80,20 +95,35 @@ export async function ExecuteOrganizationSetParent(
             ? updatedOrganization.hierarchyChain.join(` → `)
             : organizationUid;
 
+        const title = TranslateFromContext(interaction.executionContext, `commands.organization.setParent.labels.title`);
+        const organizationLabel = TranslateFromContext(interaction.executionContext, `commands.organization.setParent.labels.organization`);
+        const previousParentLabel = TranslateFromContext(interaction.executionContext, `commands.organization.setParent.labels.previousParent`);
+        const newParentLabel = TranslateFromContext(interaction.executionContext, `commands.organization.setParent.labels.newParent`);
+        const newHierarchyLabel = TranslateFromContext(interaction.executionContext, `commands.organization.setParent.labels.newHierarchy`);
+        const previousParentValue = existingOrganization.parentUid
+            ? `\`${existingOrganization.parentUid}\``
+            : TranslateFromContext(interaction.executionContext, `commands.organization.setParent.labels.noneWasRoot`);
+        const newParentValue = newParentUid
+            ? `\`${newParentUid}\``
+            : TranslateFromContext(interaction.executionContext, `commands.organization.setParent.labels.noneNowRoot`);
+        const updatedByLabel = TranslateFromContext(interaction.executionContext, `commands.organization.setParent.labels.updatedBy`, {
+            params: { userTag: interaction.user.tag },
+        });
+
         const embed = new EmbedBuilder()
-            .setTitle(`Organization Parent Updated`)
+            .setTitle(title)
             .setColor(0x00AE86)
             .addFields(
-                { name: `Organization`, value: `${existingOrganization.friendlyName} (\`${existingOrganization.uid}\`)`, inline: false },
-                { name: `Previous Parent`, value: existingOrganization.parentUid ? `\`${existingOrganization.parentUid}\`` : `None (was root)`, inline: true },
-                { name: `New Parent`, value: newParentUid ? `\`${newParentUid}\`` : `None (now root)`, inline: true },
-                { name: `New Hierarchy`, value: hierarchyDisplay, inline: false },
+                { name: organizationLabel, value: `${existingOrganization.friendlyName} (\`${existingOrganization.uid}\`)`, inline: false },
+                { name: previousParentLabel, value: previousParentValue, inline: true },
+                { name: newParentLabel, value: newParentValue, inline: true },
+                { name: newHierarchyLabel, value: hierarchyDisplay, inline: false },
             )
             .setTimestamp()
-            .setFooter({ text: `Updated by ${interaction.user.tag}` });
+            .setFooter({ text: updatedByLabel });
 
         await interaction.editReply({
-            content: `Organization parent updated successfully.`,
+            content: TranslateFromContext(interaction.executionContext, `commands.organization.setParent.messages.success`),
             embeds: [embed],
         });
 
@@ -106,7 +136,9 @@ export async function ExecuteOrganizationSetParent(
         const message = error instanceof Error ? error.message : String(error);
         log.error(`Failed to set organization parent`, message, `OrganizationSetParentCommand`);
         await interaction.editReply({
-            content: `Failed to update parent: ${message}`,
+            content: TranslateFromContext(interaction.executionContext, `commands.organization.setParent.errors.failed`, {
+                params: { reason: message },
+            }),
         });
     }
 }

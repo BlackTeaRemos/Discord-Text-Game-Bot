@@ -4,6 +4,8 @@ import { getSupportedTypes, listRecordsFor, type ObjectTypeKey } from '../../../
 import { PrepareOrganizationPrompt } from '../../Prompt/Organization.js';
 import { BuildViewSelectOptions } from '../../../Common/BuildViewSelectOptions.js';
 import { GetUserByDiscordId } from '../../../Flow/Object/User/View/GetUserByDiscordId.js';
+import type { InteractionExecutionContextCarrier } from '../../../Common/Type/Interaction.js';
+import { TranslateFromContext } from '../../../Services/I18nService.js';
 
 export interface DescriptionTargetSelection {
     type: ObjectTypeKey;
@@ -23,7 +25,7 @@ const DESCRIPTION_OBJECT_SELECT_ID = `description_select_object`;
  * @returns Promise<DescriptionTargetSelection | null> Selected target or null on timeout.
  */
 export async function SelectDescriptionTarget(
-    interaction: ChatInputCommandInteraction,
+    interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
 ): Promise<DescriptionTargetSelection | null> {
     await __EnsureEphemeralReply(interaction);
 
@@ -33,7 +35,7 @@ export async function SelectDescriptionTarget(
     }
 
     if (type === `user`) {
-        const mode = await __SelectMode(interaction, `User target`);
+        const mode = await __SelectMode(interaction, TranslateFromContext(interaction.executionContext, `descriptionTarget.userLabel`));
         if (!mode) {
             return null;
         }
@@ -41,10 +43,10 @@ export async function SelectDescriptionTarget(
         if (mode === `mine`) {
             const me = await GetUserByDiscordId(interaction.user.id);
             if (!me) {
-                await interaction.editReply({ content: `Your user record was not found.`, components: [] });
+                await interaction.editReply({ content: TranslateFromContext(interaction.executionContext, `descriptionTarget.userNotFound`), components: [] });
                 return null;
             }
-            await interaction.editReply({ content: `Using your user record.`, components: [] });
+            await interaction.editReply({ content: TranslateFromContext(interaction.executionContext, `descriptionTarget.usingUserRecord`), components: [] });
             return { type, id: me.uid };
         }
 
@@ -53,7 +55,7 @@ export async function SelectDescriptionTarget(
     }
 
     if (type === `organization`) {
-        const mode = await __SelectMode(interaction, `Organization target`);
+        const mode = await __SelectMode(interaction, TranslateFromContext(interaction.executionContext, `descriptionTarget.organizationLabel`));
         if (!mode) {
             return null;
         }
@@ -82,7 +84,7 @@ async function __EnsureEphemeralReply(interaction: ChatInputCommandInteraction):
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 }
 
-async function __SelectType(interaction: ChatInputCommandInteraction): Promise<ObjectTypeKey | null> {
+async function __SelectType(interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>): Promise<ObjectTypeKey | null> {
     const typeOptions = getSupportedTypes().map(item => {
         return { label: item.label, value: item.value } as any;
     });
@@ -93,11 +95,11 @@ async function __SelectType(interaction: ChatInputCommandInteraction): Promise<O
 
     const menu = new StringSelectMenuBuilder()
         .setCustomId(DESCRIPTION_TYPE_SELECT_ID)
-        .setPlaceholder(`Select object type`)
+        .setPlaceholder(TranslateFromContext(interaction.executionContext, `descriptionTarget.selectObjectType`))
         .addOptions(typeOptions as any);
 
     await interaction.editReply({
-        content: `Select which object you want to create or edit a description for.`,
+        content: TranslateFromContext(interaction.executionContext, `descriptionTarget.selectObjectPrompt`),
         components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(menu)],
     });
 
@@ -118,25 +120,25 @@ async function __SelectType(interaction: ChatInputCommandInteraction): Promise<O
         await collected.deferUpdate();
         return collected.values[0] as ObjectTypeKey;
     } catch {
-        await interaction.editReply({ content: `Selection timed out.`, components: [] });
+        await interaction.editReply({ content: TranslateFromContext(interaction.executionContext, `descriptionTarget.selectionTimeout`), components: [] });
         return null;
     }
 }
 
 async function __SelectMode(
-    interaction: ChatInputCommandInteraction,
+    interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
     label: string,
 ): Promise<`mine` | `all` | null> {
     const menu = new StringSelectMenuBuilder()
         .setCustomId(DESCRIPTION_MODE_SELECT_ID)
-        .setPlaceholder(`Select scope`)
+        .setPlaceholder(TranslateFromContext(interaction.executionContext, `descriptionTarget.selectScope`))
         .addOptions([
-            { label: `${label}: Mine`, value: `mine` },
-            { label: `${label}: All (requires permission)`, value: `all` },
+            { label: TranslateFromContext(interaction.executionContext, `descriptionTarget.scopeMine`, { params: { label } }), value: `mine` },
+            { label: TranslateFromContext(interaction.executionContext, `descriptionTarget.scopeAll`, { params: { label } }), value: `all` },
         ] as any);
 
     await interaction.editReply({
-        content: `Choose whether to target only your own records or any record.`,
+        content: TranslateFromContext(interaction.executionContext, `descriptionTarget.scopePrompt`),
         components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(menu)],
     });
 
@@ -157,35 +159,35 @@ async function __SelectMode(
         await collected.deferUpdate();
         return collected.values[0] as `mine` | `all`;
     } catch {
-        await interaction.editReply({ content: `Selection timed out.`, components: [] });
+        await interaction.editReply({ content: TranslateFromContext(interaction.executionContext, `descriptionTarget.selectionTimeout`), components: [] });
         return null;
     }
 }
 
-async function __SelectMyOrganization(interaction: ChatInputCommandInteraction): Promise<string | null> {
+async function __SelectMyOrganization(interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>): Promise<string | null> {
     const prepared = await PrepareOrganizationPrompt({
         userId: interaction.user.id,
         customId: DESCRIPTION_OBJECT_SELECT_ID,
-        placeholder: `Select an organization`,
-        promptMessage: `Select an organization to edit descriptions for.`,
-        emptyMessage: `No organizations found for you.`,
+        placeholder: TranslateFromContext(interaction.executionContext, `descriptionTarget.selectOrganization`),
+        promptMessage: TranslateFromContext(interaction.executionContext, `descriptionTarget.selectOrganizationPrompt`),
+        emptyMessage: TranslateFromContext(interaction.executionContext, `descriptionTarget.noOrganizationsForUser`),
     });
 
     if (prepared.status === `empty`) {
-        await interaction.editReply({ content: prepared.message ?? `No organizations found.`, components: [] });
+        await interaction.editReply({ content: prepared.message ?? TranslateFromContext(interaction.executionContext, `descriptionTarget.noOrganizations`), components: [] });
         return null;
     }
 
     if (prepared.status === `auto` && prepared.organization) {
         await interaction.editReply({
-            content: `Using organization: ${prepared.organization.name}`,
+            content: TranslateFromContext(interaction.executionContext, `descriptionTarget.usingOrganization`, { params: { name: prepared.organization.name } }),
             components: [],
         });
         return prepared.organization.uid;
     }
 
     await interaction.editReply({
-        content: prepared.message ?? `Select an organization.`,
+        content: prepared.message ?? TranslateFromContext(interaction.executionContext, `descriptionTarget.selectOrganizationFallback`),
         components: prepared.components ?? [],
     });
 
@@ -206,17 +208,17 @@ async function __SelectMyOrganization(interaction: ChatInputCommandInteraction):
         await collected.deferUpdate();
         return collected.values[0];
     } catch {
-        await interaction.editReply({ content: `Selection timed out.`, components: [] });
+        await interaction.editReply({ content: TranslateFromContext(interaction.executionContext, `descriptionTarget.selectionTimeout`), components: [] });
         return null;
     }
 }
 
-async function __SelectObject(interaction: ChatInputCommandInteraction, type: ObjectTypeKey): Promise<string | null> {
+async function __SelectObject(interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>, type: ObjectTypeKey): Promise<string | null> {
     const records = await listRecordsFor(type);
     const options = BuildViewSelectOptions(records, 25);
 
     if (options.length === 0) {
-        await interaction.editReply({ content: `No ${type} records found.`, components: [] });
+        await interaction.editReply({ content: TranslateFromContext(interaction.executionContext, `descriptionTarget.noRecords`, { params: { type } }), components: [] });
         return null;
     }
 
@@ -226,11 +228,11 @@ async function __SelectObject(interaction: ChatInputCommandInteraction, type: Ob
 
     const menu = new StringSelectMenuBuilder()
         .setCustomId(DESCRIPTION_OBJECT_SELECT_ID)
-        .setPlaceholder(`Select ${type}`)
+        .setPlaceholder(TranslateFromContext(interaction.executionContext, `descriptionTarget.selectType`, { params: { type } }))
         .addOptions(options as any);
 
     await interaction.editReply({
-        content: `Select which ${type} you want to work with. Showing up to ${options.length} items.`,
+        content: TranslateFromContext(interaction.executionContext, `descriptionTarget.selectTypePrompt`, { params: { type, count: options.length } }),
         components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(menu)],
     });
 
@@ -251,7 +253,7 @@ async function __SelectObject(interaction: ChatInputCommandInteraction, type: Ob
         await collected.deferUpdate();
         return collected.values[0];
     } catch {
-        await interaction.editReply({ content: `Selection timed out.`, components: [] });
+        await interaction.editReply({ content: TranslateFromContext(interaction.executionContext, `descriptionTarget.selectionTimeout`), components: [] });
         return null;
     }
 }

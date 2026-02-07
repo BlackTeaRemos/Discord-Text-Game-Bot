@@ -8,6 +8,7 @@ import {
 import { RequestPermissionFromAdmin } from '../SubCommand/Permission/PermissionUI.js';
 import { ExtractFlowContext, ExtractFlowMember } from '../Common/Type/FlowContext.js';
 import { EnrichWithCharacter } from '../Common/Type/CharacterContextEnricher.js';
+import { ResolveUserLocale } from '../Services/I18nService.js';
 
 /**
  * Factory for Discord interaction handler focused on chat input commands.
@@ -28,8 +29,14 @@ export function CreateInteractionHandler(options: { loadedCommands: Record<strin
         }
 
         try {
-            // Always attach a fresh ExecutionContext for this command invocation
             interaction.executionContext = createExecutionContext(interaction.id);
+
+            try {
+                const _resolvedLocale = await ResolveUserLocale(interaction.user.id, interaction.executionContext);
+                log.debug(`Interaction start: resolved locale for ${interaction.user.id} -> ${_resolvedLocale}`, `InteractionHandler`);
+            } catch(error) {
+                log.warning(`Failed to resolve user locale: ${String(error)}`, `InteractionHandler`);
+            }
 
             const member = interaction.guild ? await interaction.guild.members.fetch(interaction.user.id) : null;
 
@@ -37,7 +44,6 @@ export function CreateInteractionHandler(options: { loadedCommands: Record<strin
             const enrichedFlowContext = await EnrichWithCharacter(baseFlowContext);
             interaction.flowContext = enrichedFlowContext;
 
-            // Resolve permission token templates for this command.
             const cmdAny = command as any;
             let rawTemplates:
                 | string
@@ -90,15 +96,7 @@ export function CreateInteractionHandler(options: { loadedCommands: Record<strin
                     deferredByHandler = true;
                 } catch(e) {
                     // If deferring fails, continue without blocking; the request may still work.
-                    try {
                         log.warning(`Failed to defer interaction reply: ${String(e)}`, `InteractionHandler`);
-                    } catch {}
-                }
-            }
-
-            // If we deferred the interaction, some commands may still call `interaction.reply`.
-            // Monkey-patch `reply` so it calls `editReply` when the interaction is already deferred.
-            if (deferredByHandler) {
                 try {
                     const _origReply = interaction.reply?.bind(interaction);
                     (interaction as any).reply = async(options: any) => {
@@ -164,9 +162,7 @@ export function CreateInteractionHandler(options: { loadedCommands: Record<strin
             await command.execute(interaction);
         } catch(err: any) {
             // Centralized error handler for permission denials and execution errors
-            try {
-                log.error(`Interaction handler error for /${interaction.commandName}: ${String(err)}`, `Boot`);
-            } catch {}
+            log.error(`Interaction handler error for /${interaction.commandName}: ${String(err)}`, `Boot`);
             try {
                 if (!interaction.replied && !interaction.deferred) {
                     await interaction.reply({

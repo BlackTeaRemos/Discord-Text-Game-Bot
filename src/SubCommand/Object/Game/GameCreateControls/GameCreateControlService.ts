@@ -10,6 +10,7 @@ import { HandleGameCreateChangeName } from './HandleGameCreateChangeName.js';
 import { HandleGameCreateChangeDescription } from './HandleGameCreateChangeDescription.js';
 import { HandleGameCreateChangeImage } from './HandleGameCreateChangeImage.js';
 import { HandleGameCreateConfirmAction } from './HandleGameCreateConfirmAction.js';
+import { TranslateFromContext } from '../../../../Services/I18nService.js';
 
 /**
  * Handles button interactions for the game creation controls, delegating storage to the session store.
@@ -41,7 +42,7 @@ export class GameCreateControlService {
         if (session.state.controlsLocked) {
             if (!interaction.replied && !interaction.deferred) {
                 await interaction.reply({
-                    content: `This game creation session is no longer active. Start the command again to make changes.`,
+                    content: TranslateFromContext(session.baseInteraction.executionContext, `gameCreate.sessionInactive`),
                     flags: MessageFlags.Ephemeral,
                 });
             }
@@ -63,10 +64,13 @@ export class GameCreateControlService {
                 return true;
             case GameCreateFlowConstants.cancelCreateId:
                 await interaction.deferUpdate();
+                const cancelLabel = TranslateFromContext(session.baseInteraction.executionContext, `gameCreate.cancelled`, {
+                    params: { label: CapitalizeValue(ResolveGameCreateFlowLabel(session.state)) },
+                });
                 await ExpireGameCreateSession(
                     this._store,
                     session,
-                    `${CapitalizeValue(ResolveGameCreateFlowLabel(session.state))} cancelled. Run the command again to start over.`,
+                    cancelLabel,
                 );
                 return true;
             case GameCreateFlowConstants.confirmCreateId:

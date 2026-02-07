@@ -1,6 +1,7 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import type { UserCreateFlowState } from '../../../../Flow/Object/User/CreateState.js';
 import { UserCreateFlowConstants } from '../../../../Flow/Object/User/CreateState.js';
+import { Translate } from '../../../../Services/I18nService.js';
 
 /**
  * Create the action rows representing the control buttons for the flow.
@@ -19,17 +20,17 @@ export function BuildUserCreateControlRows(state: UserCreateFlowState): ActionRo
     const primaryRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
             .setCustomId(UserCreateFlowConstants.changeDiscordId)
-            .setLabel(`Change Discord ID`)
+            .setLabel(Translate(`userCreate.controls.changeDiscordId`))
             .setStyle(ButtonStyle.Primary)
             .setDisabled(controlsLocked || finalizing || awaitingDiscordId),
         new ButtonBuilder()
             .setCustomId(UserCreateFlowConstants.changeDisplayName)
-            .setLabel(`Change display name`)
+            .setLabel(Translate(`userCreate.controls.changeDisplayName`))
             .setStyle(ButtonStyle.Primary)
             .setDisabled(controlsLocked || finalizing || awaitingDisplayName),
         new ButtonBuilder()
             .setCustomId(UserCreateFlowConstants.changeFriendlyName)
-            .setLabel(`Change friendly name`)
+            .setLabel(Translate(`userCreate.controls.changeFriendlyName`))
             .setStyle(ButtonStyle.Primary)
             .setDisabled(controlsLocked || finalizing || awaitingFriendlyName),
     );
@@ -37,17 +38,17 @@ export function BuildUserCreateControlRows(state: UserCreateFlowState): ActionRo
     const secondaryRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
             .setCustomId(UserCreateFlowConstants.changeDescription)
-            .setLabel(`Edit description`)
+            .setLabel(Translate(`userCreate.controls.editDescription`))
             .setStyle(ButtonStyle.Primary)
             .setDisabled(controlsLocked || finalizing || awaitingDescription),
         new ButtonBuilder()
             .setCustomId(UserCreateFlowConstants.confirmCreateId)
-            .setLabel(`Create user`)
+            .setLabel(Translate(`userCreate.controls.createUser`))
             .setStyle(ButtonStyle.Success)
             .setDisabled(controlsLocked || finalizing || !hasDiscordId),
         new ButtonBuilder()
             .setCustomId(UserCreateFlowConstants.cancelCreateId)
-            .setLabel(`Cancel`)
+            .setLabel(Translate(`common.cancel`))
             .setStyle(ButtonStyle.Secondary)
             .setDisabled(controlsLocked || finalizing),
     );

@@ -4,6 +4,7 @@ import type { InteractionExecutionContextCarrier } from '../../../../Common/Type
 import { log } from '../../../../Common/Log.js';
 import { ExecuteOrganizationView } from '../../View.js';
 import type { CommandSubcommand } from '../../../CommandSubcommand.js';
+import { Translate, TranslateFromContext } from '../../../../Services/I18nService.js';
 
 const _subcommandName = `view`; // subcommand name
 
@@ -17,11 +18,11 @@ export function BuildOrganizationViewSubcommand(
 ): SlashCommandSubcommandBuilder {
     return subcommand
         .setName(_subcommandName)
-        .setDescription(`View organization details and hierarchy`)
+        .setDescription(Translate(`commands.organization.view.description`))
         .addStringOption(option => {
             return option
                 .setName(`id`)
-                .setDescription(`Organization UID to view (use 'global' for shared org)`)
+            .setDescription(Translate(`commands.organization.view.options.id`))
                 .setRequired(true);
         });
 }
@@ -40,10 +41,15 @@ export async function ExecuteOrganizationViewSubcommand(
         const message = error instanceof Error ? error.message : String(error);
         log.error(`Organization view subcommand failed`, message, `OrganizationViewSubcommand`);
         if (!interaction.deferred && !interaction.replied) {
-            await interaction.reply({ content: `Failed to view organization: ${message}`, flags: MessageFlags.Ephemeral });
+            await interaction.reply({
+                content: TranslateFromContext(interaction.executionContext, `commands.organization.view.errors.failed`, { params: { message } }),
+                flags: MessageFlags.Ephemeral,
+            });
             return;
         }
-        await interaction.editReply({ content: `Failed to view organization: ${message}` });
+        await interaction.editReply({
+            content: TranslateFromContext(interaction.executionContext, `commands.organization.view.errors.failed`, { params: { message } }),
+        });
     } finally {
         // no-op
     }

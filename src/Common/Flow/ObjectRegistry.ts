@@ -14,6 +14,7 @@ import { GetPriorityScopedDescription } from '../../Flow/Object/Description/Scop
 import { GetUserOrganizations } from '../../Flow/Object/Organization/View/GetUserOrganizations.js';
 import { ResolveEmbedThumbnailUrl } from './ResolveEmbedThumbnailUrl.js';
 import { FetchTaskById } from '../../Flow/Task/FetchTaskById.js';
+import { Translate } from '../../Services/I18nService.js';
 
 export type ObjectTypeKey = `game` | `organization` | `user` | `building` | `task`;
 
@@ -24,23 +25,23 @@ export interface ObjectTypeConfig {
 
 export const OBJECT_TYPES: Record<ObjectTypeKey, ObjectTypeConfig> = {
     game: {
-        label: `Games`,
+        label: Translate(`objectRegistry.types.game`),
         listQuery: `MATCH (g:Game) RETURN g.uid AS uid, g.name AS label`,
     },
     organization: {
-        label: `Organizations`,
+        label: Translate(`objectRegistry.types.organization`),
         listQuery: `MATCH (o:Organization) RETURN o.uid AS uid, o.name AS label`,
     },
     user: {
-        label: `Users`,
+        label: Translate(`objectRegistry.types.user`),
         listQuery: `MATCH (u:User) RETURN u.uid AS uid, u.discord_id AS label`,
     },
     building: {
-        label: `Factories`,
+        label: Translate(`objectRegistry.types.building`),
         listQuery: `MATCH (f:Factory) RETURN f.uid AS uid, f.type AS label`,
     },
     task: {
-        label: `Tasks`,
+        label: Translate(`objectRegistry.types.task`),
         listQuery: `MATCH (t:Task) RETURN t.id AS uid, t.short_description AS label`,
     },
 };
@@ -78,13 +79,13 @@ export interface EmbedBuildContext {
 function __BuildScopedDescriptionLabel(scopeType: string): string {
     switch (scopeType) {
         case `user`:
-            return `Description (personal)`;
+            return Translate(`objectRegistry.scopedDescription.user`);
         case `organization`:
-            return `Description (organization)`;
+            return Translate(`objectRegistry.scopedDescription.organization`);
         case `global`:
-            return `Description (public)`;
+            return Translate(`objectRegistry.scopedDescription.global`);
         default:
-            return `Description`;
+            return Translate(`objectRegistry.common.description`);
     }
 }
 
@@ -120,10 +121,10 @@ async function __ResolvePriorityDescription(options: {
     });
 
     const descriptionText = sanitizeDescriptionText(scoped?.content ?? options.legacyFallback);
-    const safeText = descriptionText.length > 0 ? descriptionText : `No description yet.`;
+    const safeText = descriptionText.length > 0 ? descriptionText : Translate(`objectRegistry.common.noDescriptionYet`);
 
     if (!scoped) {
-        return { label: `Description`, text: safeText };
+        return { label: Translate(`objectRegistry.common.description`), text: safeText };
     }
 
     return {
@@ -147,10 +148,10 @@ export async function buildEmbedFor(
             }
             const embed = new EmbedBuilder()
                 .setColor(`Blue`)
-                .setTitle(game.name || `Game details`)
-                .addFields({ name: `Name`, value: game.name || `n/a`, inline: true })
-                .addFields({ name: `Identifier`, value: `Stored internally.`, inline: true })
-                .addFields({ name: `Server`, value: game.serverId ?? `n/a`, inline: true });
+                    .setTitle(game.name || Translate(`objectRegistry.game.detailsTitle`))
+                .addFields({ name: Translate(`objectRegistry.common.name`), value: game.name || Translate(`objectRegistry.common.notAvailable`), inline: true })
+                .addFields({ name: Translate(`objectRegistry.common.identifier`), value: Translate(`objectRegistry.common.storedInternally`), inline: true })
+                .addFields({ name: Translate(`objectRegistry.common.server`), value: game.serverId ?? Translate(`objectRegistry.common.notAvailable`), inline: true });
             const thumbnailUrl = ResolveEmbedThumbnailUrl(game.image, GameCreateFlowConstants.defaultImageUrl);
             if (thumbnailUrl) {
                 embed.setThumbnail(thumbnailUrl);
@@ -172,11 +173,11 @@ export async function buildEmbedFor(
             }
             const embed = new EmbedBuilder()
                 .setColor(`Blue`)
-                .setTitle(organization.organization.name || `Organization details`)
-                .addFields({ name: `Name`, value: organization.organization.name || `n/a`, inline: true })
-                .addFields({ name: `Friendly`, value: organization.organization.friendlyName, inline: true })
-                .addFields({ name: `Identifier`, value: `Stored internally.`, inline: true })
-                .addFields({ name: `Members`, value: String(organization.users.length), inline: true });
+                    .setTitle(organization.organization.name || Translate(`objectRegistry.organization.detailsTitle`))
+                .addFields({ name: Translate(`objectRegistry.common.name`), value: organization.organization.name || Translate(`objectRegistry.common.notAvailable`), inline: true })
+                .addFields({ name: Translate(`objectRegistry.organization.friendly`), value: organization.organization.friendlyName, inline: true })
+                .addFields({ name: Translate(`objectRegistry.common.identifier`), value: Translate(`objectRegistry.common.storedInternally`), inline: true })
+                .addFields({ name: Translate(`objectRegistry.organization.members`), value: String(organization.users.length), inline: true });
             const resolved = await __ResolvePriorityDescription({
                 objectType: `organization`,
                 objectUid: id,
@@ -193,10 +194,10 @@ export async function buildEmbedFor(
             }
             const embed = new EmbedBuilder()
                 .setColor(`Blue`)
-                .setTitle(user.name || `User details`)
-                .addFields({ name: `Discord`, value: user.discord_id, inline: true })
-                .addFields({ name: `Name`, value: user.name || `n/a`, inline: true })
-                .addFields({ name: `Identifier`, value: `Stored internally.`, inline: true });
+                    .setTitle(user.name || Translate(`objectRegistry.user.detailsTitle`))
+                .addFields({ name: Translate(`objectRegistry.user.discord`), value: user.discord_id, inline: true })
+                .addFields({ name: Translate(`objectRegistry.common.name`), value: user.name || Translate(`objectRegistry.common.notAvailable`), inline: true })
+                .addFields({ name: Translate(`objectRegistry.common.identifier`), value: Translate(`objectRegistry.common.storedInternally`), inline: true });
             const resolved = await __ResolvePriorityDescription({
                 objectType: `user`,
                 objectUid: id,
@@ -214,14 +215,14 @@ export async function buildEmbedFor(
 
             const embed = new EmbedBuilder()
                 .setColor(`Blue`)
-                .setTitle(`Task details`)
-                .addFields({ name: `ID`, value: task.id, inline: true })
-                .addFields({ name: `Status`, value: String(task.status), inline: true })
-                .addFields({ name: `Short`, value: task.shortDescription || `n/a`, inline: true })
-                .addFields({ name: `Org`, value: task.organizationName || `n/a`, inline: true });
+                    .setTitle(Translate(`objectRegistry.task.detailsTitle`))
+                .addFields({ name: Translate(`objectRegistry.task.id`), value: task.id, inline: true })
+                .addFields({ name: Translate(`objectRegistry.task.status`), value: String(task.status), inline: true })
+                .addFields({ name: Translate(`objectRegistry.task.short`), value: task.shortDescription || Translate(`objectRegistry.common.notAvailable`), inline: true })
+                .addFields({ name: Translate(`objectRegistry.task.organization`), value: task.organizationName || Translate(`objectRegistry.common.notAvailable`), inline: true });
 
             if (task.description) {
-                embed.addFields({ name: `Description`, value: task.description.slice(0, 1024) });
+                embed.addFields({ name: Translate(`objectRegistry.common.description`), value: task.description.slice(0, 1024) });
             }
 
             return embed;
@@ -233,10 +234,10 @@ export async function buildEmbedFor(
             }
             const embed = new EmbedBuilder()
                 .setColor(`Blue`)
-                .setTitle(factory.type || `Factory details`)
-                .addFields({ name: `Type`, value: factory.type || `n/a`, inline: true })
-                .addFields({ name: `Identifier`, value: `Stored internally.`, inline: true })
-                .addFields({ name: `Organization`, value: `Linked organization recorded internally.`, inline: true });
+                    .setTitle(factory.type || Translate(`objectRegistry.factory.detailsTitle`))
+                .addFields({ name: Translate(`objectRegistry.factory.type`), value: factory.type || Translate(`objectRegistry.common.notAvailable`), inline: true })
+                .addFields({ name: Translate(`objectRegistry.common.identifier`), value: Translate(`objectRegistry.common.storedInternally`), inline: true })
+                .addFields({ name: Translate(`objectRegistry.factory.organization`), value: Translate(`objectRegistry.factory.organizationRecorded`), inline: true });
 
             const resolved = await __ResolvePriorityDescription({
                 objectType: `factory`,

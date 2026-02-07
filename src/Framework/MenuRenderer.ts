@@ -9,6 +9,7 @@ import {
     type MessageActionRowComponentBuilder,
 } from 'discord.js';
 import type { MenuConfig, MenuNode, MenuRenderResult, MenuState } from './MenuTypes.js';
+import { Translate } from '../Services/I18nService.js';
 import { MenuTreeNavigator } from './MenuTreeNavigator.js';
 
 /**
@@ -142,7 +143,7 @@ export class MenuRenderer {
         }
         const select = new StringSelectMenuBuilder()
             .setCustomId(this.__selectId())
-            .setPlaceholder(`Choose an option`)
+            .setPlaceholder(Translate(`menuRenderer.chooseOption`))
             .addOptions(
                 ...children.map((child) => {
                     const option = new StringSelectMenuOptionBuilder()
@@ -160,13 +161,13 @@ export class MenuRenderer {
     private __buildNavigationRow(path: string[]): ActionRowBuilder<MessageActionRowComponentBuilder> {
         const backButton = new ButtonBuilder()
             .setCustomId(this.__backId())
-            .setLabel(this._config.backLabel ?? `Back`)
+            .setLabel(this._config.backLabel ?? Translate(`menuRenderer.back`))
             .setStyle(ButtonStyle.Secondary)
             .setDisabled(path.length === 0);
 
         const rootButton = new ButtonBuilder()
             .setCustomId(this.__rootId())
-            .setLabel(this._config.rootLabel ?? `Root`)
+            .setLabel(this._config.rootLabel ?? Translate(`menuRenderer.root`))
             .setStyle(ButtonStyle.Secondary)
             .setDisabled(path.length === 0);
 

@@ -11,6 +11,7 @@ import {
 } from 'discord.js';
 import { randomUUID } from 'crypto';
 import type { ObjectViewModel, ObjectViewPage, ObjectViewResolver } from './ObjectViewTypes.js';
+import { Translate } from '../Services/I18nService.js';
 
 interface ObjectViewSession {
     pages: ObjectViewPage[];
@@ -153,7 +154,7 @@ export class ObjectViewRenderer {
         if (page.scopeLabel) {
             footerParts.push(page.scopeLabel);
         }
-        footerParts.push(`Page ${index + 1}/${model.pages.length}`);
+        footerParts.push(Translate(`objectView.pageIndicator`, { params: { index: index + 1, total: model.pages.length } }));
         if (page.footer) {
             footerParts.push(page.footer);
         }
@@ -173,8 +174,16 @@ export class ObjectViewRenderer {
         if (totalPages <= 1) {
             return [];
         }
-        const prev = new ButtonBuilder().setCustomId(`${this._customIdPrefix}:${sessionId}:prev`).setLabel(`Prev`).setStyle(ButtonStyle.Secondary).setDisabled(index === 0);
-        const next = new ButtonBuilder().setCustomId(`${this._customIdPrefix}:${sessionId}:next`).setLabel(`Next`).setStyle(ButtonStyle.Primary).setDisabled(index >= totalPages - 1);
+        const prev = new ButtonBuilder()
+            .setCustomId(`${this._customIdPrefix}:${sessionId}:prev`)
+            .setLabel(Translate(`objectView.prev`))
+            .setStyle(ButtonStyle.Secondary)
+            .setDisabled(index === 0);
+        const next = new ButtonBuilder()
+            .setCustomId(`${this._customIdPrefix}:${sessionId}:next`)
+            .setLabel(Translate(`objectView.next`))
+            .setStyle(ButtonStyle.Primary)
+            .setDisabled(index >= totalPages - 1);
         return [new ActionRowBuilder<ButtonBuilder>().addComponents(prev, next)];
     }
 }

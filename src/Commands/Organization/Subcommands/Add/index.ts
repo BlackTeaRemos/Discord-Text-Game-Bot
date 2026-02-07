@@ -6,6 +6,7 @@ import { GetOrganizationByUid } from '../../../../Flow/Object/Organization/View/
 import { ResolveObjectByUid } from '../../../../Flow/Object/ResolveByUid.js';
 import { AssignObjectToOrganization } from '../../../../Flow/Object/Organization/Association/AssignObjectToOrganization.js';
 import type { CommandSubcommand } from '../../../CommandSubcommand.js';
+import { Translate, TranslateFromContext } from '../../../../Services/I18nService.js';
 
 const _subcommandName = `add`; // subcommand name
 
@@ -14,12 +15,12 @@ export function BuildOrganizationAddSubcommand(
 ): SlashCommandSubcommandBuilder {
     return subcommand
         .setName(_subcommandName)
-        .setDescription(`Assign an object to an organization`)
+        .setDescription(Translate(`commands.organization.add.description`))
         .addStringOption(opt => {
-            return opt.setName(`id`).setDescription(`Organization UID`).setRequired(true);
+            return opt.setName(`id`).setDescription(Translate(`commands.organization.add.options.id`)).setRequired(true);
         })
         .addStringOption(opt => {
-            return opt.setName(`object`).setDescription(`Object UID to assign`).setRequired(true);
+            return opt.setName(`object`).setDescription(Translate(`commands.organization.add.options.object`)).setRequired(true);
         });
 }
 
@@ -37,28 +38,50 @@ export async function ExecuteOrganizationAddSubcommand(
 
         const organization = await GetOrganizationByUid(organizationUid);
         if (!organization) {
-            await interaction.editReply({ content: `Organization \`${organizationUid}\` not found.` });
+            await interaction.editReply({
+                content: TranslateFromContext(interaction.executionContext, `commands.organization.add.errors.organizationNotFound`, {
+                    params: { id: organizationUid },
+                }),
+            });
             return;
         }
 
         const resolved = await ResolveObjectByUid(objectUid);
         if (!resolved) {
-            await interaction.editReply({ content: `Object \`${objectUid}\` not found.` });
+            await interaction.editReply({
+                content: TranslateFromContext(interaction.executionContext, `commands.organization.add.errors.objectNotFound`, {
+                    params: { id: objectUid },
+                }),
+            });
             return;
         }
 
         const result = await AssignObjectToOrganization(objectUid, organizationUid);
         if (!result.success) {
-            await interaction.editReply({ content: `Failed to assign object: ${result.error ?? `Unknown error`}` });
+            const reason = result.error
+                ?? TranslateFromContext(interaction.executionContext, `commands.organization.add.errors.unknownError`);
+            await interaction.editReply({
+                content: TranslateFromContext(interaction.executionContext, `commands.organization.add.errors.failed`, {
+                    params: { reason },
+                }),
+            });
             return;
         }
 
-        await interaction.editReply({ content: `Assigned \`${resolved.name}\` (${resolved.uid}) to organization \`${organizationUid}\`.` });
+        await interaction.editReply({
+            content: TranslateFromContext(interaction.executionContext, `commands.organization.add.messages.success`, {
+                params: { name: resolved.name, uid: resolved.uid, organizationUid },
+            }),
+        });
         log.info(`Object assigned to organization via command`, `OrganizationAddSubcommand`, `object=${objectUid} org=${organizationUid} by=${interaction.user.id}`);
     } catch(error) {
         const message = error instanceof Error ? error.message : String(error);
         log.error(`Organization add subcommand failed`, message, `OrganizationAddSubcommand`);
-        await interaction.editReply({ content: `Failed to assign object: ${message}` });
+        await interaction.editReply({
+            content: TranslateFromContext(interaction.executionContext, `commands.organization.add.errors.failed`, {
+                params: { reason: message },
+            }),
+        });
     } finally {
         // no-op
     }

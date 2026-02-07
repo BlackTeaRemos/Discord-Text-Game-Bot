@@ -7,7 +7,8 @@ import { ClearUserCreateSessionTimeout } from './ClearUserCreateSessionTimeout.j
 import { RefreshUserCreateSessionTimeout } from './RefreshUserCreateSessionTimeout.js';
 import { ExpireUserCreateSession } from './ExpireUserCreateSession.js';
 import { UpdateUserCreateSessionControls, UpdateUserCreateSessionPreview } from './UserCreateSessionRenderer.js';
-import { UserCreatePromptMessages, NormalizeUserCreatePromptErrorMessage } from './UserCreatePromptMessages.js';
+import { GetUserCreatePromptMessages, NormalizeUserCreatePromptErrorMessage } from './UserCreatePromptMessages.js';
+import { TranslateFromContext } from '../../../../Services/I18nService.js';
 
 export interface HandleUserCreateChangeDescriptionOptions {
     /**
@@ -36,7 +37,7 @@ export async function HandleUserCreateChangeDescription(
     try {
         const newDescription = await PromptText({
             interaction: session.baseInteraction,
-            prompt: `Send the profile description you want to use. Type **cancel** to keep the current value.`,
+            prompt: TranslateFromContext((session.baseInteraction as any).executionContext, `userCreate.prompt.descriptionPrompt`),
             minLength: 1,
             maxLength: 1024,
             cancelWords: [`cancel`],
@@ -48,13 +49,14 @@ export async function HandleUserCreateChangeDescription(
             await UpdateUserCreateSessionPreview(session);
         }
     } catch (error) {
-        const message = error instanceof Error ? error.message : UserCreatePromptMessages.genericError;
+        const promptMessages = GetUserCreatePromptMessages((session.baseInteraction as any).executionContext);
+        const message = error instanceof Error ? error.message : promptMessages.genericError;
         const normalized = NormalizeUserCreatePromptErrorMessage({
             message,
-            cancelMessage: UserCreatePromptMessages.descriptionCancel,
-            timeoutMessage: UserCreatePromptMessages.descriptionTimeout,
-            defaultMessage: UserCreatePromptMessages.genericError,
-        });
+            cancelMessage: promptMessages.descriptionCancel,
+            timeoutMessage: promptMessages.descriptionTimeout,
+            defaultMessage: promptMessages.genericError,
+        }, (session.baseInteraction as any).executionContext);
         await session.baseInteraction.followUp({ content: normalized, flags: MessageFlags.Ephemeral });
     } finally {
         session.state.awaitingDescription = false;

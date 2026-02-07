@@ -4,6 +4,7 @@ import type { InteractionExecutionContextCarrier } from '../../../../Common/Type
 import { log } from '../../../../Common/Log.js';
 import { ExecuteOrganizationSelect } from '../../Select.js';
 import type { CommandSubcommand } from '../../../CommandSubcommand.js';
+import { Translate, TranslateFromContext } from '../../../../Services/I18nService.js';
 
 const _subcommandName = `select`; // subcommand name
 
@@ -17,7 +18,7 @@ export function BuildOrganizationSelectSubcommand(
 ): SlashCommandSubcommandBuilder {
     return subcommand
         .setName(_subcommandName)
-        .setDescription(`Select default organization for commands`);
+        .setDescription(Translate(`commands.organization.select.description`));
 }
 
 /**
@@ -34,10 +35,19 @@ export async function ExecuteOrganizationSelectSubcommand(
         const message = error instanceof Error ? error.message : String(error);
         log.error(`Organization select subcommand failed`, message, `OrganizationSelectSubcommand`);
         if (!interaction.deferred && !interaction.replied) {
-            await interaction.reply({ content: `Failed to select organization: ${message}`, flags: MessageFlags.Ephemeral });
+            await interaction.reply({
+                content: TranslateFromContext(interaction.executionContext, `commands.organization.select.errors.failed`, {
+                    params: { message },
+                }),
+                flags: MessageFlags.Ephemeral,
+            });
             return;
         }
-        await interaction.editReply({ content: `Failed to select organization: ${message}` });
+        await interaction.editReply({
+            content: TranslateFromContext(interaction.executionContext, `commands.organization.select.errors.failed`, {
+                params: { message },
+            }),
+        });
     } finally {
         // no-op
     }

@@ -23,6 +23,8 @@ import {
     ResolveExecutionOrganization,
     ResolveOrganization,
 } from '../../Flow/Object/Organization/index.js';
+import type { ExecutionContext } from '../../Domain/Command.js';
+import { TranslateFromContext } from '../../Services/I18nService.js';
 
 const VIEW_TASK_PREV_ID = `view_task_prev`;
 const VIEW_TASK_NEXT_ID = `view_task_next`;
@@ -39,6 +41,7 @@ interface ViewTaskState {
     totalPages: number; // total page count
     baseInteraction: ChatInputCommandInteraction; // original interaction
     organizationName: string; // execution organization label
+    executionContext: ExecutionContext; // interaction execution context
 }
 
 /**
@@ -48,6 +51,7 @@ interface ViewTaskDetailState {
     task: TaskListItem; // current task item
     baseInteraction: ChatInputCommandInteraction; // original interaction
     organizationName: string; // execution organization label
+    executionContext: ExecutionContext; // interaction execution context
 }
 
 /**
@@ -61,7 +65,7 @@ export async function ExecuteViewTask(
     const serverId = interaction.guildId;
     if (!serverId) {
         await interaction.reply({
-            content: `This command must be used in a server`,
+            content: TranslateFromContext(interaction.executionContext, `commands.view.task.errors.serverOnly`),
             flags: MessageFlags.Ephemeral,
         });
         return;
@@ -96,7 +100,9 @@ export async function ExecuteViewTask(
 
             if (!organizationPermission.allowed) {
                 await interaction.editReply({
-                    content: `Permission denied (${executionOrganization.organizationName}).`,
+                    content: TranslateFromContext(interaction.executionContext, `commands.view.common.permissionDeniedOrg`, {
+                        params: { organization: executionOrganization.organizationName },
+                    }),
                 });
                 return;
             }
@@ -111,7 +117,7 @@ export async function ExecuteViewTask(
             });
             if (!resolution.success) {
                 await interaction.editReply({
-                    content: `Permission denied (User).`,
+                    content: TranslateFromContext(interaction.executionContext, `commands.view.common.permissionDeniedUser`),
                 });
                 return;
             }
@@ -157,6 +163,7 @@ export async function ExecuteViewTask(
                 allowOverride,
                 executionOrganization.organizationUid,
                 executionOrganization.organizationName,
+                interaction.executionContext,
             );
             return;
         }
@@ -171,7 +178,7 @@ export async function ExecuteViewTask(
             const game = games[0];
             if (!game) {
                 await interaction.editReply({
-                    content: `No game exists in this server`,
+                    content: TranslateFromContext(interaction.executionContext, `commands.view.task.errors.noGame`),
                 });
                 return;
             }
@@ -197,7 +204,7 @@ export async function ExecuteViewTask(
 
         if (tasks.length === 0) {
             await interaction.editReply({
-                content: `No tasks found`,
+                content: TranslateFromContext(interaction.executionContext, `commands.view.task.errors.noTasks`),
             });
             return;
         }
@@ -209,6 +216,7 @@ export async function ExecuteViewTask(
             totalPages,
             baseInteraction: interaction as unknown as ChatInputCommandInteraction,
             organizationName: executionOrganization.organizationName,
+            executionContext: interaction.executionContext,
         };
 
         await flowManager
@@ -238,7 +246,9 @@ export async function ExecuteViewTask(
         const message = error instanceof Error ? error.message : String(error);
         log.error(`Failed to view tasks`, message, `ViewTask`);
         await interaction.editReply({
-            content: `Failed to view tasks: ${message}`,
+            content: TranslateFromContext(interaction.executionContext, `commands.view.task.errors.failed`, {
+                params: { message },
+            }),
         });
     }
 }
@@ -255,25 +265,37 @@ async function __RenderTaskList(state: ViewTaskState, organizationName: string):
     const lines = pageTasks.map(task => {
         const shortDescription = __ResolveShortDescription(task);
         const emoji = __ResolveStatusEmoji(task.status);
-        return `${emoji}\n${shortDescription || `No short description`}\n\`${task.id}\``;
+        const shortValue = shortDescription || TranslateFromContext(state.executionContext, `commands.view.task.labels.noShortDescription`);
+        return `${emoji}\n${shortValue}\n\`${task.id}\``;
     });
 
+    const title = TranslateFromContext(state.executionContext, `objectRegistry.types.task`);
+    const footerText = TranslateFromContext(state.executionContext, `commands.view.task.labels.pageIndicator`, {
+        params: {
+            index: state.pageIndex + 1,
+            total: state.totalPages,
+            totalCount: state.tasks.length,
+        },
+    });
+    const organizationLabel = TranslateFromContext(state.executionContext, `objectRegistry.task.organization`);
+    const userLabel = TranslateFromContext(state.executionContext, `commands.view.common.user`);
+
     const embed = new EmbedBuilder()
-        .setTitle(`Tasks`)
+        .setTitle(title)
         .setDescription(lines.join(`\n\n`))
         .setColor(`Blue`)
-        .setFooter({ text: `Page ${state.pageIndex + 1} of ${state.totalPages} (${state.tasks.length} total)` })
-        .addFields({ name: `Org`, value: organizationName || `User`, inline: true });
+        .setFooter({ text: footerText })
+        .addFields({ name: organizationLabel, value: organizationName || userLabel, inline: true });
 
     const prevButton = new ButtonBuilder()
         .setCustomId(VIEW_TASK_PREV_ID)
-        .setLabel(`Previous`)
+        .setLabel(TranslateFromContext(state.executionContext, `commands.view.task.actions.previous`))
         .setStyle(ButtonStyle.Secondary)
         .setDisabled(state.pageIndex === 0);
 
     const nextButton = new ButtonBuilder()
         .setCustomId(VIEW_TASK_NEXT_ID)
-        .setLabel(`Next`)
+        .setLabel(TranslateFromContext(state.executionContext, `commands.view.task.actions.next`))
         .setStyle(ButtonStyle.Secondary)
         .setDisabled(state.pageIndex >= state.totalPages - 1);
 
@@ -292,24 +314,34 @@ async function __RenderTaskList(state: ViewTaskState, organizationName: string):
  */
 async function __RenderTaskDetail(state: ViewTaskDetailState, organizationName: string): Promise<void> {
     const task = state.task;
+    const title = TranslateFromContext(state.executionContext, `commands.view.task.labels.detailTitle`, {
+        params: { id: task.id },
+    });
+    const noDescription = TranslateFromContext(state.executionContext, `commands.view.task.labels.noDescription`);
+    const statusLabel = TranslateFromContext(state.executionContext, `objectRegistry.task.status`);
+    const shortLabel = TranslateFromContext(state.executionContext, `objectRegistry.task.short`);
+    const organizationLabel = TranslateFromContext(state.executionContext, `objectRegistry.task.organization`);
+    const userLabel = TranslateFromContext(state.executionContext, `commands.view.common.user`);
+    const shortValue = task.shortDescription || TranslateFromContext(state.executionContext, `commands.view.task.labels.noShortDescription`);
+
     const embed = new EmbedBuilder()
-        .setTitle(`Task ${task.id}`)
-        .setDescription(task.description || `No description`)
+        .setTitle(title)
+        .setDescription(task.description || noDescription)
         .setColor(`Blue`)
         .addFields([
-            { name: `Status`, value: String(task.status), inline: true },
-            { name: `Short`, value: task.shortDescription || `None`, inline: true },
-            { name: `Org`, value: organizationName || `User`, inline: true },
+            { name: statusLabel, value: String(task.status), inline: true },
+            { name: shortLabel, value: shortValue, inline: true },
+            { name: organizationLabel, value: organizationName || userLabel, inline: true },
         ]);
 
     const finishButton = new ButtonBuilder()
         .setCustomId(VIEW_TASK_FINISH_ID)
-        .setLabel(`Finish`)
+        .setLabel(TranslateFromContext(state.executionContext, `commands.view.task.actions.finish`))
         .setStyle(ButtonStyle.Success);
 
     const cancelButton = new ButtonBuilder()
         .setCustomId(VIEW_TASK_CANCEL_ID)
-        .setLabel(`Cancel`)
+        .setLabel(TranslateFromContext(state.executionContext, `commands.view.task.actions.cancel`))
         .setStyle(ButtonStyle.Danger);
 
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(finishButton, cancelButton);
@@ -332,6 +364,7 @@ async function __ShowTaskDetail(
     allowOverride: boolean,
     organizationUid: string | null,
     organizationName: string,
+    executionContext: ExecutionContext,
 ): Promise<void> {
     const task = await FetchTaskById(neo4jClient, {
         taskId,
@@ -342,15 +375,16 @@ async function __ShowTaskDetail(
 
     if (!task) {
         await interaction.editReply({
-            content: `Task not found or access denied`,
+            content: TranslateFromContext(executionContext, `commands.view.task.errors.notFoundOrDenied`),
         });
         return;
     }
 
-        const initialState: ViewTaskDetailState = {
+    const initialState: ViewTaskDetailState = {
         task,
         baseInteraction: interaction,
-            organizationName,
+        organizationName,
+        executionContext,
     };
 
     await flowManager
@@ -387,7 +421,7 @@ async function __ShowTaskDetail(
 
             if (!updated) {
                 await interaction.followUp({
-                    content: `Failed to update task status`,
+                    content: TranslateFromContext(executionContext, `commands.view.task.errors.updateFailed`),
                     flags: MessageFlags.Ephemeral,
                 });
                 return false;

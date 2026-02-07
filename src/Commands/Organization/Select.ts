@@ -7,6 +7,7 @@ import {
     SetUserDefaultOrganization,
     EnsureGlobalOrganizationMembership,
 } from '../../Flow/Object/Organization/index.js';
+import { TranslateFromContext } from '../../Services/I18nService.js';
 
 const _orgSelectPrefix = `org_select`; // select menu custom id prefix
 const _maxOptions = 25; // max selectable organizations
@@ -28,21 +29,21 @@ export async function ExecuteOrganizationSelect(
         const organizations = await GetUserOrganizations(interaction.user.id); // user organization list
         if (organizations.length === 0) {
             await interaction.editReply({
-                content: `You are not assigned to any organizations.`,
+                content: TranslateFromContext(interaction.executionContext, `commands.organization.select.errors.noOrganizations`),
             });
             return;
         }
 
         const select = new StringSelectMenuBuilder()
             .setCustomId(`${_orgSelectPrefix}:${interaction.user.id}`)
-            .setPlaceholder(`Select organization`)
+            .setPlaceholder(TranslateFromContext(interaction.executionContext, `commands.organization.select.labels.placeholder`))
             .setMinValues(1)
             .setMaxValues(1)
             .addOptions([
                 {
-                    label: `Personal (User)`,
+                    label: TranslateFromContext(interaction.executionContext, `commands.organization.select.labels.personal`),
                     value: `user`,
-                    description: `Execute commands using your personal scope`,
+                    description: TranslateFromContext(interaction.executionContext, `commands.organization.select.labels.personalDescription`),
                 },
                 ...organizations.slice(0, _maxOptions - 1).map(organization => {
                     return {
@@ -56,14 +57,16 @@ export async function ExecuteOrganizationSelect(
         const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(select);
 
         await interaction.editReply({
-            content: `Select the default organization for command execution.`,
+            content: TranslateFromContext(interaction.executionContext, `commands.organization.select.messages.prompt`),
             components: [row],
         });
     } catch(error) {
         const message = error instanceof Error ? error.message : String(error);
         log.error(`Failed to present organization selection`, message, `OrganizationSelectCommand`);
         await interaction.editReply({
-            content: `Failed to present organization selection: ${message}`,
+            content: TranslateFromContext(interaction.executionContext, `commands.organization.select.errors.failed`, {
+                params: { message },
+            }),
         });
     }
 }

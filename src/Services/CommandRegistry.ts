@@ -7,6 +7,7 @@ import {
     CommandExecutionContext,
     createExecutionContext,
 } from '../Domain/index.js';
+import { log } from '../Common/Log.js';
 import {
     resolve,
     type PermissionTokenInput,
@@ -14,6 +15,7 @@ import {
 } from '../Common/Permission/index.js';
 import type { GuildMember } from 'discord.js';
 import { ExtractFlowMember } from '../Common/Type/FlowContext.js';
+import { ResolveUserLocale } from './I18nService.js';
 
 /** Error thrown when attempting to register a duplicate command id. */
 export class DuplicateCommandError extends Error {
@@ -127,6 +129,17 @@ export class CommandRegistry {
                 }
             } catch {
                 // ignore - defensive in case the ctx shape is unexpected at runtime
+            }
+
+            try {
+                if (ctx.userId && ctx.executionContext) {
+                    const _resolvedLocale = await ResolveUserLocale(ctx.userId, ctx.executionContext);
+                    log.debug(`Programmatic command: resolved locale for ${ctx.userId} -> ${_resolvedLocale}`, `CommandRegistry`);
+                }
+            } catch {
+                // no-op
+            } finally {
+                // no-op
             }
 
             // Respect DM allowance from meta

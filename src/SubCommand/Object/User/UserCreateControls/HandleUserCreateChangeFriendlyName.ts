@@ -6,7 +6,8 @@ import { ClearUserCreateSessionTimeout } from './ClearUserCreateSessionTimeout.j
 import { RefreshUserCreateSessionTimeout } from './RefreshUserCreateSessionTimeout.js';
 import { ExpireUserCreateSession } from './ExpireUserCreateSession.js';
 import { UpdateUserCreateSessionControls, UpdateUserCreateSessionPreview } from './UserCreateSessionRenderer.js';
-import { UserCreatePromptMessages, NormalizeUserCreatePromptErrorMessage } from './UserCreatePromptMessages.js';
+import { GetUserCreatePromptMessages, NormalizeUserCreatePromptErrorMessage } from './UserCreatePromptMessages.js';
+import { TranslateFromContext } from '../../../../Services/I18nService.js';
 
 export interface HandleUserCreateChangeFriendlyNameOptions {
     /**
@@ -35,7 +36,7 @@ export async function HandleUserCreateChangeFriendlyName(
     try {
         const newFriendlyName = await PromptText({
             interaction: session.baseInteraction,
-            prompt: `Send the friendly name you want to use. Type **cancel** to keep the current value.`,
+            prompt: TranslateFromContext((session.baseInteraction as any).executionContext, `userCreate.prompt.friendlyNamePrompt`),
             minLength: 1,
             maxLength: 100,
             cancelWords: [`cancel`],
@@ -47,13 +48,14 @@ export async function HandleUserCreateChangeFriendlyName(
             await UpdateUserCreateSessionPreview(session);
         }
     } catch (error) {
-        const message = error instanceof Error ? error.message : UserCreatePromptMessages.genericError;
+        const promptMessages = GetUserCreatePromptMessages((session.baseInteraction as any).executionContext);
+        const message = error instanceof Error ? error.message : promptMessages.genericError;
         const normalized = NormalizeUserCreatePromptErrorMessage({
             message,
-            cancelMessage: UserCreatePromptMessages.friendlyNameCancel,
-            timeoutMessage: UserCreatePromptMessages.friendlyNameTimeout,
-            defaultMessage: UserCreatePromptMessages.genericError,
-        });
+            cancelMessage: promptMessages.friendlyNameCancel,
+            timeoutMessage: promptMessages.friendlyNameTimeout,
+            defaultMessage: promptMessages.genericError,
+        }, (session.baseInteraction as any).executionContext);
         await session.baseInteraction.followUp({ content: normalized, flags: MessageFlags.Ephemeral });
     } finally {
         session.state.awaitingFriendlyName = false;

@@ -6,6 +6,7 @@ import { GetOrganizationByUid } from '../../../../Flow/Object/Organization/View/
 import { ResolveObjectByUid } from '../../../../Flow/Object/ResolveByUid.js';
 import { RemoveObjectFromOrganization } from '../../../../Flow/Object/Organization/Association/RemoveObjectFromOrganization.js';
 import type { CommandSubcommand } from '../../../CommandSubcommand.js';
+import { Translate, TranslateFromContext } from '../../../../Services/I18nService.js';
 
 const _subcommandName = `remove`; // subcommand name
 
@@ -14,12 +15,12 @@ export function BuildOrganizationRemoveSubcommand(
 ): SlashCommandSubcommandBuilder {
     return subcommand
         .setName(_subcommandName)
-        .setDescription(`Remove an object from an organization`)
+        .setDescription(Translate(`commands.organization.remove.description`))
         .addStringOption(opt => {
-            return opt.setName(`id`).setDescription(`Organization UID`).setRequired(true);
+            return opt.setName(`id`).setDescription(Translate(`commands.organization.remove.options.id`)).setRequired(true);
         })
         .addStringOption(opt => {
-            return opt.setName(`object`).setDescription(`Object UID to remove`).setRequired(true);
+            return opt.setName(`object`).setDescription(Translate(`commands.organization.remove.options.object`)).setRequired(true);
         });
 }
 
@@ -37,28 +38,50 @@ export async function ExecuteOrganizationRemoveSubcommand(
 
         const organization = await GetOrganizationByUid(organizationUid);
         if (!organization) {
-            await interaction.editReply({ content: `Organization \`${organizationUid}\` not found.` });
+            await interaction.editReply({
+                content: TranslateFromContext(interaction.executionContext, `commands.organization.remove.errors.organizationNotFound`, {
+                    params: { id: organizationUid },
+                }),
+            });
             return;
         }
 
         const resolved = await ResolveObjectByUid(objectUid);
         if (!resolved) {
-            await interaction.editReply({ content: `Object \`${objectUid}\` not found.` });
+            await interaction.editReply({
+                content: TranslateFromContext(interaction.executionContext, `commands.organization.remove.errors.objectNotFound`, {
+                    params: { id: objectUid },
+                }),
+            });
             return;
         }
 
         const result = await RemoveObjectFromOrganization(objectUid, organizationUid);
         if (!result.success) {
-            await interaction.editReply({ content: `Failed to remove object: ${result.error ?? `Unknown error`}` });
+            const reason = result.error
+                ?? TranslateFromContext(interaction.executionContext, `commands.organization.remove.errors.unknownError`);
+            await interaction.editReply({
+                content: TranslateFromContext(interaction.executionContext, `commands.organization.remove.errors.failed`, {
+                    params: { reason },
+                }),
+            });
             return;
         }
 
-        await interaction.editReply({ content: `Removed \`${resolved.name}\` (${resolved.uid}) from organization \`${organizationUid}\`.` });
+        await interaction.editReply({
+            content: TranslateFromContext(interaction.executionContext, `commands.organization.remove.messages.success`, {
+                params: { name: resolved.name, uid: resolved.uid, organizationUid },
+            }),
+        });
         log.info(`Object removed from organization via command`, `OrganizationRemoveSubcommand`, `object=${objectUid} org=${organizationUid} by=${interaction.user.id}`);
     } catch(error) {
         const message = error instanceof Error ? error.message : String(error);
         log.error(`Organization remove subcommand failed`, message, `OrganizationRemoveSubcommand`);
-        await interaction.editReply({ content: `Failed to remove object: ${message}` });
+        await interaction.editReply({
+            content: TranslateFromContext(interaction.executionContext, `commands.organization.remove.errors.failed`, {
+                params: { reason: message },
+            }),
+        });
     } finally {
         // no-op
     }

@@ -3,8 +3,11 @@ import { Client, GatewayIntentBits, Events } from 'discord.js';
 import { log } from '../Common/Log.js';
 import type { ConfigService } from '../Services/ConfigService.js';
 import { CreateInteractionHandler } from './InteractionHandler.js';
+import { InitializeHandlers } from './Handler/Loader.js';
 import { CreateSafeEventListener } from '../Common/SafeEventListener.js';
 import { LoadGrantsForGuild } from '../Common/Permission/store.js';
+import { InitI18n } from '../Services/I18nService.js';
+import { executeWithTimeout } from '../Common/Timeout';
 
 /**
  * Load cached permission grants for all guilds
@@ -31,6 +34,8 @@ async function __LoadPermissionGrants(client: Client): Promise<void> {
     }
 }
 
+
+
 /**
  * Boot helper: loads config, creates and logs-in a Discord client, and registers application commands.
  * This extracts the large boot logic from the main application class.
@@ -40,53 +45,27 @@ export async function bootDiscordClient(options: {
     configService: ConfigService;
     loadedCommands: Record<string, any>;
     commandsReady: Promise<void>;
-    onInteractionCreate?: (any: any) => void;
-    onMessageCreate?: (any: any) => void;
+    onInteractionCreate?: Function;
+    onMessageCreate?: Function;
 }): Promise<{ client: Client; config: any }> {
     const { eventBus, configService, loadedCommands, commandsReady, onInteractionCreate, onMessageCreate } = options;
 
     const configPath = process.env.CONFIG_PATH || `./config/config.json`;
     const config = await configService.Load(configPath);
+    await InitI18n({
+        defaultLocale: config.defaultLocale,
+        supportedLocales: config.supportedLocales,
+    });
 
     const client = new Client({
         intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
     });
 
-    // Wire lightweight handlers provided by the caller
-    if (onInteractionCreate) {
-        client.on(
-            `interactionCreate`,
-            CreateSafeEventListener(onInteractionCreate as any, {
-                name: `discord:interactionCreate`,
-                onError: (error, name) => {
-                    try {
-                        log.error(`${name ?? `discord:interactionCreate`} listener error: ${String(error)}`, `Boot`);
-                    } catch {}
-                },
-            }) as any,
-        );
-    }
-    if (onMessageCreate) {
-        client.on(
-            `messageCreate`,
-            CreateSafeEventListener(onMessageCreate as any, {
-                name: `discord:messageCreate`,
-                onError: (error, name) => {
-                    try {
-                        log.error(`${name ?? `discord:messageCreate`} listener error: ${String(error)}`, `Boot`);
-                    } catch {}
-                },
-            }) as any,
-        );
-    }
+    InitializeHandlers(client, { onInteractionCreate, onMessageCreate });
 
     // Error logging
     client.on(`error`, err => {
-        try {
-            log.error(`Client error: ${err}`, `Boot`);
-        } catch {
-            // swallow
-        }
+        log.error(`Client error: ${err}`, `Boot`);
         eventBus.emit(`output`, `Discord client error: ${String(err)}`);
     });
 
@@ -104,14 +83,24 @@ export async function bootDiscordClient(options: {
             try {
                 await commandsReady;
 
-                const commandData = Object.values(loadedCommands).map((cmd: any) => {
-                    return cmd.data.toJSON();
-                });
+                const commandData: any[] = [];
+                const commandErrors: Array<{ key: string; error: string }> = [];
+                for (const [key, cmd] of Object.entries(loadedCommands)) {
+                    try {
+                        const json = (cmd as any).data.toJSON();
+                        commandData.push(json);
+                        eventBus.emit(`output`, `Prepared command: ${json.name} (key: ${key})`);
+                    } catch(err) {
+                        const msg = `Failed to convert command '${key}' to JSON: ${String(err)}`;
+                        eventBus.emit(`output`, msg);
+                        commandErrors.push({ key: String(key), error: String(err) });
+                    }
+                }
 
-                // Remove all existing commands at startup (global and per-guild) to avoid stale definitions
                 try {
                     // Clear global commands
-                    await client.application!.commands.set([]);
+                    eventBus.emit(`output`, `Clearing global application commands at startup...`);
+                    await executeWithTimeout(client.application!.commands.set([]), 30000, `clear global commands`);
                     eventBus.emit(`output`, `Cleared global application commands at startup.`);
                 } catch(err) {
                     eventBus.emit(`output`, `Failed to clear global commands: ${String(err)}`);
@@ -119,22 +108,48 @@ export async function bootDiscordClient(options: {
 
                 try {
                     const guilds = Array.from(client.guilds.cache.values());
+                    eventBus.emit(`output`, `Clearing guild commands for ${guilds.length} guild(s)...`);
                     for (const g of guilds) {
                         try {
-                            await client.application!.commands.set([], g.id);
+                            eventBus.emit(`output`, `Clearing guild commands for guild ${g.id}...`);
+                            await executeWithTimeout(client.application!.commands.set([], g.id), 20000, `clear guild ${g.id} commands`);
                             eventBus.emit(`output`, `Cleared guild commands for guild ${g.id}.`);
                         } catch(err) {
                             eventBus.emit(`output`, `Failed to clear guild commands for ${g.id}: ${String(err)}`);
                         }
                     }
-                } catch {}
-
-                // Register global commands only
-                try {
-                    const registeredGlobal = await client.application!.commands.set(commandData);
-                    eventBus.emit(`output`, `Registered ${registeredGlobal.size ?? commandData.length} global commands.`);
                 } catch(err) {
-                    eventBus.emit(`output`, `Global command registration failed: ${String(err)}`);
+                    eventBus.emit(`output`, `Failed while clearing guild commands: ${String(err)}`);
+                }
+
+                try {
+                    try {
+                        eventBus.emit(`output`, `Registration payload: ${JSON.stringify(commandData, null, 2)}`);
+                    } catch {}
+                    eventBus.emit(`output`, `Registering ${commandData.length} command(s): ${commandData.map(c => {
+                        return c.name;
+                    }).join(`, `)}`);
+                    const registeredGlobal = await executeWithTimeout(client.application!.commands.set(commandData), 60000, `register ${commandData.length} global commands`);
+                    eventBus.emit(`output`, `Registered ${ (registeredGlobal as any).size ?? commandData.length } global commands.`);
+
+                    try {
+                        const fetched = await executeWithTimeout(client.application!.commands.fetch(), 30000, `fetch registered commands`);
+                        eventBus.emit(`output`, `Fetched ${ (fetched as any).size } registered global commands: ${Array.from((fetched as any).values()).map((c:any) => {
+                            return c.name;
+                        }).join(`, `)}`);
+                        const hasUserPostFetch = Array.from((fetched as any).values()).some((c: any) => {
+                            return c.name === `user`;
+                        });
+                        if (hasUserPostFetch) {
+                            eventBus.emit(`output`, `Post-fetch verification: '/user' command is registered globally.`);
+                        } else {
+                            eventBus.emit(`output`, `Post-fetch verification: '/user' command is NOT present after registration.`);
+                        }
+                    } catch(err) {
+                        eventBus.emit(`output`, `Failed to fetch registered commands: ${String(err)}`);
+                    }
+                } catch(err) {
+                    eventBus.emit(`output`, `Global command registration failed: ${String(err)} - payload: ${JSON.stringify(commandData)}`);
                 }
 
             } catch(error) {
@@ -171,9 +186,7 @@ export async function bootDiscordClient(options: {
             {
                 name: `discord:chatInputCommand`,
                 onError: error => {
-                    try {
-                        log.error(`Chat input or message command handler failed: ${String(error)}`, `Boot`);
-                    } catch {}
+                    log.error(`Chat input or message command handler failed: ${String(error)}`, `Boot`);
                 },
             },
         ) as any,

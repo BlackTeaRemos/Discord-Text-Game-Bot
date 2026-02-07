@@ -1,5 +1,6 @@
 import type { ModalSubmitFields } from 'discord.js';
 import { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
+import { Translate } from '../../../../Services/I18nService.js';
 
 /**
  * Custom ID for the description editor modal.
@@ -30,9 +31,9 @@ export interface EditorModalOptions {
 export function BuildEditorModal(options: EditorModalOptions): ModalBuilder {
     const contentInput = new TextInputBuilder()
         .setCustomId(EDITOR_CONTENT_FIELD_ID)
-        .setLabel(`Description`)
+        .setLabel(Translate(`descriptionEditor.contentLabel`))
         .setStyle(TextInputStyle.Paragraph)
-        .setPlaceholder(`Enter description text...`)
+        .setPlaceholder(Translate(`descriptionEditor.contentPlaceholder`))
         .setMaxLength(4000)
         .setRequired(false);
 
@@ -44,7 +45,7 @@ export function BuildEditorModal(options: EditorModalOptions): ModalBuilder {
 
     const modal = new ModalBuilder()
         .setCustomId(EDITOR_MODAL_ID)
-        .setTitle(`Edit ${options.scopeLabel}`)
+        .setTitle(Translate(`descriptionEditor.title`, { params: { scopeLabel: options.scopeLabel } }))
         .addComponents(contentRow);
 
     return modal;

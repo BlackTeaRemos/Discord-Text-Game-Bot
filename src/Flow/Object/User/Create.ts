@@ -55,7 +55,8 @@ export async function CreateUser(options: CreateUserOptions): Promise<CreatedUse
             ON MATCH SET
                 u.name = coalesce($name, u.name),
                 u.friendly_name = coalesce($friendlyName, u.friendly_name),
-                u.image = coalesce($image, u.image)
+                u.image = coalesce($image, u.image),
+                u.preferred_locale = coalesce($preferredLocale, u.preferred_locale)
             RETURN u.uid AS uid,
                 u.id AS id,
                 u.discord_id AS discord_id,
@@ -69,6 +70,7 @@ export async function CreateUser(options: CreateUserOptions): Promise<CreatedUse
             name,
             friendlyName,
             image,
+            preferredLocale,
         });
         const record = result.records[0];
         const createdUser: CreatedUser = {
@@ -78,6 +80,7 @@ export async function CreateUser(options: CreateUserOptions): Promise<CreatedUse
             name: record.get(`name`) ?? undefined,
             friendly_name: record.get(`friendly_name`) ?? undefined,
             image: record.get(`image`) ?? undefined,
+            preferred_locale: record.get(`preferred_locale`) ?? null,
         }; // persisted user snapshot
         await EnsureGlobalOrganizationMembership(options.discordId, false);
         return createdUser;

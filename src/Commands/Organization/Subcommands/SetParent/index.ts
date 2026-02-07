@@ -4,6 +4,7 @@ import type { InteractionExecutionContextCarrier } from '../../../../Common/Type
 import { log } from '../../../../Common/Log.js';
 import { ExecuteOrganizationSetParent } from '../../SetParent.js';
 import type { CommandSubcommand } from '../../../CommandSubcommand.js';
+import { Translate, TranslateFromContext } from '../../../../Services/I18nService.js';
 
 const _subcommandName = `set_parent`; // subcommand name
 
@@ -17,17 +18,17 @@ export function BuildOrganizationSetParentSubcommand(
 ): SlashCommandSubcommandBuilder {
     return subcommand
         .setName(_subcommandName)
-        .setDescription(`Change organization parent (hierarchy)`)
+        .setDescription(Translate(`commands.organization.setParent.description`))
         .addStringOption(option => {
             return option
                 .setName(`id`)
-                .setDescription(`Organization UID to modify`)
+                .setDescription(Translate(`commands.organization.setParent.options.id`))
                 .setRequired(true);
         })
         .addStringOption(option => {
             return option
                 .setName(`parent`)
-                .setDescription(`New parent organization UID (leave empty to make root)`)
+                .setDescription(Translate(`commands.organization.setParent.options.parent`))
                 .setRequired(false);
         });
 }
@@ -46,10 +47,19 @@ export async function ExecuteOrganizationSetParentSubcommand(
         const message = error instanceof Error ? error.message : String(error);
         log.error(`Organization set_parent subcommand failed`, message, `OrganizationSetParentSubcommand`);
         if (!interaction.deferred && !interaction.replied) {
-            await interaction.reply({ content: `Failed to update organization parent: ${message}`, flags: MessageFlags.Ephemeral });
+            await interaction.reply({
+                content: TranslateFromContext(interaction.executionContext, `commands.organization.setParent.errors.failed`, {
+                    params: { reason: message },
+                }),
+                flags: MessageFlags.Ephemeral,
+            });
             return;
         }
-        await interaction.editReply({ content: `Failed to update organization parent: ${message}` });
+        await interaction.editReply({
+            content: TranslateFromContext(interaction.executionContext, `commands.organization.setParent.errors.failed`, {
+                params: { reason: message },
+            }),
+        });
     } finally {
         // no-op
     }

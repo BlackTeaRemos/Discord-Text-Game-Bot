@@ -2,6 +2,8 @@ import { ChatInputCommandInteraction, Message, MessageFlags } from 'discord.js';
 import { ValidateTextInput } from './Text.js';
 import { MAIN_EVENT_BUS } from '../../Events/MainEventBus.js';
 import { log } from '../../Common/Log.js';
+import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
+import { TranslateFromContext } from '../../Services/I18nService.js';
 
 /**
  * Configuration for awaiting user-provided text input via Discord messages.
@@ -14,7 +16,7 @@ import { log } from '../../Common/Log.js';
  * @property validator (value: string) => boolean | string Optional custom validation hook.
  */
 export interface AwaitTextInputOptions {
-    interaction: ChatInputCommandInteraction;
+    interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>;
     prompt: string;
     timeoutMs?: number;
     minLength?: number;
@@ -23,14 +25,9 @@ export interface AwaitTextInputOptions {
     validator?: (value: string) => boolean | string;
 }
 
-/** Timeout error message raised when no response is received in time. */
-const TIMEOUT_ERROR_MESSAGE = `User response timeout reached while waiting for text input.`;
-
-/** Cancellation error message raised when the user requests to cancel the prompt. */
-const CANCELLATION_ERROR_MESSAGE = `User cancelled the text prompt.`;
-
-/** Default error message used when validation fails without a custom message. */
-const GENERIC_VALIDATION_MESSAGE = `Provided text does not meet the required criteria. Please try again.`;
+const TIMEOUT_ERROR_KEY = `prompt.text.timeout`;
+const CANCELLATION_ERROR_KEY = `prompt.text.cancelled`;
+const GENERIC_VALIDATION_KEY = `prompt.text.genericValidation`;
 
 /** Default timeout (in milliseconds) applied when options.timeoutMs is not defined. */
 const DEFAULT_TIMEOUT_MS = 2 * 60 * 1000;
@@ -68,8 +65,6 @@ export async function PromptText(options: AwaitTextInputOptions): Promise<string
     const reportIssue = async (message: string): Promise<void> => {
         try {
             await interaction.followUp({ content: message, flags: MessageFlags.Ephemeral });
-        } catch {
-            // Ignore follow-up failures; the user already saw the initial prompt.
         }
     };
 
@@ -156,12 +151,14 @@ export async function PromptText(options: AwaitTextInputOptions): Promise<string
             });
 
             if (validation.status === `cancel`) {
-                await rejectWith(new Error(CANCELLATION_ERROR_MESSAGE));
+                await rejectWith(new Error(TranslateFromContext(interaction.executionContext, CANCELLATION_ERROR_KEY)));
                 return;
             }
 
             if (validation.status === `error`) {
-                await reportIssue(validation.errorMessage ?? GENERIC_VALIDATION_MESSAGE);
+                await reportIssue(
+                    validation.errorMessage ?? TranslateFromContext(interaction.executionContext, GENERIC_VALIDATION_KEY),
+                );
                 return;
             }
 
@@ -172,7 +169,7 @@ export async function PromptText(options: AwaitTextInputOptions): Promise<string
 
         timeoutHandle = setTimeout(
             () => {
-                void rejectWith(new Error(TIMEOUT_ERROR_MESSAGE));
+                void rejectWith(new Error(TranslateFromContext(interaction.executionContext, TIMEOUT_ERROR_KEY)));
             },
             Math.max(0, timeoutMs),
         );

@@ -3,38 +3,39 @@ import type { ChatInputCommandInteraction } from 'discord.js';
 import type { TokenSegmentInput } from '../Common/Permission/index.js';
 import type { InteractionExecutionContextCarrier } from '../Common/Type/Interaction.js';
 import { ExecuteViewTask } from './ViewSimple/Task.js';
+import { Translate } from '../Services/I18nService.js';
 
 export const data = new SlashCommandBuilder()
     .setName(`tasks`)
-    .setDescription(`List tasks or view a task`)
+    .setDescription(Translate(`commands.tasks.description`))
     .addStringOption(option => {
         return option
             .setName(`id`)
-            .setDescription(`Task id to view`)
+            .setDescription(Translate(`commands.tasks.options.id`))
             .setRequired(false);
     })
     .addIntegerOption(option => {
         return option
             .setName(`turn`)
-            .setDescription(`View tasks for specific turn`)
+            .setDescription(Translate(`commands.tasks.options.turn`))
             .setRequired(false);
     })
     .addStringOption(option => {
         return option
             .setName(`status`)
-            .setDescription(`Filter by status group`)
+            .setDescription(Translate(`commands.tasks.options.status`))
             .addChoices(
-                { name: `todo`, value: `todo` },
-                { name: `completed`, value: `completed` },
-                { name: `failed`, value: `failed` },
-                { name: `all`, value: `all` },
+                { name: Translate(`commands.tasks.status.todo`), value: `todo` },
+                { name: Translate(`commands.tasks.status.completed`), value: `completed` },
+                { name: Translate(`commands.tasks.status.failed`), value: `failed` },
+                { name: Translate(`commands.tasks.status.all`), value: `all` },
             )
             .setRequired(false);
     })
     .addUserOption(option => {
         return option
             .setName(`creator`)
-            .setDescription(`Filter by task creator`)
+            .setDescription(Translate(`commands.tasks.options.creator`))
             .setRequired(false);
     });
 

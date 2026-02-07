@@ -3,6 +3,7 @@ import type { ChatInputCommandInteraction } from 'discord.js';
 import type { InteractionExecutionContextCarrier } from '../../../Common/Type/Interaction.js';
 import { RemoveScopedDescriptionByUid } from '../../../Flow/Object/Description/Scope/RemoveScopedDescriptionByUid.js';
 import { log } from '../../../Common/Log.js';
+import { TranslateFromContext } from '../../../Services/I18nService.js';
 
 export interface DescriptionRemoveFlowOptions {
     /**
@@ -27,7 +28,7 @@ export async function RunDescriptionRemoveFlow(options: DescriptionRemoveFlowOpt
     try {
         if (!trimmed.startsWith(`sdesc_`)) {
             await interaction.reply({
-                content: `Only scoped descriptions (uid starting with 'sdesc_') can be removed.`,
+                content: TranslateFromContext(interaction.executionContext, `descriptionRemove.invalidScopedUid`),
                 flags: MessageFlags.Ephemeral,
             });
             return;
@@ -35,13 +36,22 @@ export async function RunDescriptionRemoveFlow(options: DescriptionRemoveFlowOpt
 
         const removed = await RemoveScopedDescriptionByUid(trimmed);
         if (!removed) {
-            await interaction.reply({ content: `Description not found`, flags: MessageFlags.Ephemeral });
+            await interaction.reply({
+                content: TranslateFromContext(interaction.executionContext, `descriptionRemove.notFound`),
+                flags: MessageFlags.Ephemeral,
+            });
             return;
         }
-        await interaction.reply({ content: `Description removed.`, flags: MessageFlags.Ephemeral });
+        await interaction.reply({
+            content: TranslateFromContext(interaction.executionContext, `descriptionRemove.removed`),
+            flags: MessageFlags.Ephemeral,
+        });
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         log.error(`Error removing description`, message, `DescriptionRemoveFlow`);
-        await interaction.reply({ content: `Error: ${message}`, flags: MessageFlags.Ephemeral });
+        await interaction.reply({
+            content: TranslateFromContext(interaction.executionContext, `descriptionRemove.error`, { params: { message } }),
+            flags: MessageFlags.Ephemeral,
+        });
     }
 }

@@ -1,4 +1,5 @@
 import type { UserCreateFlowState } from '../../../../Flow/Object/User/CreateState.js';
+import { Translate } from '../../../../Services/I18nService.js';
 
 /**
  * Provide instructional text for the control panel message based on current state.
@@ -7,26 +8,26 @@ import type { UserCreateFlowState } from '../../../../Flow/Object/User/CreateSta
  */
 export function BuildUserCreateControlsContent(state: UserCreateFlowState): string {
     if (state.controlsLocked) {
-        return `Controls are disabled because this user creation session ended. Run the command again to continue.`;
+        return Translate(`userCreate.controlsMessage.controlsLocked`);
     }
 
-    const segments: string[] = [`Adjust the user details using the buttons below before registering.`];
+    const segments: string[] = [Translate(`userCreate.controlsMessage.intro`)];
 
     if (state.awaitingDiscordId) {
-        segments.push(`Waiting for a message containing the Discord user ID.`);
+        segments.push(Translate(`userCreate.controlsMessage.awaitingDiscordId`));
     }
     if (state.awaitingDisplayName) {
-        segments.push(`Waiting for a message containing the display name.`);
+        segments.push(Translate(`userCreate.controlsMessage.awaitingDisplayName`));
     }
     if (state.awaitingFriendlyName) {
-        segments.push(`Waiting for a message containing the friendly name.`);
+        segments.push(Translate(`userCreate.controlsMessage.awaitingFriendlyName`));
     }
     if (state.awaitingDescription) {
-        segments.push(`Waiting for a message containing the user description.`);
+        segments.push(Translate(`userCreate.controlsMessage.awaitingDescription`));
     }
 
     if (state.finalizing) {
-        segments.push(`Finalizing user creation. This may take a few moments.`);
+        segments.push(Translate(`userCreate.controlsMessage.finalizing`));
     }
 
     return segments.join(`\n`);

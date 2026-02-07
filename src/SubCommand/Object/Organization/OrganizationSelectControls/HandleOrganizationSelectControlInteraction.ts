@@ -4,6 +4,7 @@ import { log } from '../../../../Common/Log.js';
 import { SetUserDefaultOrganization } from '../../../../Flow/Object/Organization/Selection/index.js';
 import { GetOrganizationByUid } from '../../../../Flow/Object/Organization/View/GetOrganizationByUid.js';
 import { GetUserOrganizations } from '../../../../Flow/Object/Organization/View/GetUserOrganizations.js';
+import { TranslateFromContext } from '../../../../Services/I18nService.js';
 
 const _orgSelectPrefix = `org_select`; // select menu custom id prefix
 
@@ -21,10 +22,11 @@ export async function HandleOrganizationSelectControlInteraction(
 
     const parts = interaction.customId.split(`:`); // custom id parts
     const ownerId = parts.length > 1 ? parts[1] : null; // optional owner id guard
+    const executionContext = (interaction as any).executionContext;
 
     if (ownerId && ownerId !== interaction.user.id) {
         await interaction.reply({
-            content: `You cannot select an organization for another user.`,
+            content: TranslateFromContext(executionContext, `commands.organization.selectInteraction.errors.notOwner`),
             flags: MessageFlags.Ephemeral,
         });
         return true;
@@ -33,7 +35,7 @@ export async function HandleOrganizationSelectControlInteraction(
     const selectedUid = interaction.values?.[0]; // selected organization uid
     if (!selectedUid) {
         await interaction.reply({
-            content: `No organization selected.`,
+            content: TranslateFromContext(executionContext, `commands.organization.selectInteraction.errors.noSelection`),
             flags: MessageFlags.Ephemeral,
         });
         return true;
@@ -43,7 +45,7 @@ export async function HandleOrganizationSelectControlInteraction(
         if (selectedUid === `user`) {
             await SetUserDefaultOrganization(interaction.user.id, `user` as any);
             await interaction.update({
-                content: `Default context set to [Personal (User)].`,
+                content: TranslateFromContext(executionContext, `commands.organization.selectInteraction.messages.personalSelected`),
                 components: [],
             });
             return true;
@@ -56,7 +58,7 @@ export async function HandleOrganizationSelectControlInteraction(
 
         if (!hasMembership) {
             await interaction.reply({
-                content: `You cannot select an organization you are not assigned to.`,
+                content: TranslateFromContext(executionContext, `commands.organization.selectInteraction.errors.notMember`),
                 flags: MessageFlags.Ephemeral,
             });
             return true;
@@ -65,7 +67,7 @@ export async function HandleOrganizationSelectControlInteraction(
         const organization = await GetOrganizationByUid(selectedUid);
         if (!organization) {
             await interaction.reply({
-                content: `Selected organization is no longer available.`,
+                content: TranslateFromContext(executionContext, `commands.organization.selectInteraction.errors.unavailable`),
                 flags: MessageFlags.Ephemeral,
             });
             return true;
@@ -75,7 +77,9 @@ export async function HandleOrganizationSelectControlInteraction(
         const name = organization.friendlyName || organization.name; // organization display name
 
         await interaction.update({
-            content: `Default organization set to [${name}].`,
+            content: TranslateFromContext(executionContext, `commands.organization.selectInteraction.messages.selected`, {
+                params: { name },
+            }),
             components: [],
         });
 
@@ -89,7 +93,9 @@ export async function HandleOrganizationSelectControlInteraction(
         const message = error instanceof Error ? error.message : String(error);
         log.error(`Failed to set default organization`, message, `OrganizationSelect`);
         await interaction.reply({
-            content: `Failed to set default organization: ${message}`,
+            content: TranslateFromContext(executionContext, `commands.organization.selectInteraction.errors.failed`, {
+                params: { message },
+            }),
             flags: MessageFlags.Ephemeral,
         });
         return true;

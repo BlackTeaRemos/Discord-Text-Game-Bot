@@ -15,6 +15,7 @@ import { RequestPermissionFromAdmin } from '../../Permission/PermissionUI.js';
 import { resolve } from '../../../Common/Permission/index.js';
 import type { PermissionsObject } from '../../../Common/Permission/index.js';
 import type { PermissionToken } from '../../../Common/Permission/types.js';
+import { TranslateFromContext } from '../../../Services/I18nService.js';
 
 export interface DescriptionCreateFlowOptions {
     /**
@@ -73,7 +74,7 @@ export async function RunDescriptionCreateFlow(options: DescriptionCreateFlowOpt
 
         if (!resolution.success) {
             await interaction.followUp({
-                content: `Permission denied for the selected target.`,
+                    content: TranslateFromContext(interaction.executionContext, `descriptionCreate.permissionDeniedTarget`),
                 flags: MessageFlags.Ephemeral,
             });
             return;
@@ -97,7 +98,12 @@ export async function RunDescriptionCreateFlow(options: DescriptionCreateFlowOpt
         });
 
         if (!organizationPermission.allowed) {
-            await interaction.followUp({ content: `Permission denied (${executionOrganization.organizationName}).`, flags: MessageFlags.Ephemeral });
+            await interaction.followUp({
+                content: TranslateFromContext(interaction.executionContext, `descriptionCreate.permissionDeniedOrganization`, {
+                    params: { name: executionOrganization.organizationName },
+                }),
+                flags: MessageFlags.Ephemeral,
+            });
             return;
         }
     } else {
@@ -109,12 +115,20 @@ export async function RunDescriptionCreateFlow(options: DescriptionCreateFlowOpt
             },
         });
         if (!resolution.success) {
-            await interaction.followUp({ content: `Permission denied (User).`, flags: MessageFlags.Ephemeral });
+            await interaction.followUp({
+                content: TranslateFromContext(interaction.executionContext, `descriptionCreate.permissionDeniedUser`),
+                flags: MessageFlags.Ephemeral,
+            });
             return;
         }
     }
 
-    await interaction.editReply({ content: `Opening description editor for **${objectType}** \`${selection.id}\` as ${executionOrganization.organizationName}...`, components: [] });
+        await interaction.editReply({
+            content: TranslateFromContext(interaction.executionContext, `descriptionCreate.openingEditor`, {
+                params: { objectType, objectId: selection.id, organizationName: executionOrganization.organizationName },
+            }),
+            components: [],
+        });
 
     await RunDescriptionEditorFlow(interaction as unknown as ChatInputCommandInteraction, {
         objectType,

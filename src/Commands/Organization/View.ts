@@ -8,6 +8,7 @@ import {
     EnsureGlobalOrganization,
     GLOBAL_ORGANIZATION_NAME,
 } from '../../Flow/Object/Organization/index.js';
+import { TranslateFromContext } from '../../Services/I18nService.js';
 
 /**
  * Handle /organization view command.
@@ -22,7 +23,7 @@ export async function ExecuteOrganizationView(
 
     if (!organizationUid.trim()) {
         await interaction.reply({
-            content: `Organization UID cannot be empty.`,
+            content: TranslateFromContext(interaction.executionContext, `commands.organization.view.errors.emptyId`),
             flags: MessageFlags.Ephemeral,
         });
         return;
@@ -42,7 +43,9 @@ export async function ExecuteOrganizationView(
 
         if (!organizationData) {
             await interaction.editReply({
-                content: `Organization \`${organizationUid}\` not found.`,
+                content: TranslateFromContext(interaction.executionContext, `commands.organization.view.errors.notFound`, {
+                    params: { id: organizationUid },
+                }),
             });
             return;
         }
@@ -52,30 +55,42 @@ export async function ExecuteOrganizationView(
 
         const hierarchyDisplay = organization.hierarchyChain.length > 1
             ? organization.hierarchyChain.join(` → `)
-            : `Root organization`;
+            : TranslateFromContext(interaction.executionContext, `commands.organization.view.labels.rootOrganization`);
 
         const membersDisplay = users.length > 0
             ? users.map(user => {
                 return `• ${user.friendlyName} (<@${user.discordId}>)`;
             }).join(`\n`)
-            : `No members`;
+            : TranslateFromContext(interaction.executionContext, `commands.organization.view.labels.noMembers`);
 
         const childrenDisplay = children.length > 0
             ? children.map(child => {
                 return `• ${child.friendlyName} (\`${child.uid}\`)`;
             }).join(`\n`)
-            : `No child organizations`;
+            : TranslateFromContext(interaction.executionContext, `commands.organization.view.labels.noChildren`);
+
+        const uidLabel = TranslateFromContext(interaction.executionContext, `commands.organization.view.labels.uid`);
+        const nameLabel = TranslateFromContext(interaction.executionContext, `commands.organization.view.labels.name`);
+        const parentLabel = TranslateFromContext(interaction.executionContext, `commands.organization.view.labels.parent`);
+        const parentRootLabel = TranslateFromContext(interaction.executionContext, `commands.organization.view.labels.parentRoot`);
+        const hierarchyLabel = TranslateFromContext(interaction.executionContext, `commands.organization.view.labels.hierarchyPath`);
+        const membersLabel = TranslateFromContext(interaction.executionContext, `commands.organization.view.labels.members`, {
+            params: { count: users.length },
+        });
+        const childrenLabel = TranslateFromContext(interaction.executionContext, `commands.organization.view.labels.children`, {
+            params: { count: children.length },
+        });
 
         const embed = new EmbedBuilder()
             .setTitle(organization.friendlyName)
             .setColor(0x5865F2)
             .addFields(
-                { name: `UID`, value: `\`${organization.uid}\``, inline: true },
-                { name: `Name`, value: organization.name, inline: true },
-                { name: `Parent`, value: organization.parentUid ? `\`${organization.parentUid}\`` : `None (Root)`, inline: true },
-                { name: `Hierarchy Path`, value: hierarchyDisplay, inline: false },
-                { name: `Members (${users.length})`, value: membersDisplay.substring(0, 1024), inline: false },
-                { name: `Child Organizations (${children.length})`, value: childrenDisplay.substring(0, 1024), inline: false },
+                { name: uidLabel, value: `\`${organization.uid}\``, inline: true },
+                { name: nameLabel, value: organization.name, inline: true },
+                { name: parentLabel, value: organization.parentUid ? `\`${organization.parentUid}\`` : parentRootLabel, inline: true },
+                { name: hierarchyLabel, value: hierarchyDisplay, inline: false },
+                { name: membersLabel, value: membersDisplay.substring(0, 1024), inline: false },
+                { name: childrenLabel, value: childrenDisplay.substring(0, 1024), inline: false },
             )
             .setTimestamp();
 
@@ -92,7 +107,9 @@ export async function ExecuteOrganizationView(
         const message = error instanceof Error ? error.message : String(error);
         log.error(`Failed to view organization`, message, `OrganizationViewCommand`);
         await interaction.editReply({
-            content: `Failed to view organization: ${message}`,
+            content: TranslateFromContext(interaction.executionContext, `commands.organization.view.errors.failed`, {
+                params: { message },
+            }),
         });
     }
 }

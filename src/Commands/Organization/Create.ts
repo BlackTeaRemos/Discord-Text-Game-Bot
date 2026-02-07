@@ -3,6 +3,7 @@ import type { ChatInputCommandInteraction } from 'discord.js';
 import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
 import { log } from '../../Common/Log.js';
 import { CreateOrganization } from '../../Flow/Object/Organization/index.js';
+import { TranslateFromContext } from '../../Services/I18nService.js';
 
 /**
  * Handle /organization create command.
@@ -19,7 +20,7 @@ export async function ExecuteOrganizationCreate(
 
     if (!organizationName.trim()) {
         await interaction.reply({
-            content: `Organization name cannot be empty.`,
+            content: TranslateFromContext(interaction.executionContext, `commands.organization.create.errors.emptyName`),
             flags: MessageFlags.Ephemeral,
         });
         return;
@@ -38,8 +39,12 @@ export async function ExecuteOrganizationCreate(
         });
 
         if (!result.success || !result.organization) {
+            const reason = result.error
+                ?? TranslateFromContext(interaction.executionContext, `commands.organization.create.errors.unknownError`);
             await interaction.editReply({
-                content: `Failed to create organization: ${result.error ?? `Unknown error`}`,
+                content: TranslateFromContext(interaction.executionContext, `commands.organization.create.errors.failed`, {
+                    params: { reason },
+                }),
             });
             return;
         }
@@ -47,26 +52,36 @@ export async function ExecuteOrganizationCreate(
         const organization = result.organization;
         const hierarchyDisplay = organization.hierarchyChain.length > 1
             ? organization.hierarchyChain.join(` → `)
-            : `Root organization`;
+            : TranslateFromContext(interaction.executionContext, `commands.organization.create.labels.rootOrganization`);
+
+        const title = TranslateFromContext(interaction.executionContext, `commands.organization.create.labels.title`);
+        const uidLabel = TranslateFromContext(interaction.executionContext, `commands.organization.create.labels.uid`);
+        const nameLabel = TranslateFromContext(interaction.executionContext, `commands.organization.create.labels.name`);
+        const displayNameLabel = TranslateFromContext(interaction.executionContext, `commands.organization.create.labels.displayName`);
+        const hierarchyLabel = TranslateFromContext(interaction.executionContext, `commands.organization.create.labels.hierarchy`);
+        const parentLabel = TranslateFromContext(interaction.executionContext, `commands.organization.create.labels.parent`);
+        const createdByLabel = TranslateFromContext(interaction.executionContext, `commands.organization.create.labels.createdBy`, {
+            params: { userTag: interaction.user.tag },
+        });
 
         const embed = new EmbedBuilder()
-            .setTitle(`Organization Created`)
+            .setTitle(title)
             .setColor(0x00AE86)
             .addFields(
-                { name: `UID`, value: `\`${organization.uid}\``, inline: true },
-                { name: `Name`, value: organization.name, inline: true },
-                { name: `Display Name`, value: organization.friendlyName, inline: true },
-                { name: `Hierarchy`, value: hierarchyDisplay, inline: false },
+                { name: uidLabel, value: `\`${organization.uid}\``, inline: true },
+                { name: nameLabel, value: organization.name, inline: true },
+                { name: displayNameLabel, value: organization.friendlyName, inline: true },
+                { name: hierarchyLabel, value: hierarchyDisplay, inline: false },
             )
             .setTimestamp()
-            .setFooter({ text: `Created by ${interaction.user.tag}` });
+            .setFooter({ text: createdByLabel });
 
         if (organization.parentUid) {
-            embed.addFields({ name: `Parent`, value: `\`${organization.parentUid}\``, inline: true });
+            embed.addFields({ name: parentLabel, value: `\`${organization.parentUid}\``, inline: true });
         }
 
         await interaction.editReply({
-            content: `Organization created successfully. Use \`/create description\` with the UID to add a description.`,
+            content: TranslateFromContext(interaction.executionContext, `commands.organization.create.messages.success`),
             embeds: [embed],
         });
 
@@ -79,7 +94,9 @@ export async function ExecuteOrganizationCreate(
         const message = error instanceof Error ? error.message : String(error);
         log.error(`Failed to create organization`, message, `OrganizationCreateCommand`);
         await interaction.editReply({
-            content: `Failed to create organization: ${message}`,
+            content: TranslateFromContext(interaction.executionContext, `commands.organization.create.errors.failed`, {
+                params: { reason: message },
+            }),
         });
     }
 }

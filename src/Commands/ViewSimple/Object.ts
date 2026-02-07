@@ -9,6 +9,7 @@ import {
     ResolveOrganization,
 } from '../../Flow/Object/Organization/index.js';
 import { resolve } from '../../Common/Permission/index.js';
+import { TranslateFromContext } from '../../Services/I18nService.js';
 
 /**
  * View description for any object by id
@@ -21,7 +22,7 @@ export async function ExecuteViewObject(
     const objectId = interaction.options.getString(`id`, true);
     if (!objectId.trim()) {
         await interaction.reply({
-            content: `Object ID cannot be empty`,
+            content: TranslateFromContext(interaction.executionContext, `commands.view.object.errors.emptyId`),
             flags: MessageFlags.Ephemeral,
         });
         return;
@@ -35,7 +36,9 @@ export async function ExecuteViewObject(
         const objectInfo = await ResolveObjectByUid(objectId.trim());
         if (!objectInfo) {
             await interaction.editReply({
-                content: `Object with ID \`${objectId}\` not found`,
+                content: TranslateFromContext(interaction.executionContext, `commands.view.object.errors.notFound`, {
+                    params: { id: objectId },
+                }),
             });
             return;
         }
@@ -58,7 +61,9 @@ export async function ExecuteViewObject(
 
             if (!organizationPermission.allowed) {
                 await interaction.editReply({
-                    content: `Permission denied (${executionOrganization.organizationName}).`,
+                    content: TranslateFromContext(interaction.executionContext, `commands.view.common.permissionDeniedOrg`, {
+                        params: { organization: executionOrganization.organizationName },
+                    }),
                 });
                 return;
             }
@@ -73,7 +78,7 @@ export async function ExecuteViewObject(
             });
             if (!resolution.success) {
                 await interaction.editReply({
-                    content: `Permission denied (User).`,
+                    content: TranslateFromContext(interaction.executionContext, `commands.view.common.permissionDeniedUser`),
                 });
                 return;
             }
@@ -81,17 +86,29 @@ export async function ExecuteViewObject(
 
         const description = await FetchDescriptionForObject(objectInfo.uid, interaction.user.id);
 
+        const typeLabel = TranslateFromContext(interaction.executionContext, `objectRegistry.types.${objectInfo.type}`, {
+            defaultValue: objectInfo.type,
+        });
+        const title = TranslateFromContext(interaction.executionContext, `commands.view.object.labels.title`, {
+            params: { type: typeLabel, name: objectInfo.name },
+        });
+        const idLabel = TranslateFromContext(interaction.executionContext, `commands.view.object.labels.id`);
+        const typeLabelName = TranslateFromContext(interaction.executionContext, `commands.view.object.labels.type`);
+        const organizationLabel = TranslateFromContext(interaction.executionContext, `commands.view.object.labels.organization`);
+        const userLabel = TranslateFromContext(interaction.executionContext, `commands.view.common.user`);
+        const noDescription = TranslateFromContext(interaction.executionContext, `commands.view.object.labels.noDescription`);
+
         const embed = new EmbedBuilder()
-            .setTitle(`${objectInfo.type.charAt(0).toUpperCase()}${objectInfo.type.slice(1)}: ${objectInfo.name}`)
+            .setTitle(title)
             .setColor(`Blue`)
-            .addFields({ name: `ID`, value: `\`${objectInfo.uid}\``, inline: true })
-            .addFields({ name: `Type`, value: objectInfo.type, inline: true })
-            .addFields({ name: `Org`, value: executionOrganization.organizationName || `User`, inline: true });
+            .addFields({ name: idLabel, value: `\`${objectInfo.uid}\``, inline: true })
+            .addFields({ name: typeLabelName, value: typeLabel, inline: true })
+            .addFields({ name: organizationLabel, value: executionOrganization.organizationName || userLabel, inline: true });
 
         if (description) {
             embed.setDescription(description.slice(0, 2048));
         } else {
-            embed.setDescription(`No description available`);
+            embed.setDescription(noDescription);
         }
 
         await interaction.editReply({ embeds: [embed] });
@@ -99,7 +116,9 @@ export async function ExecuteViewObject(
         const message = error instanceof Error ? error.message : String(error);
         log.error(`Failed to view object`, message, `ViewObject`);
         await interaction.editReply({
-            content: `Failed to view object: ${message}`,
+            content: TranslateFromContext(interaction.executionContext, `commands.view.object.errors.failed`, {
+                params: { message },
+            }),
         });
     }
 }

@@ -1,0 +1,641 @@
+{
+  "commands": {
+    "user": {
+      "description": "Управление настройками пользователя",
+      "config": {
+        "description": "Установить или получить значение конфигурации пользователя",
+        "option": {
+          "description": "Ключ конфигурации для изменения",
+          "choice": {
+            "preferredLanguage": "Предпочитаемый язык"
+          }
+        },
+        "value": {
+          "description": "Значение для установки (необязательно)"
+        }
+      },
+      "messages": {
+        "currentLocale": "Текущая локаль: {{locale}}",
+        "currentLocaleUnset": "Текущая локаль: не установлена",
+        "localeSet": "Локаль установлена: {{locale}}"
+      },
+      "errors": {
+        "subcommandNotImplemented": "Подкоманда не реализована.",
+        "unknownOption": "Неизвестный параметр конфигурации.",
+        "noValueReader": "Нет значения и нет обработчика для {{option}}.",
+        "invalidValue": "Некорректное значение: {{reason}}",
+        "optionHandlerMissing": "Нет обработчика для {{option}}",
+        "unsupportedLocale": "Неподдерживаемая локаль. Поддерживаются: {{supported}}",
+        "unknownOptionValue": "Неизвестный параметр '{{option}}'",
+        "validationFailed": "Ошибка проверки.",
+        "unexpected": "Произошла непредвиденная ошибка."
+      }
+    }
+    ,
+    "tasks": {
+      "description": "Список задач или просмотр задачи",
+      "options": {
+        "id": "Идентификатор задачи",
+        "turn": "Показать задачи для указанного хода",
+        "status": "Фильтр по статусу",
+        "creator": "Фильтр по создателю"
+      },
+      "status": {
+        "todo": "todo",
+        "completed": "completed",
+        "failed": "failed",
+        "all": "all"
+      }
+    },
+    "view": {
+      "description": "Просмотр игровых сущностей и описаний",
+      "common": {
+        "permissionDeniedOrg": "Доступ запрещён ({{organization}}).",
+        "permissionDeniedUser": "Доступ запрещён (Пользователь).",
+        "user": "Пользователь"
+      },
+      "subcommands": {
+        "game": {
+          "description": "Просмотреть описание игры"
+        },
+        "task": {
+          "description": "Список задач или просмотр задачи"
+        },
+        "object": {
+          "description": "Просмотреть описание любого объекта"
+        }
+      },
+      "options": {
+          "errors": {
+            "notCompleted": "{{label}} не завершено.{{reason}}",
+            "reason": " Причина: {{reason}}",
+            "failedFinalize": "Не удалось завершить {{label}}: {{message}}"
+          },
+        "organization": "UID организации для выполнения (используйте 'global' для общей организации)",
+        "task": {
+          "id": "ID задачи для просмотра",
+          "turn": "Просмотр задач для указанного хода",
+          "creator": "Фильтр по создателю задачи"
+        },
+        "object": {
+          "id": "Идентификатор объекта для просмотра"
+        }
+      },
+      "errors": {
+        "unknownSubcommand": "Неизвестная подкоманда: {{subcommand}}"
+      },
+      "task": {
+        "errors": {
+          "serverOnly": "Эту команду нужно использовать на сервере",
+          "noGame": "В этом сервере нет игры",
+          "noTasks": "Задачи не найдены",
+          "failed": "Не удалось показать задачи: {{message}}",
+          "notFoundOrDenied": "Задача не найдена или доступ запрещён",
+          "updateFailed": "Не удалось обновить статус задачи"
+        },
+        "labels": {
+          "noShortDescription": "Короткое описание отсутствует",
+          "pageIndicator": "Страница {{index}} из {{total}} (всего {{totalCount}})",
+          "detailTitle": "Задача {{id}}",
+          "noDescription": "Описание отсутствует"
+        },
+        "actions": {
+          "previous": "Назад",
+          "next": "Вперёд",
+          "finish": "Завершить",
+          "cancel": "Отменить"
+        }
+      },
+      "game": {
+        "errors": {
+          "serverOnly": "Эту команду нужно использовать на сервере",
+          "noGame": "В этом сервере нет игры. Сначала создайте её через `/create game`",
+          "loadFailed": "Не удалось загрузить данные игры",
+          "failed": "Не удалось показать игру: {{message}}"
+        },
+        "labels": {
+          "currentTurn": "Текущий ход",
+          "organization": "Орг",
+          "noDescription": "Описание отсутствует"
+        }
+      },
+      "object": {
+        "errors": {
+          "emptyId": "ID объекта не может быть пустым",
+          "notFound": "Объект с ID `{{id}}` не найден",
+          "failed": "Не удалось показать объект: {{message}}"
+        },
+        "labels": {
+          "title": "{{type}}: {{name}}",
+          "id": "ID",
+          "type": "Тип",
+          "organization": "Орг",
+          "noDescription": "Описание отсутствует"
+        }
+      }
+    },
+    "create": {
+      "description": "Создание игровых сущностей",
+      "subcommands": {
+        "game": {
+          "description": "Создать новую игру для этого сервера"
+        },
+        "description": {
+          "description": "Редактировать описание объекта"
+        }
+      },
+      "options": {
+        "game": {
+          "name": "Название игры"
+        },
+        "description": {
+          "id": "Идентификатор объекта для описания",
+          "organization": "UID организации для выполнения (используйте 'global' для общей организации)"
+        }
+      },
+      "errors": {
+        "unknownSubcommand": "Неизвестная подкоманда: {{subcommand}}"
+      },
+      "game": {
+        "errors": {
+          "serverOnly": "Эту команду нужно использовать на сервере",
+          "emptyName": "Название игры не может быть пустым",
+          "alreadyExists": "В этом сервере уже есть игра. Разрешена только одна игра на сервер",
+          "failed": "Не удалось создать игру: {{message}}"
+        },
+        "messages": {
+          "success": "Игра **{{name}}** успешно создана\nUID: `{{uid}}`"
+        }
+      },
+      "descriptionFlow": {
+        "errors": {
+          "emptyId": "ID объекта не может быть пустым",
+          "notFound": "Объект с ID `{{id}}` не найден",
+          "invalidTarget": "Описание нельзя создавать для описаний.",
+          "permissionDeniedOrg": "Доступ запрещён ({{organization}}).",
+          "permissionDeniedUser": "Доступ запрещён (Пользователь).",
+          "failed": "Не удалось открыть редактор описания: {{message}}"
+        },
+        "messages": {
+          "opening": "Открываю редактор описания для **{{type}}** `{{uid}}` от имени {{organization}}..."
+        }
+      },
+      "task": {
+        "errors": {
+          "serverOnly": "Эту команду нужно использовать на сервере",
+          "noTargetMessage": "Выберите сообщение для создания задачи",
+          "noMessageContent": "В выбранном сообщении нет текста",
+          "noGame": "В этом сервере нет игры. Сначала создайте её через `/create game`",
+          "failed": "Не удалось создать задачу: {{message}}",
+          "removeFailed": "Не удалось удалить задачу. Возможно, она уже удалена."
+        },
+        "actions": {
+          "remove": "Удалить задачу"
+        },
+        "messages": {
+          "created": "Задача создана ({{organization}}) — ID: `{{id}}` — {{preview}}",
+          "removed": "Задача `{{id}}` удалена."
+        }
+      }
+    },
+    "organization": {
+      "description": "Управление организациями и иерархией",
+      "group": {
+        "defaultDescription": "Управление {{groupName}}"
+      },
+      "errors": {
+        "unknownSubcommand": "Неизвестная подкоманда: {{subcommand}}",
+        "commandFailed": "Команда завершилась ошибкой: {{message}}"
+      },
+      "create": {
+        "description": "Создать новую организацию",
+        "options": {
+          "name": "Название организации (используется в токенах прав)",
+          "displayName": "Дружелюбное отображаемое имя организации",
+          "parent": "UID родительской организации для иерархии"
+        },
+        "errors": {
+          "emptyName": "Название организации не может быть пустым.",
+          "failed": "Не удалось создать организацию: {{reason}}",
+          "unknownError": "Неизвестная ошибка"
+        },
+        "labels": {
+          "rootOrganization": "Корневая организация",
+          "title": "Организация создана",
+          "uid": "UID",
+          "name": "Название",
+          "displayName": "Отображаемое имя",
+          "hierarchy": "Иерархия",
+          "parent": "Родитель",
+          "createdBy": "Создано пользователем {{userTag}}"
+        },
+        "messages": {
+          "success": "Организация создана. Используйте `/create description` с UID для добавления описания."
+        }
+      },
+      "setParent": {
+        "description": "Изменить родительскую организацию (иерархия)",
+        "options": {
+          "id": "UID организации для изменения",
+          "parent": "UID новой родительской организации (оставьте пустым для корня)"
+        },
+        "errors": {
+          "emptyId": "UID организации не может быть пустым.",
+          "notFound": "Организация `{{id}}` не найдена.",
+          "parentNotFound": "Родительская организация `{{id}}` не найдена.",
+          "circularDependency": "Нельзя назначить родителя: {{reason}}",
+          "failed": "Не удалось обновить родителя: {{reason}}",
+          "unknownError": "Неизвестная ошибка"
+        },
+        "labels": {
+          "dependencyChain": "Цепочка зависимости: {{chain}}",
+          "title": "Родитель организации обновлён",
+          "organization": "Организация",
+          "previousParent": "Предыдущий родитель",
+          "newParent": "Новый родитель",
+          "newHierarchy": "Новая иерархия",
+          "noneWasRoot": "Нет (был корнем)",
+          "noneNowRoot": "Нет (теперь корень)",
+          "updatedBy": "Обновлено пользователем {{userTag}}"
+        },
+        "messages": {
+          "success": "Родитель организации успешно обновлён."
+        }
+      },
+      "select": {
+        "description": "Выбор организации по умолчанию для команд",
+        "errors": {
+          "noOrganizations": "Вы не состоите ни в одной организации.",
+          "failed": "Не удалось показать выбор организации: {{message}}"
+        },
+        "labels": {
+          "placeholder": "Выберите организацию",
+          "personal": "Личная (Пользователь)",
+          "personalDescription": "Выполнять команды в личной области"
+        },
+        "messages": {
+          "prompt": "Выберите организацию по умолчанию для выполнения команд."
+        }
+      },
+      "selectInteraction": {
+        "errors": {
+          "notOwner": "Нельзя выбирать организацию для другого пользователя.",
+          "noSelection": "Организация не выбрана.",
+          "notMember": "Нельзя выбрать организацию, в которой вы не состоите.",
+          "unavailable": "Выбранная организация больше недоступна.",
+          "failed": "Не удалось установить организацию по умолчанию: {{message}}"
+        },
+        "messages": {
+          "personalSelected": "Контекст по умолчанию: [Личная (Пользователь)].",
+          "selected": "Организация по умолчанию: [{{name}}]."
+        }
+      },
+      "add": {
+        "description": "Назначить объект организации",
+        "options": {
+          "id": "UID организации",
+          "object": "UID объекта для назначения"
+        },
+        "errors": {
+          "organizationNotFound": "Организация `{{id}}` не найдена.",
+          "objectNotFound": "Объект `{{id}}` не найден.",
+          "failed": "Не удалось назначить объект: {{reason}}",
+          "unknownError": "Неизвестная ошибка"
+        },
+        "messages": {
+          "success": "Назначен `{{name}}` ({{uid}}) организации `{{organizationUid}}`."
+        }
+      },
+      "remove": {
+        "description": "Удалить объект из организации",
+        "options": {
+          "id": "UID организации",
+          "object": "UID объекта для удаления"
+        },
+        "errors": {
+          "organizationNotFound": "Организация `{{id}}` не найдена.",
+          "objectNotFound": "Объект `{{id}}` не найден.",
+          "failed": "Не удалось удалить объект: {{reason}}",
+          "unknownError": "Неизвестная ошибка"
+        },
+        "messages": {
+          "success": "Удалён `{{name}}` ({{uid}}) из организации `{{organizationUid}}`."
+        }
+      },
+      "view": {
+        "description": "Просмотр сведений об организации и иерархии",
+        "options": {
+          "id": "UID организации для просмотра (используйте 'global' для общей организации)"
+        },
+        "errors": {
+          "emptyId": "UID организации не может быть пустым.",
+          "notFound": "Организация `{{id}}` не найдена.",
+          "failed": "Не удалось просмотреть организацию: {{message}}"
+        },
+        "labels": {
+          "rootOrganization": "Корневая организация",
+          "noMembers": "Участников нет",
+          "noChildren": "Нет дочерних организаций",
+          "uid": "UID",
+          "name": "Название",
+          "parent": "Родитель",
+          "parentRoot": "Нет (корень)",
+          "hierarchyPath": "Путь иерархии",
+          "members": "Участники ({{count}})",
+          "children": "Дочерние организации ({{count}})"
+        }
+      }
+    },
+    "manage": {
+      "description": "Управление игровыми сущностями",
+      "subcommands": {
+        "game": {
+          "description": "Управление настройками игры и ходом"
+        }
+      },
+      "errors": {
+        "unknownSubcommand": "Неизвестная подкоманда: {{subcommand}}"
+      },
+      "game": {
+        "errors": {
+          "serverOnly": "Эту команду нужно использовать на сервере",
+          "noGame": "В этом сервере нет игры. Сначала создайте её через `/create game`",
+          "failed": "Не удалось управлять игрой: {{message}}",
+          "invalidTurn": "Неверный номер хода. Должен быть положительным числом"
+        },
+        "labels": {
+          "title": "Управление игрой",
+          "currentTurn": "Текущий ход"
+        },
+        "actions": {
+          "nextTurn": "Следующий ход",
+          "setTurn": "Задать ход"
+        },
+        "modal": {
+          "title": "Установить номер хода",
+          "inputLabel": "Номер хода"
+        }
+      }
+    }
+  }
+  ,
+  "objectRegistry": {
+    "types": {
+      "game": "Игры",
+      "organization": "Организации",
+      "user": "Пользователи",
+      "building": "Фабрики",
+      "task": "Задачи"
+    },
+    "common": {
+      "name": "Название",
+      "identifier": "Идентификатор",
+      "server": "Сервер",
+      "description": "Описание",
+      "storedInternally": "Хранится внутренне.",
+      "notAvailable": "н/д",
+      "noDescriptionYet": "Описание ещё отсутствует."
+    },
+    "game": {
+      "detailsTitle": "Сведения об игре"
+    },
+    "organization": {
+      "detailsTitle": "Сведения об организации",
+      "friendly": "Псевдоним",
+      "members": "Участники"
+    },
+    "user": {
+      "detailsTitle": "Сведения о пользователе",
+      "discord": "Discord"
+    },
+    "task": {
+      "detailsTitle": "Сведения о задаче",
+      "id": "ID",
+      "status": "Статус",
+      "short": "Кратко",
+      "organization": "Орг."
+    },
+    "factory": {
+      "detailsTitle": "Сведения о фабрике",
+      "type": "Тип",
+      "organization": "Организация",
+      "organizationRecorded": "Связанная организация сохранена внутренне."
+    },
+    "scopedDescription": {
+      "user": "Описание (личное)",
+      "organization": "Описание (организация)",
+      "global": "Описание (публичное)"
+    }
+  }
+  ,
+  "prompt": {
+    "text": {
+      "timeout": "Время ожидания ответа истекло.",
+      "cancelled": "Пользователь отменил ввод текста.",
+      "genericValidation": "Текст не соответствует требованиям. Попробуйте снова.",
+      "validatorFailed": "Текст не прошёл проверку.",
+      "emptyValue": "Пожалуйста, введите ответ.",
+      "minLengthOne": "Ответ должен содержать хотя бы один символ.",
+      "minLengthMany": "Ответ должен содержать минимум {{minLength}} символов.",
+      "maxLength": "Ответ не должен превышать {{maxLength}} символов."
+    },
+    "select": {
+      "required": "Требуется выбор.",
+      "invalid": "Неверный выбор.",
+      "validationFailed": "Проверка выбора не пройдена."
+    },
+    "file": {
+      "timeout": "Время ожидания файла истекло.",
+      "cancelled": "Пользователь отменил ввод файла.",
+      "invalid": "Неверный ввод файла. Отправьте изображение или прямую ссылку.",
+      "missingChannel": "Не удалось определить канал для ввода файла."
+    },
+    "image": {
+      "timeout": "Время ожидания изображения истекло.",
+      "cancelled": "Пользователь отменил ввод изображения.",
+      "httpsRequired": "Изображение должно быть по https.",
+      "uploadFailed": "Не удалось обработать изображение. Попробуйте снова.",
+      "missingChannel": "Не удалось определить канал для загрузки изображения.",
+      "noImageDetected": "Изображение не найдено. Отправьте вложение или прямую ссылку.",
+      "maxSize": "Изображение превышает максимум {{maxSizeMb}} МБ.",
+      "invalidUrl": "Укажите корректный URL изображения, начинающийся с https.",
+      "invalidAttachment": "Отправьте реальное изображение или прямую ссылку.",
+      "updatedPreview": "Изображение обновлено для предпросмотра.",
+      "requestInput": "Отправьте изображение или прямую ссылку на изображение.",
+      "cancelledShort": "Обновление изображения отменено.",
+      "urlSet": "URL изображения установлен для предпросмотра."
+    }
+  }
+  ,
+  "menuRenderer": {
+    "chooseOption": "Выберите вариант",
+    "back": "Назад",
+    "root": "Корень"
+  }
+  ,
+  "objectView": {
+    "pageIndicator": "Страница {{index}}/{{total}}",
+    "prev": "Назад",
+    "next": "Вперёд"
+  }
+  ,
+  "organizationPrompt": {
+    "disabled": "Функции организаций отключены."
+  }
+  ,
+  "common": {
+    "cancel": "Отмена"
+  }
+  ,
+  "userCreate": {
+    "controls": {
+      "changeDiscordId": "Изменить Discord ID",
+      "changeDisplayName": "Изменить отображаемое имя",
+      "changeFriendlyName": "Изменить дружелюбное имя",
+      "editDescription": "Редактировать описание",
+      "createUser": "Создать пользователя"
+    },
+    "controlsMessage": {
+      "controlsLocked": "Управление недоступно: сессия создания пользователя завершена. Запустите команду снова.",
+      "intro": "Настройте данные пользователя перед регистрацией с помощью кнопок ниже.",
+      "awaitingDiscordId": "Ожидается сообщение с Discord ID пользователя.",
+      "awaitingDisplayName": "Ожидается сообщение с отображаемым именем.",
+      "awaitingFriendlyName": "Ожидается сообщение с дружелюбным именем.",
+      "awaitingDescription": "Ожидается сообщение с описанием пользователя.",
+      "finalizing": "Завершаем создание пользователя. Это может занять немного времени."
+    },
+    "preview": {
+      "discordNotSet": "Ещё не задано.",
+      "newUser": "Новый пользователь",
+      "friendlyNotProvided": "Не указано",
+      "noDescription": "Описание ещё не задано.",
+      "discordIdLabel": "Discord ID",
+      "friendlyNameLabel": "Дружелюбное имя",
+      "message": "Предпросмотр того, как будет выглядеть пользователь после регистрации."
+    },
+    "officialDescription": "Официальное описание",
+    "sessionInactive": "Сессия создания пользователя больше не активна. Запустите команду снова для изменений.",
+    "errors": {
+      "invalidDiscordId": "Укажите Discord ID от 15 до 25 цифр перед продолжением.",
+      "unableToCreate": "Не удалось создать пользователя: {{message}}"
+    },
+    "success": "Профиль пользователя, связанный с Discord {{discordId}}, создан успешно.",
+    "prompt": {
+      "discordIdCancel": "Discord ID не изменён. Нажмите кнопку снова для обновления.",
+      "discordIdTimeout": "Discord ID не получен. Нажмите кнопку снова, когда будете готовы.",
+      "displayNameCancel": "Отображаемое имя не изменено. Нажмите кнопку снова для обновления.",
+      "displayNameTimeout": "Отображаемое имя не получено. Нажмите кнопку снова, когда будете готовы.",
+      "friendlyNameCancel": "Дружелюбное имя не изменено. Нажмите кнопку снова для обновления.",
+      "friendlyNameTimeout": "Дружелюбное имя не получено. Нажмите кнопку снова, когда будете готовы.",
+      "descriptionCancel": "Описание не изменено. Нажмите кнопку снова для обновления.",
+      "descriptionTimeout": "Описание не получено. Нажмите кнопку снова, когда будете готовы.",
+      "genericError": "Произошла ошибка при обновлении пользователя. Попробуйте снова.",
+      "noResponse": "Ответ не получен. Нажмите кнопку снова, когда будете готовы.",
+      "discordIdPrompt": "Отправьте Discord ID пользователя. Напишите **cancel**, чтобы оставить текущее значение.",
+      "discordIdValidation": "Discord ID должен состоять только из цифр и иметь длину 15–25 символов.",
+      "displayNamePrompt": "Отправьте отображаемое имя. Напишите **cancel**, чтобы оставить текущее значение.",
+      "friendlyNamePrompt": "Отправьте дружелюбное имя. Напишите **cancel**, чтобы оставить текущее значение.",
+      "descriptionPrompt": "Отправьте описание профиля. Напишите **cancel**, чтобы оставить текущее значение."
+    }
+  }
+  ,
+  "gameCreate": {
+    "controls": {
+      "saveChanges": "Сохранить изменения",
+      "createGame": "Создать игру",
+      "cancelUpdate": "Отменить обновление",
+      "changeName": "Изменить название",
+      "changeDescription": "Изменить описание",
+      "changeImage": "Изменить изображение"
+    },
+    "preview": {
+      "selectOrganization": "Выберите организацию",
+      "unnamedGame": "Безымянная игра",
+      "noDescription": "Описание ещё не задано.",
+      "serverFooter": "Сервер {{serverId}}"
+    }
+  }
+  ,
+  "descriptionViewer": {
+    "noDescription": "Описание ещё отсутствует.",
+    "scopeDefault": "Описание",
+    "pageIndicator": "Страница {{index}}/{{total}}",
+    "previous": "Назад",
+    "next": "Вперёд",
+    "edit": "Редактировать",
+    "noScopes": "Нет доступных областей описания.",
+    "selectScopePrompt": "Выберите область описания для просмотра:",
+    "invalidScope": "Неверно выбранная область."
+  }
+  ,
+  "descriptionEditor": {
+    "contentLabel": "Описание",
+    "contentPlaceholder": "Введите текст описания...",
+    "title": "Редактировать {{scopeLabel}}",
+    "selectScope": "Выберите область описания",
+    "prompt": "Введите новое описание для **{{scope}}** в этом канале.\nВаше следующее сообщение заменит текущее содержимое.\nНапишите **cancel**, чтобы отменить.",
+    "messages": {
+      "cancelled": "Редактирование отменено.",
+      "updated": "Описание успешно обновлено."
+    },
+    "errors": {
+      "saveFailed": "Не удалось сохранить."
+    }
+  }
+  ,
+  "descriptionTarget": {
+    "userLabel": "Цель: пользователь",
+    "organizationLabel": "Цель: организация",
+    "userNotFound": "Запись пользователя не найдена.",
+    "usingUserRecord": "Используется ваша запись пользователя.",
+    "selectObjectType": "Выберите тип объекта",
+    "selectObjectPrompt": "Выберите объект для создания или редактирования описания.",
+    "selectionTimeout": "Время выбора истекло.",
+    "selectScope": "Выберите область",
+    "scopeMine": "{{label}}: только мои",
+    "scopeAll": "{{label}}: все (нужно разрешение)",
+    "scopePrompt": "Выберите доступ только к своим записям или к любым.",
+    "selectOrganization": "Выберите организацию",
+    "selectOrganizationPrompt": "Выберите организацию для редактирования описаний.",
+    "noOrganizationsForUser": "У вас нет организаций.",
+    "noOrganizations": "Организации не найдены.",
+    "usingOrganization": "Используется организация: {{name}}",
+    "selectOrganizationFallback": "Выберите организацию.",
+    "noRecords": "Записи {{type}} не найдены.",
+    "selectType": "Выберите {{type}}",
+    "selectTypePrompt": "Выберите {{type}}. Показано до {{count}} элементов."
+  }
+  ,
+  "descriptionCreate": {
+    "permissionDeniedTarget": "Доступ запрещён для выбранной цели.",
+    "permissionDeniedOrganization": "Доступ запрещён ({{name}}).",
+    "permissionDeniedUser": "Доступ запрещён (Пользователь).",
+    "openingEditor": "Открываю редактор описания для **{{objectType}}** `{{objectId}}` от имени {{organizationName}}..."
+  }
+  ,
+  "descriptionRemove": {
+    "invalidScopedUid": "Удалять можно только scoped-описания (uid начинается с 'sdesc_').",
+    "notFound": "Описание не найдено",
+    "removed": "Описание удалено.",
+    "error": "Ошибка: {{message}}"
+  }
+  ,
+  "permission": {
+    "missingGuild": "Не удалось определить контекст сервера. Попробуйте в канале сервера.",
+    "membersUnavailable": "Не удалось получить список участников. Попросите администратора пригласить меня с включённым intent \"Server Members\".",
+    "noAdminAvailable": "Не удалось связаться с администратором. Попросите проверить права вручную.",
+    "requestTitle": "Запрос разрешения",
+    "requestDescription": "Пользователь <@{{userId}}> запросил команды: {{tokens}}",
+    "reasonLabel": "Причина",
+    "noReason": "Причина не указана",
+    "approveOnce": "Одобрить один раз",
+    "approveForever": "Одобрить навсегда",
+    "deny": "Отклонить",
+    "botCannotSend": "У меня нет прав на отправку сообщений в этом канале. Попросите администратора выдать право Send Messages.",
+    "channelNoSend": "Канал не поддерживает отправку",
+    "deliveryFailed": "Не удалось отправить запрос на одобрение в текущем канале.",
+    "adminDenied": "Администратор отклонил запрос.",
+    "adminNoResponse": "{{admin}} (нет ответа)",
+    "adminTimeout": "Администратор не ответил вовремя. Попробуйте позже."
+  }
+}

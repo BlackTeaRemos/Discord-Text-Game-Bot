@@ -1,0 +1,643 @@
+{
+  "commands": {
+    "user": {
+      "description": "Manage user settings",
+      "config": {
+        "description": "Set or get a user configuration value",
+        "option": {
+          "description": "Configuration key to modify",
+          "choice": {
+            "preferredLanguage": "Preferred language"
+          }
+        },
+        "value": {
+          "description": "Value to set (omit to view)"
+        }
+      },
+      "messages": {
+        "currentLocale": "Current preferred locale: {{locale}}",
+        "currentLocaleUnset": "Current preferred locale: not set",
+        "localeSet": "Preferred locale set to {{locale}}"
+      },
+      "errors": {
+        "subcommandNotImplemented": "Subcommand not implemented.",
+        "unknownOption": "Unknown configuration option.",
+        "noValueReader": "No value and no reader for {{option}}.",
+        "invalidValue": "Invalid value: {{reason}}",
+        "optionHandlerMissing": "Option handler missing for {{option}}",
+        "unsupportedLocale": "Unsupported locale. Supported: {{supported}}",
+        "unknownOptionValue": "Unknown option '{{option}}'",
+        "validationFailed": "Validation failed.",
+        "unexpected": "Unexpected error occurred."
+      }
+    }
+    ,
+    "tasks": {
+      "description": "List tasks or view a task",
+      "options": {
+        "id": "Task id to view",
+        "turn": "View tasks for specific turn",
+        "status": "Filter by status group",
+        "creator": "Filter by task creator"
+      },
+      "status": {
+        "todo": "todo",
+        "completed": "completed",
+        "failed": "failed",
+        "all": "all"
+      }
+    },
+    "view": {
+      "description": "View game entities and descriptions",
+      "common": {
+        "permissionDeniedOrg": "Permission denied ({{organization}}).",
+        "permissionDeniedUser": "Permission denied (User).",
+        "user": "User"
+      },
+      "subcommands": {
+        "game": {
+          "description": "View game description"
+        },
+        "task": {
+          "description": "List tasks or view a specific task"
+        },
+        "object": {
+          "description": "View description for any object"
+        }
+      },
+      "options": {
+        "organization": "Organization UID to execute as (use 'global' for shared org)",
+        "task": {
+          "id": "Task id to view",
+          "turn": "View tasks for specific turn",
+          "creator": "Filter by task creator"
+        },
+        "object": {
+          "id": "Object identifier to view"
+        }
+      },
+      "errors": {
+        "unknownSubcommand": "Unknown subcommand: {{subcommand}}"
+      },
+      "task": {
+        "errors": {
+          "serverOnly": "This command must be used in a server",
+          "noGame": "No game exists in this server",
+          "noTasks": "No tasks found",
+          "failed": "Failed to view tasks: {{message}}",
+          "notFoundOrDenied": "Task not found or access denied",
+          "updateFailed": "Failed to update task status"
+        },
+        "labels": {
+          "noShortDescription": "No short description",
+          "pageIndicator": "Page {{index}} of {{total}} ({{totalCount}} total)",
+          "detailTitle": "Task {{id}}",
+          "noDescription": "No description"
+        },
+        "actions": {
+          "previous": "Previous",
+          "next": "Next",
+          "finish": "Finish",
+          "cancel": "Cancel"
+        }
+      },
+      "game": {
+        "errors": {
+          "serverOnly": "This command must be used in a server",
+          "noGame": "No game exists in this server. Create one first with `/create game`",
+          "loadFailed": "Game data could not be loaded",
+          "failed": "Failed to view game: {{message}}"
+        },
+        "labels": {
+          "currentTurn": "Current Turn",
+          "organization": "Org",
+          "noDescription": "No description available"
+        }
+      },
+      "object": {
+        "errors": {
+          "emptyId": "Object ID cannot be empty",
+          "notFound": "Object with ID `{{id}}` not found",
+          "failed": "Failed to view object: {{message}}"
+        },
+        "labels": {
+          "title": "{{type}}: {{name}}",
+          "id": "ID",
+          "type": "Type",
+          "organization": "Org",
+          "noDescription": "No description available"
+        }
+      }
+    },
+    "create": {
+      "description": "Create game entities",
+      "subcommands": {
+        "game": {
+          "description": "Create a new game for this server"
+        },
+        "description": {
+          "description": "Edit description for an object"
+        }
+      },
+      "options": {
+        "game": {
+          "name": "Name for the game"
+        },
+        "description": {
+          "id": "Object identifier to edit description for",
+          "organization": "Organization UID to execute as (use 'global' for shared org)"
+        }
+      },
+      "errors": {
+        "unknownSubcommand": "Unknown subcommand: {{subcommand}}"
+      },
+      "game": {
+        "errors": {
+          "serverOnly": "This command must be used in a server",
+          "emptyName": "Game name cannot be empty",
+          "alreadyExists": "A game already exists in this server. Only one game per server is allowed",
+          "failed": "Failed to create game: {{message}}"
+        },
+        "messages": {
+          "success": "Game **{{name}}** created successfully\nUID: `{{uid}}`"
+        }
+      },
+      "descriptionFlow": {
+        "errors": {
+          "emptyId": "Object ID cannot be empty",
+          "notFound": "Object with ID `{{id}}` not found",
+          "invalidTarget": "Descriptions cannot target other descriptions.",
+          "permissionDeniedOrg": "Permission denied ({{organization}}).",
+          "permissionDeniedUser": "Permission denied (User).",
+          "failed": "Failed to open description editor: {{message}}"
+        },
+        "messages": {
+          "opening": "Opening description editor for **{{type}}** `{{uid}}` as {{organization}}..."
+        }
+      },
+      "task": {
+        "errors": {
+          "serverOnly": "This command must be used in a server",
+          "noTargetMessage": "Select a message to create a task",
+          "noMessageContent": "The selected message has no text content",
+          "noGame": "No game exists in this server. Create one first with `/create game`",
+          "failed": "Failed to create task: {{message}}",
+          "removeFailed": "Failed to remove task. It may have already been deleted."
+        },
+        "actions": {
+          "remove": "Remove Task"
+        },
+        "messages": {
+          "created": "Task created ({{organization}}) — ID: `{{id}}` — {{preview}}",
+          "removed": "Task `{{id}}` has been removed."
+        }
+      }
+    },
+    "organization": {
+      "description": "Manage organizations and hierarchy",
+      "group": {
+        "defaultDescription": "Manage {{groupName}}"
+      },
+      "errors": {
+        "unknownSubcommand": "Unknown subcommand: {{subcommand}}",
+        "commandFailed": "Command failed: {{message}}"
+      },
+      "create": {
+        "description": "Create a new organization",
+        "options": {
+          "name": "Organization name (used in permission tokens)",
+          "displayName": "Friendly display name for the organization",
+          "parent": "Parent organization UID for hierarchy"
+        },
+        "errors": {
+          "emptyName": "Organization name cannot be empty.",
+          "failed": "Failed to create organization: {{reason}}",
+          "unknownError": "Unknown error"
+        },
+        "labels": {
+          "rootOrganization": "Root organization",
+          "title": "Organization Created",
+          "uid": "UID",
+          "name": "Name",
+          "displayName": "Display Name",
+          "hierarchy": "Hierarchy",
+          "parent": "Parent",
+          "createdBy": "Created by {{userTag}}"
+        },
+        "messages": {
+          "success": "Organization created successfully. Use `/create description` with the UID to add a description."
+        }
+      },
+      "setParent": {
+        "description": "Change organization parent (hierarchy)",
+        "options": {
+          "id": "Organization UID to modify",
+          "parent": "New parent organization UID (leave empty to make root)"
+        },
+        "errors": {
+          "emptyId": "Organization UID cannot be empty.",
+          "notFound": "Organization `{{id}}` not found.",
+          "parentNotFound": "Parent organization `{{id}}` not found.",
+          "circularDependency": "Cannot set parent: {{reason}}",
+          "failed": "Failed to update parent: {{reason}}",
+          "unknownError": "Unknown error"
+        },
+        "labels": {
+          "dependencyChain": "Dependency chain: {{chain}}",
+          "title": "Organization Parent Updated",
+          "organization": "Organization",
+          "previousParent": "Previous Parent",
+          "newParent": "New Parent",
+          "newHierarchy": "New Hierarchy",
+          "noneWasRoot": "None (was root)",
+          "noneNowRoot": "None (now root)",
+          "updatedBy": "Updated by {{userTag}}"
+        },
+        "messages": {
+          "success": "Organization parent updated successfully."
+        }
+      },
+      "select": {
+        "description": "Select default organization for commands",
+        "errors": {
+          "noOrganizations": "You are not assigned to any organizations.",
+          "failed": "Failed to present organization selection: {{message}}"
+        },
+        "labels": {
+          "placeholder": "Select organization",
+          "personal": "Personal (User)",
+          "personalDescription": "Execute commands using your personal scope"
+        },
+        "messages": {
+          "prompt": "Select the default organization for command execution."
+        }
+      },
+      "selectInteraction": {
+        "errors": {
+          "notOwner": "You cannot select an organization for another user.",
+          "noSelection": "No organization selected.",
+          "notMember": "You cannot select an organization you are not assigned to.",
+          "unavailable": "Selected organization is no longer available.",
+          "failed": "Failed to set default organization: {{message}}"
+        },
+        "messages": {
+          "personalSelected": "Default context set to [Personal (User)].",
+          "selected": "Default organization set to [{{name}}]."
+        }
+      },
+      "add": {
+        "description": "Assign an object to an organization",
+        "options": {
+          "id": "Organization UID",
+          "object": "Object UID to assign"
+        },
+        "errors": {
+          "organizationNotFound": "Organization `{{id}}` not found.",
+          "objectNotFound": "Object `{{id}}` not found.",
+          "failed": "Failed to assign object: {{reason}}",
+          "unknownError": "Unknown error"
+        },
+        "messages": {
+          "success": "Assigned `{{name}}` ({{uid}}) to organization `{{organizationUid}}`."
+        }
+      },
+      "remove": {
+        "description": "Remove an object from an organization",
+        "options": {
+          "id": "Organization UID",
+          "object": "Object UID to remove"
+        },
+        "errors": {
+          "organizationNotFound": "Organization `{{id}}` not found.",
+          "objectNotFound": "Object `{{id}}` not found.",
+          "failed": "Failed to remove object: {{reason}}",
+          "unknownError": "Unknown error"
+        },
+        "messages": {
+          "success": "Removed `{{name}}` ({{uid}}) from organization `{{organizationUid}}`."
+        }
+      },
+      "view": {
+        "description": "View organization details and hierarchy",
+        "options": {
+          "id": "Organization UID to view (use 'global' for shared org)"
+        },
+        "errors": {
+          "emptyId": "Organization UID cannot be empty.",
+          "notFound": "Organization `{{id}}` not found.",
+          "failed": "Failed to view organization: {{message}}"
+        },
+        "labels": {
+          "rootOrganization": "Root organization",
+          "noMembers": "No members",
+          "noChildren": "No child organizations",
+          "uid": "UID",
+          "name": "Name",
+          "parent": "Parent",
+          "parentRoot": "None (Root)",
+          "hierarchyPath": "Hierarchy Path",
+          "members": "Members ({{count}})",
+          "children": "Child Organizations ({{count}})"
+        }
+      }
+    },
+    "manage": {
+      "description": "Manage game entities",
+      "subcommands": {
+        "game": {
+          "description": "Manage game settings and turn"
+        }
+      },
+      "errors": {
+        "unknownSubcommand": "Unknown subcommand: {{subcommand}}"
+      },
+      "game": {
+        "errors": {
+          "serverOnly": "This command must be used in a server",
+          "noGame": "No game exists in this server. Create one first with `/create game`",
+          "failed": "Failed to manage game: {{message}}",
+          "invalidTurn": "Invalid turn number. Must be a positive integer"
+        },
+        "labels": {
+          "title": "Game Management",
+          "currentTurn": "Current Turn"
+        },
+        "actions": {
+          "nextTurn": "Next Turn",
+          "setTurn": "Set Turn"
+        },
+        "modal": {
+          "title": "Set Turn Number",
+          "inputLabel": "Turn Number"
+        }
+      }
+    }
+  }
+  ,
+  "objectRegistry": {
+    "types": {
+      "game": "Games",
+      "organization": "Organizations",
+      "user": "Users",
+      "building": "Factories",
+      "task": "Tasks"
+    },
+    "common": {
+      "name": "Name",
+      "identifier": "Identifier",
+      "server": "Server",
+      "description": "Description",
+      "storedInternally": "Stored internally.",
+      "notAvailable": "n/a",
+      "noDescriptionYet": "No description yet."
+    },
+    "game": {
+      "detailsTitle": "Game details"
+    },
+    "organization": {
+      "detailsTitle": "Organization details",
+      "friendly": "Friendly",
+      "members": "Members"
+    },
+    "user": {
+      "detailsTitle": "User details",
+      "discord": "Discord"
+    },
+    "task": {
+      "detailsTitle": "Task details",
+      "id": "ID",
+      "status": "Status",
+      "short": "Short",
+      "organization": "Org"
+    },
+    "factory": {
+      "detailsTitle": "Factory details",
+      "type": "Type",
+      "organization": "Organization",
+      "organizationRecorded": "Linked organization recorded internally."
+    },
+    "scopedDescription": {
+      "user": "Description (personal)",
+      "organization": "Description (organization)",
+      "global": "Description (public)"
+    }
+  }
+  ,
+  "prompt": {
+    "text": {
+      "timeout": "User response timeout reached while waiting for text input.",
+      "cancelled": "User cancelled the text prompt.",
+      "genericValidation": "Provided text does not meet the required criteria. Please try again.",
+      "validatorFailed": "The provided text did not pass validation.",
+      "emptyValue": "Please provide a response before continuing.",
+      "minLengthOne": "Response must contain at least one character.",
+      "minLengthMany": "Response must contain at least {{minLength}} characters.",
+      "maxLength": "Response must not exceed {{maxLength}} characters."
+    },
+    "select": {
+      "required": "Selection required.",
+      "invalid": "Invalid selection.",
+      "validationFailed": "Selection validation failed."
+    },
+    "file": {
+      "timeout": "User response timeout reached while waiting for file input.",
+      "cancelled": "User cancelled the file prompt.",
+      "invalid": "Invalid file input. Upload an image or paste a direct URL.",
+      "missingChannel": "Unable to determine channel for file input."
+    },
+    "image": {
+      "timeout": "User response timeout reached while waiting for image input.",
+      "cancelled": "User cancelled the image prompt.",
+      "httpsRequired": "Provide an image that is hosted over https.",
+      "uploadFailed": "Processing the image failed. Please try again.",
+      "missingChannel": "Unable to determine channel for image capture.",
+      "noImageDetected": "No image detected. Send an attachment or direct image URL.",
+      "maxSize": "Image exceeds the maximum size of {{maxSizeMb}} MB.",
+      "invalidUrl": "Provide a valid image URL starting with https.",
+      "invalidAttachment": "Provide an actual image attachment or paste a direct URL.",
+      "updatedPreview": "Image updated for preview.",
+      "requestInput": "Send an image attachment or paste a direct image URL.",
+      "cancelledShort": "Image update cancelled.",
+      "urlSet": "Image URL set for preview."
+    }
+  }
+  ,
+  "menuRenderer": {
+    "chooseOption": "Choose an option",
+    "back": "Back",
+    "root": "Root"
+  }
+  ,
+  "objectView": {
+    "pageIndicator": "Page {{index}}/{{total}}",
+    "prev": "Prev",
+    "next": "Next"
+  }
+  ,
+  "organizationPrompt": {
+    "disabled": "Organization functionality is disabled."
+  }
+  ,
+  "common": {
+    "cancel": "Cancel"
+  }
+  ,
+  "userCreate": {
+    "controls": {
+      "changeDiscordId": "Change Discord ID",
+      "changeDisplayName": "Change display name",
+      "changeFriendlyName": "Change friendly name",
+      "editDescription": "Edit description",
+      "createUser": "Create user"
+    },
+    "controlsMessage": {
+      "controlsLocked": "Controls are disabled because this user creation session ended. Run the command again to continue.",
+      "intro": "Adjust the user details using the buttons below before registering.",
+      "awaitingDiscordId": "Waiting for a message containing the Discord user ID.",
+      "awaitingDisplayName": "Waiting for a message containing the display name.",
+      "awaitingFriendlyName": "Waiting for a message containing the friendly name.",
+      "awaitingDescription": "Waiting for a message containing the user description.",
+      "finalizing": "Finalizing user creation. This may take a few moments."
+    },
+    "preview": {
+      "discordNotSet": "Not set yet.",
+      "newUser": "New user",
+      "friendlyNotProvided": "Not provided",
+      "noDescription": "No description provided yet.",
+      "discordIdLabel": "Discord ID",
+      "friendlyNameLabel": "Friendly name",
+      "message": "Preview how this user will appear once registered."
+    },
+    "officialDescription": "Official Description",
+    "sessionInactive": "This user creation session is no longer active. Run the command again to make changes.",
+    "errors": {
+      "invalidDiscordId": "Set a Discord user ID between 15 and 25 digits before continuing.",
+      "unableToCreate": "Unable to create the user: {{message}}"
+    },
+    "success": "User profile linked to Discord {{discordId}} created successfully.",
+    "prompt": {
+      "discordIdCancel": "Discord ID unchanged. Use the button again when you want to update it.",
+      "discordIdTimeout": "No Discord ID received. Press the button again when you are ready to provide one.",
+      "displayNameCancel": "Display name unchanged. Use the button again when you want to update it.",
+      "displayNameTimeout": "No display name received. Press the button again when you are ready to provide one.",
+      "friendlyNameCancel": "Friendly name unchanged. Use the button again when you want to update it.",
+      "friendlyNameTimeout": "No friendly name received. Press the button again when you are ready to provide one.",
+      "descriptionCancel": "Description unchanged. Use the button again when you want to update it.",
+      "descriptionTimeout": "No description received. Press the button again when you are ready to provide one.",
+      "genericError": "Something went wrong while updating the user. Please try again.",
+      "noResponse": "No response received. Please press the button again when ready.",
+      "discordIdPrompt": "Send the Discord user ID you want to register. Type **cancel** to keep the current value.",
+      "discordIdValidation": "Discord IDs must contain only digits and be between 15 and 25 characters long.",
+      "displayNamePrompt": "Send the display name you want to use. Type **cancel** to keep the current value.",
+      "friendlyNamePrompt": "Send the friendly name you want to use. Type **cancel** to keep the current value.",
+      "descriptionPrompt": "Send the profile description you want to use. Type **cancel** to keep the current value."
+    }
+  }
+  ,
+  "gameCreate": {
+    "controls": {
+      "saveChanges": "Save changes",
+      "createGame": "Create game",
+      "cancelUpdate": "Cancel update",
+      "changeName": "Change name",
+      "changeDescription": "Change description",
+      "changeImage": "Change image"
+    },
+    "sessionInactive": "This game creation session is no longer active. Start the command again to make changes.",
+    "cancelled": "{{label}} cancelled. Run the command again to start over.",
+    "errors": {
+      "notCompleted": "{{label}} did not complete.{{reason}}",
+      "reason": " Reason: {{reason}}",
+      "failedFinalize": "Failed to finalize {{label}}: {{message}}"
+    },
+    "preview": {
+      "selectOrganization": "Select an organization",
+      "unnamedGame": "Unnamed game",
+      "noDescription": "No description provided yet.",
+      "serverFooter": "Server {{serverId}}"
+    }
+  }
+  ,
+  "descriptionViewer": {
+    "noDescription": "No description yet.",
+    "scopeDefault": "Description",
+    "pageIndicator": "Page {{index}}/{{total}}",
+    "previous": "Previous",
+    "next": "Next",
+    "edit": "Edit",
+    "noScopes": "No description scopes available.",
+    "selectScopePrompt": "Select a description scope to view:",
+    "invalidScope": "Invalid scope selection."
+  }
+  ,
+  "descriptionEditor": {
+    "contentLabel": "Description",
+    "contentPlaceholder": "Enter description text...",
+    "title": "Edit {{scopeLabel}}",
+    "selectScope": "Select description scope",
+    "prompt": "Type your new description for **{{scope}}** in this channel.\nYour next message will replace the current content.\nType **cancel** to abort.",
+    "messages": {
+      "cancelled": "Edit cancelled.",
+      "updated": "Description updated successfully."
+    },
+    "errors": {
+      "saveFailed": "Save failed."
+    }
+  }
+  ,
+  "descriptionTarget": {
+    "userLabel": "User target",
+    "organizationLabel": "Organization target",
+    "userNotFound": "Your user record was not found.",
+    "usingUserRecord": "Using your user record.",
+    "selectObjectType": "Select object type",
+    "selectObjectPrompt": "Select which object you want to create or edit a description for.",
+    "selectionTimeout": "Selection timed out.",
+    "selectScope": "Select scope",
+    "scopeMine": "{{label}}: Mine",
+    "scopeAll": "{{label}}: All (requires permission)",
+    "scopePrompt": "Choose whether to target only your own records or any record.",
+    "selectOrganization": "Select an organization",
+    "selectOrganizationPrompt": "Select an organization to edit descriptions for.",
+    "noOrganizationsForUser": "No organizations found for you.",
+    "noOrganizations": "No organizations found.",
+    "usingOrganization": "Using organization: {{name}}",
+    "selectOrganizationFallback": "Select an organization.",
+    "noRecords": "No {{type}} records found.",
+    "selectType": "Select {{type}}",
+    "selectTypePrompt": "Select which {{type}} you want to work with. Showing up to {{count}} items."
+  }
+  ,
+  "descriptionCreate": {
+    "permissionDeniedTarget": "Permission denied for the selected target.",
+    "permissionDeniedOrganization": "Permission denied ({{name}}).",
+    "permissionDeniedUser": "Permission denied (User).",
+    "openingEditor": "Opening description editor for **{{objectType}}** `{{objectId}}` as {{organizationName}}..."
+  }
+  ,
+  "descriptionRemove": {
+    "invalidScopedUid": "Only scoped descriptions (uid starting with 'sdesc_') can be removed.",
+    "notFound": "Description not found",
+    "removed": "Description removed.",
+    "error": "Error: {{message}}"
+  }
+  ,
+  "permission": {
+    "missingGuild": "Unable to locate the server context for approval. Try again from within the guild.",
+    "membersUnavailable": "Unable to inspect any guild members. Ask an administrator to invite me again with the \"Server Members\" intent enabled.",
+    "noAdminAvailable": "No eligible administrator could be contacted. Ask an admin to review permissions.",
+    "requestTitle": "Permission request",
+    "requestDescription": "User <@{{userId}}> requested to run command(s): {{tokens}}",
+    "reasonLabel": "Reason",
+    "noReason": "No reason provided",
+    "approveOnce": "Approve once",
+    "approveForever": "Approve forever",
+    "deny": "Deny",
+    "botCannotSend": "I don't have permission to send messages in this channel. Ask a server admin to grant me Send Messages permission.",
+    "channelNoSend": "Channel does not support send",
+    "deliveryFailed": "Failed to deliver approval request in the current channel.",
+    "adminDenied": "Administrator denied the permission request.",
+    "adminNoResponse": "{{admin}} (no response)",
+    "adminTimeout": "No administrator responded in time. Try again later."
+  }
+}

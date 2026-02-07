@@ -4,6 +4,7 @@ import type { InteractionExecutionContextCarrier } from '../../../../Common/Type
 import { log } from '../../../../Common/Log.js';
 import { ExecuteOrganizationCreate } from '../../Create.js';
 import type { CommandSubcommand } from '../../../CommandSubcommand.js';
+import { Translate, TranslateFromContext } from '../../../../Services/I18nService.js';
 
 const _subcommandName = `create`; // subcommand name
 
@@ -17,23 +18,23 @@ export function BuildOrganizationCreateSubcommand(
 ): SlashCommandSubcommandBuilder {
     return subcommand
         .setName(_subcommandName)
-        .setDescription(`Create a new organization`)
+        .setDescription(Translate(`commands.organization.create.description`))
         .addStringOption(option => {
             return option
                 .setName(`name`)
-                .setDescription(`Organization name (used in permission tokens)`)
+                .setDescription(Translate(`commands.organization.create.options.name`))
                 .setRequired(true);
         })
         .addStringOption(option => {
             return option
                 .setName(`display_name`)
-                .setDescription(`Friendly display name for the organization`)
+                .setDescription(Translate(`commands.organization.create.options.displayName`))
                 .setRequired(false);
         })
         .addStringOption(option => {
             return option
                 .setName(`parent`)
-                .setDescription(`Parent organization UID for hierarchy`)
+                .setDescription(Translate(`commands.organization.create.options.parent`))
                 .setRequired(false);
         });
 }
@@ -52,10 +53,19 @@ export async function ExecuteOrganizationCreateSubcommand(
         const message = error instanceof Error ? error.message : String(error);
         log.error(`Organization create subcommand failed`, message, `OrganizationCreateSubcommand`);
         if (!interaction.deferred && !interaction.replied) {
-            await interaction.reply({ content: `Failed to create organization: ${message}`, flags: MessageFlags.Ephemeral });
+            await interaction.reply({
+                content: TranslateFromContext(interaction.executionContext, `commands.organization.create.errors.failed`, {
+                    params: { reason: message },
+                }),
+                flags: MessageFlags.Ephemeral,
+            });
             return;
         }
-        await interaction.editReply({ content: `Failed to create organization: ${message}` });
+        await interaction.editReply({
+            content: TranslateFromContext(interaction.executionContext, `commands.organization.create.errors.failed`, {
+                params: { reason: message },
+            }),
+        });
     } finally {
         // no-op
     }
