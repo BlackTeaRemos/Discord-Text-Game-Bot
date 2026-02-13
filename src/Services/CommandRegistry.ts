@@ -133,8 +133,7 @@ export class CommandRegistry {
 
             try {
                 if (ctx.userId && ctx.executionContext) {
-                    const _resolvedLocale = await ResolveUserLocale(ctx.userId, ctx.executionContext);
-                    log.debug(`Programmatic command: resolved locale for ${ctx.userId} -> ${_resolvedLocale}`, `CommandRegistry`);
+                    await ResolveUserLocale(ctx.userId, ctx.executionContext);
                 }
             } catch {
                 // no-op

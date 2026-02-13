@@ -19,6 +19,10 @@ services:
             MINIO_USE_SSL: 'false'
             MINIO_ROOT_USER: '${MINIO_ROOT_USER:-minioadmin}'
             MINIO_ROOT_PASSWORD: '${MINIO_ROOT_PASSWORD:-minioadmin}'
+            # Template editor web server
+            TEMPLATE_EDITOR_PORT: '3500'
+        ports:
+            - '3500:3500' # Template editor UI
         depends_on:
             neo4j:
                 condition: service_healthy

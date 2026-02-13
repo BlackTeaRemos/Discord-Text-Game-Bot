@@ -12,6 +12,8 @@ import type { ChatInputCommandInteraction, ButtonInteraction, ModalSubmitInterac
 import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
 import { ListGamesForServer } from '../../Flow/Object/Game/ListGamesForServer.js';
 import { GetGameCurrentTurn, UpdateGameTurn } from '../../Flow/Object/Game/Turn.js';
+import { AdvanceTurn } from '../../Flow/GameObject/AdvanceTurn.js';
+import type { TurnAdvanceResult } from '../../Flow/GameObject/AdvanceTurn.js';
 import { flowManager } from '../../Common/Flow/Manager.js';
 import { log } from '../../Common/Log.js';
 import type { ExecutionContext } from '../../Domain/Command.js';
@@ -104,12 +106,19 @@ export async function ExecuteManageGame(
 /**
  * Render the game management embed with buttons
  * @param state ManageGameState Current flow state
+ * @param turnResult TurnAdvanceResult | undefined Optional turn advance result to display action summary
  * @returns Promise<void> Resolves when reply is updated
  */
-async function __RenderManageGameUi(state: ManageGameState): Promise<void> {
+async function __RenderManageGameUi(state: ManageGameState, turnResult?: TurnAdvanceResult): Promise<void> {
     const title = TranslateFromContext(state.executionContext, `commands.manage.game.labels.title`);
     const currentTurnLabel = TranslateFromContext(state.executionContext, `commands.manage.game.labels.currentTurn`);
-    const description = `**${state.gameName}**\n\n${currentTurnLabel}: **${state.currentTurn}**`;
+    let description = `**${state.gameName}**\n\n${currentTurnLabel}: **${state.currentTurn}**`;
+
+    if (turnResult && turnResult.actionResults.length > 0) {
+        const successCount = turnResult.successfulObjectCount;
+        const failCount = turnResult.failedObjectCount;
+        description += `\n\nActions processed: ${successCount} ok, ${failCount} failed`;
+    }
 
     const embed = new EmbedBuilder()
         .setTitle(title)
@@ -142,10 +151,10 @@ async function __RenderManageGameUi(state: ManageGameState): Promise<void> {
  */
 async function __HandleButton(state: ManageGameState, interaction: ButtonInteraction): Promise<boolean> {
     if (interaction.customId === MANAGE_GAME_NEXT_TURN_ID) {
-        state.currentTurn = state.currentTurn + 1;
-        await UpdateGameTurn(state.gameUid, state.currentTurn);
         await interaction.deferUpdate();
-        await __RenderManageGameUi(state);
+        const turnResult = await AdvanceTurn(state.gameUid, state.currentTurn);
+        state.currentTurn = turnResult.newTurn;
+        await __RenderManageGameUi(state, turnResult);
         return false;
     }
 

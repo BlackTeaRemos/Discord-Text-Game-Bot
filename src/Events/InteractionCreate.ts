@@ -13,11 +13,6 @@ import { HandleOrganizationSelectControlInteraction } from '../SubCommand/Object
  * client.on('interactionCreate', onInteractionCreate);
  */
 export async function OnInteractionCreate(interaction: Interaction): Promise<void> {
-    log.info(
-        `Interaction received: type=${interaction.type}, id=${interaction.id}, user=${interaction.user?.tag}`,
-        `Interaction`,
-    );
-
     try {
         let handled = false;
         if (interaction.isButton()) {

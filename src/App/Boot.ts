@@ -3,11 +3,12 @@ import { Client, GatewayIntentBits, Events } from 'discord.js';
 import { log } from '../Common/Log.js';
 import type { ConfigService } from '../Services/ConfigService.js';
 import { CreateInteractionHandler } from './InteractionHandler.js';
+import { CreateAutocompleteHandler } from './AutocompleteHandler.js';
 import { InitializeHandlers } from './Handler/Loader.js';
 import { CreateSafeEventListener } from '../Common/SafeEventListener.js';
 import { LoadGrantsForGuild } from '../Common/Permission/store.js';
 import { InitI18n } from '../Services/I18nService.js';
-import { executeWithTimeout } from '../Common/Timeout';
+import { executeWithTimeout } from '../Common/Timeout/index.js';
 
 /**
  * Load cached permission grants for all guilds
@@ -126,30 +127,45 @@ export async function bootDiscordClient(options: {
                     try {
                         eventBus.emit(`output`, `Registration payload: ${JSON.stringify(commandData, null, 2)}`);
                     } catch {}
-                    eventBus.emit(`output`, `Registering ${commandData.length} command(s): ${commandData.map(c => {
+
+                    // Register commands per-guild for instant propagation.
+                    // Global commands can take up to 1 hour to propagate across Discord's CDN.
+                    const guilds = Array.from(client.guilds.cache.values());
+                    eventBus.emit(`output`, `Registering ${commandData.length} command(s) to ${guilds.length} guild(s): ${commandData.map(c => {
                         return c.name;
                     }).join(`, `)}`);
-                    const registeredGlobal = await executeWithTimeout(client.application!.commands.set(commandData), 60000, `register ${commandData.length} global commands`);
-                    eventBus.emit(`output`, `Registered ${ (registeredGlobal as any).size ?? commandData.length } global commands.`);
 
-                    try {
-                        const fetched = await executeWithTimeout(client.application!.commands.fetch(), 30000, `fetch registered commands`);
-                        eventBus.emit(`output`, `Fetched ${ (fetched as any).size } registered global commands: ${Array.from((fetched as any).values()).map((c:any) => {
-                            return c.name;
-                        }).join(`, `)}`);
-                        const hasUserPostFetch = Array.from((fetched as any).values()).some((c: any) => {
-                            return c.name === `user`;
-                        });
-                        if (hasUserPostFetch) {
-                            eventBus.emit(`output`, `Post-fetch verification: '/user' command is registered globally.`);
-                        } else {
-                            eventBus.emit(`output`, `Post-fetch verification: '/user' command is NOT present after registration.`);
+                    for (const guild of guilds) {
+                        try {
+                            const registeredGuild = await executeWithTimeout(
+                                client.application!.commands.set(commandData, guild.id),
+                                30000,
+                                `register ${commandData.length} commands for guild ${guild.id}`,
+                            );
+                            eventBus.emit(`output`, `Registered ${(registeredGuild as any).size ?? commandData.length} commands for guild ${guild.id} (${guild.name}).`);
+                        } catch(guildErr) {
+                            eventBus.emit(`output`, `Failed to register commands for guild ${guild.id}: ${String(guildErr)}`);
                         }
-                    } catch(err) {
-                        eventBus.emit(`output`, `Failed to fetch registered commands: ${String(err)}`);
+                    }
+
+                    // Verify registration on first guild
+                    if (guilds.length > 0) {
+                        try {
+                            const firstGuild = guilds[0];
+                            const fetched = await executeWithTimeout(
+                                client.application!.commands.fetch({ guildId: firstGuild.id }),
+                                30000,
+                                `fetch registered commands for guild ${firstGuild.id}`,
+                            );
+                            eventBus.emit(`output`, `Fetched ${(fetched as any).size} registered commands for guild ${firstGuild.id}: ${Array.from((fetched as any).values()).map((c: any) => {
+                                return c.name;
+                            }).join(`, `)}`);
+                        } catch(err) {
+                            eventBus.emit(`output`, `Failed to fetch registered commands: ${String(err)}`);
+                        }
                     }
                 } catch(err) {
-                    eventBus.emit(`output`, `Global command registration failed: ${String(err)} - payload: ${JSON.stringify(commandData)}`);
+                    eventBus.emit(`output`, `Guild command registration failed: ${String(err)} - payload: ${JSON.stringify(commandData)}`);
                 }
 
             } catch(error) {
@@ -187,6 +203,26 @@ export async function bootDiscordClient(options: {
                 name: `discord:chatInputCommand`,
                 onError: error => {
                     log.error(`Chat input or message command handler failed: ${String(error)}`, `Boot`);
+                },
+            },
+        ) as any,
+    );
+
+    // Autocomplete handler for slash command option suggestions
+    const autocompleteHandler = CreateAutocompleteHandler({ loadedCommands });
+    client.on(
+        Events.InteractionCreate,
+        CreateSafeEventListener(
+            async interaction => {
+                if (!interaction.isAutocomplete()) {
+                    return;
+                }
+                await autocompleteHandler(interaction);
+            },
+            {
+                name: `discord:autocomplete`,
+                onError: error => {
+                    log.error(`Autocomplete handler failed: ${String(error)}`, `Boot`);
                 },
             },
         ) as any,

@@ -4,7 +4,7 @@ import type { IFlowInteractionContext, FlowMemberProvider } from '../../Common/T
 import { GetGame } from '../Object/Game/View.js';
 import { GetOrganizationWithMembers } from '../Object/Organization/View/index.js';
 import { GetUserByUid } from '../Object/User/View.js';
-import { GetFactory } from '../Object/Building/View.js';
+import { GameObjectRepository } from '../../Repository/GameObject/GameObjectRepository.js';
 
 /**
  * Context required for resolving view command permissions.
@@ -88,18 +88,19 @@ async function __BuildViewPermissionOverrides(
             break;
         }
         case `building`: {
-            const factory = await GetFactory(viewContext.id);
-            if (!factory) {
+            const gameObjectRepo = new GameObjectRepository();
+            const gameObject = await gameObjectRepo.GetByUid(viewContext.id);
+            if (!gameObject) {
                 break;
             }
-            if (!factory.organizationUid) {
+            if (!gameObject.organizationUid) {
                 break;
             }
-            if (context.character?.organizationUid === factory.organizationUid) {
+            if (context.character?.organizationUid === gameObject.organizationUid) {
                 allow(`view:building`);
                 allow(`view:building:${viewContext.id}`);
             } else {
-                const organization = await GetOrganizationWithMembers(factory.organizationUid);
+                const organization = await GetOrganizationWithMembers(gameObject.organizationUid);
                 const belongsToOrganization = organization?.users.some(member => {
                     return member.discordId === userId;
                 });

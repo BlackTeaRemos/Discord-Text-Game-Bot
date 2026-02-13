@@ -149,8 +149,6 @@ export async function ResolveUserLocale(
         executionContext.set(cacheKey, locale);
     }
 
-    log.debug(`Resolved locale for user ${discordId}: ${locale}`, `I18nService`);
-
     return locale;
 }
 
@@ -185,17 +183,32 @@ export function TranslateFromContext(
 }
 
 /**
+ * Map application locale codes to Discord API locale enum values.
+ * Discord requires specific locale codes (e.g. 'en-US', not bare 'en').
+ * Unmapped codes pass through as-is (e.g. 'ru' is valid in both systems).
+ */
+const DISCORD_LOCALE_MAP: Record<string, string> = {
+    en: `en-US`,
+    pt: `pt-BR`,
+    es: `es-ES`,
+    zh: `zh-CN`,
+    sv: `sv-SE`,
+};
+
+/**
  * Build a localization map for all supported locales for a given translation key.
- * Returns an object where keys are locale codes and values are translated strings.
- * Example: { ru: 'Создать игру', en: 'Create game' }
+ * Returns an object keyed by Discord-compatible locale codes with translated strings.
+ * @param key string Translation key. @example 'commands.create.description'
+ * @returns Record<string, string> Discord locale map. @example { 'en-US': 'Create game', 'ru': 'Создать игру' }
  */
 export function BuildLocalizations(key: string): Record<string, string> {
     const result: Record<string, string> = {};
-    for (const l of _supportedLocales) {
+    for (const appLocale of _supportedLocales) {
+        const discordLocale = DISCORD_LOCALE_MAP[appLocale] ?? appLocale;
         try {
-            result[l] = Translate(key, { locale: l });
+            result[discordLocale] = Translate(key, { locale: appLocale });
         } catch {
-            result[l] = Translate(key, { locale: _defaultLocale });
+            result[discordLocale] = Translate(key, { locale: _defaultLocale });
         }
     }
     return result;

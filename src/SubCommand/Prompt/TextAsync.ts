@@ -65,7 +65,7 @@ export async function PromptText(options: AwaitTextInputOptions): Promise<string
     const reportIssue = async (message: string): Promise<void> => {
         try {
             await interaction.followUp({ content: message, flags: MessageFlags.Ephemeral });
-        }
+        } catch {}
     };
 
     return await new Promise<string>((resolve, reject) => {

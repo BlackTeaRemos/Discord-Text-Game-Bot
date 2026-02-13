@@ -14,6 +14,7 @@ import { FetchTasksForViewer } from '../../Flow/Task/fetchTasksForViewer.js';
 import { FetchTaskById } from '../../Flow/Task/FetchTaskById.js';
 import { UpdateTaskStatus } from '../../Flow/Task/updateTaskStatus.js';
 import { ResolveStatusesForGroup } from '../../Flow/Task/ResolveStatusesForGroup.js';
+import { FetchDescriptionForObject } from '../../Flow/Object/Description/FetchForObject.js';
 import { neo4jClient } from '../../Setup/Neo4j.js';
 import { flowManager } from '../../Common/Flow/Manager.js';
 import { log } from '../../Common/Log.js';
@@ -41,6 +42,7 @@ interface ViewTaskState {
     totalPages: number; // total page count
     baseInteraction: ChatInputCommandInteraction; // original interaction
     organizationName: string; // execution organization label
+    organizationUid: string | null; // execution organization uid for scope filtering
     executionContext: ExecutionContext; // interaction execution context
 }
 
@@ -51,6 +53,7 @@ interface ViewTaskDetailState {
     task: TaskListItem; // current task item
     baseInteraction: ChatInputCommandInteraction; // original interaction
     organizationName: string; // execution organization label
+    organizationUid: string | null; // execution organization uid for scope filtering
     executionContext: ExecutionContext; // interaction execution context
 }
 
@@ -216,6 +219,7 @@ export async function ExecuteViewTask(
             totalPages,
             baseInteraction: interaction as unknown as ChatInputCommandInteraction,
             organizationName: executionOrganization.organizationName,
+            organizationUid: executionOrganization.organizationUid,
             executionContext: interaction.executionContext,
         };
 
@@ -309,6 +313,7 @@ async function __RenderTaskList(state: ViewTaskState, organizationName: string):
 
 /**
  * Render a single task detail view
+ * Uses scoped description system, falling back to the entity's own description field.
  * @param state ViewTaskDetailState Current detail state
  * @returns Promise<void> Resolves when reply is updated
  */
@@ -324,9 +329,21 @@ async function __RenderTaskDetail(state: ViewTaskDetailState, organizationName: 
     const userLabel = TranslateFromContext(state.executionContext, `commands.view.common.user`);
     const shortValue = task.shortDescription || TranslateFromContext(state.executionContext, `commands.view.task.labels.noShortDescription`);
 
+    // Use scoped description system, fall back to entity's own description field
+    const organizationUidsForScope = state.organizationUid
+        ? [state.organizationUid]
+        : []; // resolved org UIDs for description scoping
+    const scopedDescription = await FetchDescriptionForObject({
+        objectUid: task.id,
+        objectType: `task`,
+        userUid: state.baseInteraction.user.id,
+        organizationUids: organizationUidsForScope,
+    });
+    const displayDescription = scopedDescription || task.description || noDescription;
+
     const embed = new EmbedBuilder()
         .setTitle(title)
-        .setDescription(task.description || noDescription)
+        .setDescription(displayDescription)
         .setColor(`Blue`)
         .addFields([
             { name: statusLabel, value: String(task.status), inline: true },
@@ -384,6 +401,7 @@ async function __ShowTaskDetail(
         task,
         baseInteraction: interaction,
         organizationName,
+        organizationUid,
         executionContext,
     };
 

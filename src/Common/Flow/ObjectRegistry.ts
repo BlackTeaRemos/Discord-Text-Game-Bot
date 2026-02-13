@@ -7,8 +7,8 @@ import { GetOrganizationWithMembers } from '../../Flow/Object/Organization/View/
 import type { OrganizationView, OrganizationWithMembers } from '../../Flow/Object/Organization/View/index.js';
 import { GetUserByUid } from '../../Flow/Object/User/View.js';
 import type { ViewUser } from '../../Flow/Object/User/View/ViewUser.js';
-import { GetFactory } from '../../Flow/Object/Building/View.js';
-import type { Factory } from '../../Flow/Object/Building/Create.js';
+import { GameObjectRepository } from '../../Repository/GameObject/GameObjectRepository.js';
+import type { IGameObject } from '../../Domain/GameObject/IGameObject.js';
 import { sanitizeDescriptionText } from '../../Flow/Object/Description/BuildDefinition.js';
 import { GetPriorityScopedDescription } from '../../Flow/Object/Description/Scope/GetPriorityScopedDescription.js';
 import { GetUserOrganizations } from '../../Flow/Object/Organization/View/GetUserOrganizations.js';
@@ -38,7 +38,7 @@ export const OBJECT_TYPES: Record<ObjectTypeKey, ObjectTypeConfig> = {
     },
     building: {
         label: Translate(`objectRegistry.types.building`),
-        listQuery: `MATCH (f:Factory) RETURN f.uid AS uid, f.type AS label`,
+        listQuery: `MATCH (obj:GameObject) RETURN obj.uid AS uid, obj.name AS label`,
     },
     task: {
         label: Translate(`objectRegistry.types.task`),
@@ -68,7 +68,7 @@ export interface EmbedBuildContext {
     game?: Game | null;
     organization?: OrganizationWithMembers | null;
     user?: ViewUser | null;
-    factory?: Factory | null;
+    gameObject?: IGameObject | null;
 }
 
 /**
@@ -228,22 +228,22 @@ export async function buildEmbedFor(
             return embed;
         }
         case `building`: {
-            const factory = context?.factory ?? (await GetFactory(id));
-            if (!factory) {
+            const gameObjectRepo = new GameObjectRepository();
+            const gameObject = context?.gameObject ?? (await gameObjectRepo.GetByUid(id));
+            if (!gameObject) {
                 return null;
             }
             const embed = new EmbedBuilder()
                 .setColor(`Blue`)
-                    .setTitle(factory.type || Translate(`objectRegistry.factory.detailsTitle`))
-                .addFields({ name: Translate(`objectRegistry.factory.type`), value: factory.type || Translate(`objectRegistry.common.notAvailable`), inline: true })
+                    .setTitle(gameObject.name || Translate(`objectRegistry.factory.detailsTitle`))
+                .addFields({ name: Translate(`objectRegistry.factory.type`), value: gameObject.name || Translate(`objectRegistry.common.notAvailable`), inline: true })
                 .addFields({ name: Translate(`objectRegistry.common.identifier`), value: Translate(`objectRegistry.common.storedInternally`), inline: true })
                 .addFields({ name: Translate(`objectRegistry.factory.organization`), value: Translate(`objectRegistry.factory.organizationRecorded`), inline: true });
 
             const resolved = await __ResolvePriorityDescription({
-                objectType: `factory`,
+                objectType: `building`,
                 objectUid: id,
                 viewerUserUid,
-                legacyFallback: factory.description,
                 characterOrganizationUid,
             });
             embed.addFields({ name: resolved.label, value: resolved.text.slice(0, 1024) });

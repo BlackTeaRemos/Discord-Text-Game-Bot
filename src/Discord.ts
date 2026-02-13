@@ -58,15 +58,12 @@ export class DiscordService {
             );
         });
 
-        this.client.on(`debug`, info => {
-            log.debug(`Debug: ${info}`, `DiscordService`);
-        });
 
         this.client.on(`warn`, info => {
             log.warning(`Warning: ${info}`, `DiscordService`);
         });
 
-        this.client.once(Events.ClientReady, async () => {
+        this.client.once(Events.ClientReady, async() => {
             try {
                 // Fetch the guild (server) and log it
                 const guild = await this.client.guilds.fetch(guildId);
@@ -109,7 +106,7 @@ export class DiscordService {
                         });
                         this._channels.push(cmdChannel);
                         log.info(`'${uniqueName}' channel created.`, `DiscordService`);
-                    } catch (err) {
+                    } catch(err) {
                         log.error(
                             `Failed to create cmd- channel: ${err instanceof Error ? err.stack || err.message : String(err)}`,
                             `DiscordService`,
@@ -118,7 +115,7 @@ export class DiscordService {
                 }
 
                 MAIN_EVENT_BUS.emit(`discord:ready`, this.client, this._category, this._channels);
-            } catch (err) {
+            } catch(err) {
                 log.error(
                     `Error during ready event: ${err instanceof Error ? err.stack || err.message : String(err)}`,
                     `DiscordService`,
@@ -128,72 +125,8 @@ export class DiscordService {
         });
 
         this.client.on(Events.MessageCreate, msg => {
-            // Extensive logging for every message received, regardless of channel
-            const isSelf = msg.author.id === this.client.user?.id;
-            const inCategory = this._channels.some(ch => {
-                return ch.id === msg.channel.id;
-            });
-            // Compose a detailed log message
-            const logLines = [
-                `\n--- MESSAGE RECEIVED ---`,
-                `Channel: #${(msg.channel as TextChannel).name} (${msg.channel.id})`,
-                `Author: ${msg.author.username} (${msg.author.id})${isSelf ? ` (self)` : ``}`,
-                `Content: ${msg.content}`,
-                `Created at: ${msg.createdAt.toISOString()} | Edited: ${msg.editedAt ? msg.editedAt.toISOString() : `never`}`,
-                `Attachments: ${
-                    msg.attachments.size > 0
-                        ? Array.from(msg.attachments.values())
-                              .map(a => {
-                                  return a.url;
-                              })
-                              .join(`, `)
-                        : `none`
-                }`,
-                `Embeds: ${msg.embeds.length}`,
-                `Mentions: ${msg.mentions.users.size} user(s), ${msg.mentions.roles.size} role(s)`,
-                `Message type: ${msg.type}`,
-                `Webhook: ${msg.webhookId ? `yes` : `no`}`,
-                `In expected category: ${inCategory ? `yes` : `NOPE`}`,
-            ];
-
-            if (!inCategory) {
-                logLines.push(`WARNING: Message is NOT in the expected category. Are you lost?`);
-            }
-
-            if (!msg.content && msg.attachments.size === 0 && msg.embeds.length === 0) {
-                logLines.push(`...An empty message. Inspiring.`);
-            }
-            log.info(logLines.join(`\n`), `DiscordService`);
-
-            // Emit raw message events for downstream consumers (prompts, editors, diagnostics).
-            // Individual listeners are responsible for ignoring irrelevant channels.
             MAIN_EVENT_BUS.emit(`discord:message:raw`, msg);
         });
-
-        // Wrap send for all text channels to log when the bot sends a message
-        const _this = this;
-        const origSend = TextChannel.prototype.send;
-        TextChannel.prototype.send = async function (
-            ...args: [string | import('discord.js').MessagePayload | import('discord.js').MessageCreateOptions]
-        ) {
-            const content = args[0];
-            // Log the outgoing message
-            log.info(
-                `Bot sending message to #${this.name} (${this.id}): ${typeof content === `string` ? content : `[embed or object]`}`,
-                `DiscordService`,
-            );
-
-            try {
-                const result = await origSend.apply(this, [content]);
-                return result;
-            } catch (err) {
-                log.error(
-                    `Error sending message: ${err instanceof Error ? err.stack || err.message : String(err)}`,
-                    `DiscordService`,
-                );
-                throw err;
-            }
-        };
 
         log.info(`Attempting to login...`, `DiscordService`);
 

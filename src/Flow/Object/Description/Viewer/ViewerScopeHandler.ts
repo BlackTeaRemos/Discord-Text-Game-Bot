@@ -1,5 +1,5 @@
 import type { Message, StringSelectMenuInteraction } from 'discord.js';
-import { ComponentType } from 'discord.js';
+import { ComponentType, MessageFlags } from 'discord.js';
 import type { DescriptionViewerState, ViewerEditCallback } from './Types.js';
 import { CalculatePageCount } from '../Scope/Types.js';
 import { GetScopedDescription } from '../Scope/GetScopedDescription.js';

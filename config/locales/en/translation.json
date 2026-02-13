@@ -63,6 +63,12 @@
         },
         "object": {
           "description": "View description for any object"
+        },
+        "template": {
+          "description": "List all templates"
+        },
+        "objects": {
+          "description": "List objects with optional template filter"
         }
       },
       "options": {
@@ -74,6 +80,9 @@
         },
         "object": {
           "id": "Object identifier to view"
+        },
+        "objects": {
+          "template": "Filter by template name"
         }
       },
       "errors": {
@@ -126,6 +135,37 @@
           "type": "Type",
           "organization": "Org",
           "noDescription": "No description available"
+        }
+      },
+      "template": {
+        "errors": {
+          "serverOnly": "This command must be used in a server",
+          "noGame": "No game exists in this server",
+          "noTemplates": "No templates defined for this game",
+          "failed": "Failed to list templates: {{message}}"
+        },
+        "labels": {
+          "title": "Game Templates",
+          "parameters": "Params",
+          "actions": "Actions",
+          "count": "{{count}} template(s)",
+          "overflow": "...and {{remaining}} more"
+        }
+      },
+      "objectList": {
+        "errors": {
+          "serverOnly": "This command must be used in a server",
+          "noGame": "No game exists in this server",
+          "noObjects": "No objects found",
+          "templateNotFound": "Template '{{name}}' not found",
+          "failed": "Failed to list objects: {{message}}"
+        },
+        "labels": {
+          "title": "Game Objects",
+          "template": "Template",
+          "organization": "Org",
+          "count": "{{count}} object(s)",
+          "overflow": "...and {{remaining}} more"
         }
       }
     },
@@ -370,6 +410,24 @@
           "title": "Set Turn Number",
           "inputLabel": "Turn Number"
         }
+      }
+    },
+    "tutorial": {
+      "description": "View the interactive tutorial",
+      "options": {
+        "topic": "Jump to a specific topic"
+      },
+      "labels": {
+        "pageIndicator": "Page {{index}} of {{total}}"
+      },
+      "actions": {
+        "previous": "Previous",
+        "next": "Next",
+        "webVersion": "Web Version"
+      },
+      "errors": {
+        "navigationFailed": "Navigation failed: {{message}}",
+        "failed": "Failed to show tutorial: {{message}}"
       }
     }
   }

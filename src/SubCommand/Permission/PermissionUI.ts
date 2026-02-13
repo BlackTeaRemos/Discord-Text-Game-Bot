@@ -31,27 +31,6 @@ export async function RequestPermissionFromAdmin(
     const __Translate = (key: string, params?: Record<string, unknown>): string => {
         return TranslateFromContext((interaction as any).executionContext, key, { params });
     };
-    log.info(
-        `PermissionUI.RequestPermissionFromAdmin`,
-        import.meta.filename,
-        JSON.stringify({
-            userId: interaction.user.id,
-            channelId: interaction.channel?.id,
-            guildId: interaction.guild?.id,
-            tokens: options.tokens,
-        }),
-    );
-
-    log.info(
-        `PermissionUI.ChannelInfo`,
-        import.meta.filename,
-        JSON.stringify({
-            type: interaction.channel?.type,
-            hasSend: typeof (interaction.channel as any)?.send === `function`,
-            channel: interaction.channel,
-        }),
-    );
-
     const _respondToUser = async(message: string): Promise<void> => {
         try {
             if (interaction.replied || interaction.deferred) {
@@ -81,11 +60,6 @@ export async function RequestPermissionFromAdmin(
 
     // Fetch all members and find administrators (exclude bots)
     let members = guild.members.cache;
-    log.info(
-        `PermissionUI.MembersCached`,
-        import.meta.filename,
-        JSON.stringify({ guildId: guild.id, cachedCount: members.size }),
-    );
 
     const needsFetch =
         members.size === 0 ||
@@ -94,23 +68,13 @@ export async function RequestPermissionFromAdmin(
         }).size === 0;
 
     if (needsFetch) {
-        log.info(
-            `PermissionUI.FetchingMembers`,
-            import.meta.filename,
-            JSON.stringify({ guildId: guild.id, channelId: interaction.channel?.id }),
-        );
         try {
             members = await guild.members.fetch();
-            log.info(
-                `PermissionUI.MembersFetched`,
-                import.meta.filename,
-                JSON.stringify({ guildId: guild.id, fetchedCount: members.size }),
-            );
         } catch(err) {
             log.error(
-                `PermissionUI.MembersFetchFailed`,
-                import.meta.filename,
-                JSON.stringify({ guildId: guild.id, error: String(err) }),
+                `Failed to fetch guild members`,
+                `PermissionUI`,
+                String(err),
             );
         }
     }
@@ -143,23 +107,6 @@ export async function RequestPermissionFromAdmin(
         }
     }
 
-    log.info(
-        `PermissionUI.AdminCandidates`,
-        import.meta.filename,
-        JSON.stringify({ guildId: guild.id, candidates: admins.size }),
-    );
-
-    // Log found admins
-    log.info(
-        `PermissionUI.FoundAdmins`,
-        import.meta.filename,
-        JSON.stringify(
-            admins.map(a => {
-                return { id: a.id, tag: a.user.tag };
-            }),
-        ),
-    );
-
     if (!admins || admins.size === 0) {
         const message = __Translate(`permission.noAdminAvailable`);
         await _respondToUser(message);
@@ -174,9 +121,6 @@ export async function RequestPermissionFromAdmin(
     const requesterAdmin = admins.get(interaction.user.id);
     const adminArray = Array.from(admins.values());
     const admin = requesterAdmin ?? adminArray[Math.floor(Math.random() * adminArray.length)];
-
-    // Log selected admin
-    log.info(`PermissionUI.SelectedAdmin`, import.meta.filename, JSON.stringify({ id: admin.id, tag: admin.user.tag }));
 
     // Build message
     const tokensStr = options.tokens.map(FormatPermissionToken).join(`, `);
@@ -236,23 +180,14 @@ export async function RequestPermissionFromAdmin(
         // Only send if channel supports send
         if (typeof channelAny?.send === `function`) {
             msg = await channelAny.send({ content: `<@${admin.id}>`, embeds: [embed], components: [row] });
-            log.info(
-                `PermissionUI.SentApprovalRequest`,
-                import.meta.filename,
-                JSON.stringify({ channelId: interaction.channel?.id, messageId: msg.id }),
-            );
         } else {
             throw new Error(`Channel does not support send`);
         }
     } catch(err) {
         log.error(
-            `PermissionUI.SendApprovalRequestFailed`,
-            import.meta.filename,
-            JSON.stringify({
-                error: String(err),
-                channelId: interaction.channel?.id,
-                adminId: admin.id,
-            }),
+            `Failed to send approval request`,
+            `PermissionUI`,
+            String(err),
         );
         throw new Error(__Translate(`permission.channelNoSend`));
     }

@@ -1,10 +1,13 @@
 import { SlashCommandBuilder, MessageFlags } from 'discord.js';
-import type { ChatInputCommandInteraction } from 'discord.js';
+import type { AutocompleteInteraction, ChatInputCommandInteraction } from 'discord.js';
 import type { TokenSegmentInput } from '../../Common/Permission/index.js';
 import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
 import { ExecuteViewGame } from './Game.js';
 import { ExecuteViewTask } from './Task.js';
 import { ExecuteViewObject } from './Object.js';
+import { ExecuteViewTemplate } from './Template.js';
+import { ExecuteViewObjectList } from './ObjectList.js';
+import { AutocompleteTemplateName } from '../Common/AutocompleteTemplateName.js';
 import { Translate, TranslateFromContext } from '../../Services/I18nService.js';
 
 export const data = new SlashCommandBuilder()
@@ -66,6 +69,29 @@ export const data = new SlashCommandBuilder()
                     .setDescription(Translate(`commands.view.options.organization`))
                     .setRequired(false);
             });
+    })
+    .addSubcommand(subcommand => {
+        return subcommand
+            .setName(`template`)
+            .setDescription(Translate(`commands.view.subcommands.template.description`));
+    })
+    .addSubcommand(subcommand => {
+        return subcommand
+            .setName(`objects`)
+            .setDescription(Translate(`commands.view.subcommands.objects.description`))
+            .addStringOption(option => {
+                return option
+                    .setName(`template`)
+                    .setDescription(Translate(`commands.view.options.objects.template`))
+                    .setAutocomplete(true)
+                    .setRequired(false);
+            })
+            .addStringOption(option => {
+                return option
+                    .setName(`organization`)
+                    .setDescription(Translate(`commands.view.options.organization`))
+                    .setRequired(false);
+            });
     });
 
 export const permissionTokens: TokenSegmentInput[][] = [[`view`]];
@@ -90,6 +116,12 @@ export async function execute(
         case `object`:
             await ExecuteViewObject(interaction);
             break;
+        case `template`:
+            await ExecuteViewTemplate(interaction);
+            break;
+        case `objects`:
+            await ExecuteViewObjectList(interaction);
+            break;
         default:
             await interaction.reply({
                 content: TranslateFromContext(interaction.executionContext, `commands.view.errors.unknownSubcommand`, {
@@ -98,4 +130,15 @@ export async function execute(
                 flags: MessageFlags.Ephemeral,
             });
     }
+}
+
+/**
+ * Handle autocomplete interactions for /view subcommands.
+ * Delegates template name completion to the shared handler.
+ *
+ * @param interaction AutocompleteInteraction Discord autocomplete interaction.
+ * @returns Promise<void>
+ */
+export async function autocomplete(interaction: AutocompleteInteraction): Promise<void> {
+    await AutocompleteTemplateName(interaction);
 }

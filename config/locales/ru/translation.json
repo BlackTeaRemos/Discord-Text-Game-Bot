@@ -63,6 +63,12 @@
         },
         "object": {
           "description": "Просмотреть описание любого объекта"
+        },
+        "template": {
+          "description": "Список всех шаблонов"
+        },
+        "objects": {
+          "description": "Список объектов с фильтром по шаблону"
         }
       },
       "options": {
@@ -79,6 +85,9 @@
         },
         "object": {
           "id": "Идентификатор объекта для просмотра"
+        },
+        "objects": {
+          "template": "Фильтр по имени шаблона"
         }
       },
       "errors": {
@@ -131,6 +140,37 @@
           "type": "Тип",
           "organization": "Орг",
           "noDescription": "Описание отсутствует"
+        }
+      },
+      "template": {
+        "errors": {
+          "serverOnly": "Эту команду нужно использовать на сервере",
+          "noGame": "В этом сервере нет игры",
+          "noTemplates": "Шаблоны для этой игры не определены",
+          "failed": "Не удалось показать шаблоны: {{message}}"
+        },
+        "labels": {
+          "title": "Шаблоны игры",
+          "parameters": "Параметры",
+          "actions": "Действия",
+          "count": "{{count}} шаблон(ов)",
+          "overflow": "...и ещё {{remaining}}"
+        }
+      },
+      "objectList": {
+        "errors": {
+          "serverOnly": "Эту команду нужно использовать на сервере",
+          "noGame": "В этом сервере нет игры",
+          "noObjects": "Объекты не найдены",
+          "templateNotFound": "Шаблон '{{name}}' не найден",
+          "failed": "Не удалось показать объекты: {{message}}"
+        },
+        "labels": {
+          "title": "Игровые объекты",
+          "template": "Шаблон",
+          "organization": "Орг",
+          "count": "{{count}} объект(ов)",
+          "overflow": "...и ещё {{remaining}}"
         }
       }
     },
@@ -375,6 +415,24 @@
           "title": "Установить номер хода",
           "inputLabel": "Номер хода"
         }
+      }
+    },
+    "tutorial": {
+      "description": "Просмотреть интерактивное руководство",
+      "options": {
+        "topic": "Перейти к определённой теме"
+      },
+      "labels": {
+        "pageIndicator": "Страница {{index}} из {{total}}"
+      },
+      "actions": {
+        "previous": "Назад",
+        "next": "Вперёд",
+        "webVersion": "Веб-версия"
+      },
+      "errors": {
+        "navigationFailed": "Ошибка навигации: {{message}}",
+        "failed": "Не удалось показать руководство: {{message}}"
       }
     }
   }

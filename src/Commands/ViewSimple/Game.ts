@@ -1,4 +1,4 @@
-import { EmbedBuilder, MessageFlags } from 'discord.js';
+import { MessageFlags } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
 import { ListGamesForServer } from '../../Flow/Object/Game/ListGamesForServer.js';
@@ -6,12 +6,13 @@ import { GetGame } from '../../Flow/Object/Game/View.js';
 import { GetGameCurrentTurn } from '../../Flow/Object/Game/Turn.js';
 import { FetchDescriptionForObject } from '../../Flow/Object/Description/FetchForObject.js';
 import { log } from '../../Common/Log.js';
-import {
-    ResolveExecutionOrganization,
-    ResolveOrganization,
-} from '../../Flow/Object/Organization/index.js';
-import { resolve } from '../../Common/Permission/index.js';
+import { ResolveViewAccess } from './ResolveViewAccess.js';
 import { TranslateFromContext } from '../../Services/I18nService.js';
+import { ObjectViewRenderer } from '../../Framework/ObjectViewRenderer.js';
+import type { ObjectViewModel } from '../../Framework/ObjectViewTypes.js';
+
+/** Shared renderer instance for game views */
+const _gameViewRenderer = new ObjectViewRenderer(`game_view`);
 
 /**
  * View game description immediately
@@ -44,45 +45,14 @@ export async function ExecuteViewGame(
             return;
         }
 
-        const requestedOrganizationUid = interaction.options.getString(`organization`)?.trim() || null; // optional org override
-        const executionOrganization = await ResolveExecutionOrganization(
-            interaction.user.id,
+        const requestedOrganizationUid = interaction.options.getString(`organization`)?.trim() || null;
+        const access = await ResolveViewAccess({
+            interaction,
+            action: `view`,
             requestedOrganizationUid,
-        ); // resolved execution scope
-
-        if (executionOrganization.scopeType === `organization` && executionOrganization.organizationUid) {
-            const organizationPermission = await ResolveOrganization({
-                context: {
-                    organizationUid: executionOrganization.organizationUid,
-                    userId: interaction.user.id,
-                    action: `view`,
-                },
-                skipApproval: false,
-            });
-
-            if (!organizationPermission.allowed) {
-                await interaction.editReply({
-                    content: TranslateFromContext(interaction.executionContext, `commands.view.common.permissionDeniedOrg`, {
-                        params: { organization: executionOrganization.organizationName },
-                    }),
-                });
-                return;
-            }
-        } else {
-            const resolution = await resolve([`user:${interaction.user.id}:view`], {
-                member: await interaction.guild?.members.fetch(interaction.user.id).then(m => {
-                    return m ? { id: m.id, guildId: m.guild.id, permissions: m.permissions } as any : null;
-                }),
-                permissions: {
-                    [`user:${interaction.user.id}:view`]: `allowed`,
-                },
-            });
-            if (!resolution.success) {
-                await interaction.editReply({
-                    content: TranslateFromContext(interaction.executionContext, `commands.view.common.permissionDeniedUser`),
-                });
-                return;
-            }
+        });
+        if (!access) {
+            return;
         }
 
         const gameData = await GetGame(game.uid);
@@ -94,29 +64,37 @@ export async function ExecuteViewGame(
         }
 
         const currentTurn = await GetGameCurrentTurn(game.uid);
-        const description = await FetchDescriptionForObject(game.uid, interaction.user.id);
+        const organizationUidsForScope = access.organizationUid
+            ? [access.organizationUid]
+            : [];
+        const description = await FetchDescriptionForObject({
+            objectUid: game.uid,
+            objectType: `game`,
+            userUid: interaction.user.id,
+            organizationUids: organizationUidsForScope,
+        });
+
         const currentTurnLabel = TranslateFromContext(interaction.executionContext, `commands.view.game.labels.currentTurn`);
         const organizationLabel = TranslateFromContext(interaction.executionContext, `commands.view.game.labels.organization`);
         const userLabel = TranslateFromContext(interaction.executionContext, `commands.view.common.user`);
         const noDescription = TranslateFromContext(interaction.executionContext, `commands.view.game.labels.noDescription`);
 
-        const embed = new EmbedBuilder()
-            .setTitle(gameData.name)
-            .setColor(`Blue`)
-            .addFields({ name: currentTurnLabel, value: String(currentTurn), inline: true })
-            .addFields({ name: organizationLabel, value: executionOrganization.organizationName || userLabel, inline: true });
+        const viewModel: ObjectViewModel = {
+            id: game.uid,
+            objectType: `game`,
+            name: gameData.name,
+            friendlyName: gameData.friendly_name !== gameData.name ? gameData.friendly_name : undefined,
+            thumbnailUrl: gameData.image ?? undefined,
+            pages: [{
+                description: description?.slice(0, 2048) ?? noDescription,
+                fields: [
+                    { name: currentTurnLabel, value: String(currentTurn), inline: true },
+                    { name: organizationLabel, value: access.organizationName || userLabel, inline: true },
+                ],
+            }],
+        };
 
-        if (gameData.image) {
-            embed.setThumbnail(gameData.image);
-        }
-
-        if (description) {
-            embed.setDescription(description.slice(0, 2048));
-        } else {
-            embed.setDescription(noDescription);
-        }
-
-        await interaction.editReply({ embeds: [embed] });
+        await _gameViewRenderer.RenderInitial(interaction, viewModel);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         log.error(`Failed to view game`, message, `ViewGame`);

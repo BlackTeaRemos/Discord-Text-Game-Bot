@@ -1,40 +1,55 @@
-import { neo4jClient } from '../../../Setup/Neo4j.js';
+import { GetPriorityScopedDescription } from './Scope/GetPriorityScopedDescription.js';
 
 /**
- * Fetch global description content for an object
- * @param objectUid string Object unique identifier @example 'game_abc123'
- * @param userUid string User identifier for scope fallback @example '123456789'
- * @returns Promise<string | null> Description content or null
+ * Options for fetching a priority-resolved description for an object.
+ * @property objectUid string Object unique identifier. @example 'game_abc123'
+ * @property objectType string Category of the described object. @example 'game'
+ * @property userUid string Discord user id requesting the view. @example '123456789'
+ * @property organizationUids string[] Organization UIDs the user belongs to. @example ['org_1']
+ */
+export interface IFetchDescriptionOptions {
+    /** Unique identifier of the described object. @example 'game_abc123' */
+    objectUid: string;
+
+    /** Category of the described object. @example 'game' */
+    objectType: string;
+
+    /** Discord user id requesting the view. @example '123456789' */
+    userUid: string;
+
+    /** Organization UIDs visible to the user. @example ['org_1'] */
+    organizationUids: string[];
+}
+
+/**
+ * Fetch the highest-priority scoped description content for an object.
+ * Resolution order: user > organization > global.
+ * Delegates to GetPriorityScopedDescription with proper scope filtering
+ * to prevent information leaks across organizations or users.
+ *
+ * @param options IFetchDescriptionOptions Query options with scope ownership.
+ * @returns Promise<string | null> Description content string, or null if none found.
+ * @example
+ * const content = await FetchDescriptionForObject({
+ *   objectUid: 'game_abc123',
+ *   objectType: 'game',
+ *   userUid: '123456789',
+ *   organizationUids: ['org_1'],
+ * });
  */
 export async function FetchDescriptionForObject(
-    objectUid: string,
-    userUid: string,
+    options: IFetchDescriptionOptions,
 ): Promise<string | null> {
-    const session = await neo4jClient.GetSession(`READ`);
+    const result = await GetPriorityScopedDescription({
+        objectType: options.objectType,
+        objectUid: options.objectUid,
+        userUid: options.userUid,
+        organizationUids: options.organizationUids,
+    });
 
-    try {
-        const query = `
-            MATCH (d:ScopedDescription { objectUid: $objectUid })
-            WHERE d.scopeType IN ['global', 'user', 'organization']
-            RETURN d.content AS content, d.scopeType AS scopeType
-            ORDER BY 
-                CASE d.scopeType 
-                    WHEN 'global' THEN 1 
-                    WHEN 'organization' THEN 2 
-                    WHEN 'user' THEN 3 
-                    ELSE 4 
-                END
-            LIMIT 1`;
-
-        const result = await session.run(query, { objectUid, userUid });
-
-        if (result.records.length === 0) {
-            return null;
-        }
-
-        const content = result.records[0].get(`content`);
-        return content ? String(content) : null;
-    } finally {
-        await session.close();
+    if (!result) {
+        return null;
     }
+
+    return result.content || null;
 }

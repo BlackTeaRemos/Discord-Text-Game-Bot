@@ -21,13 +21,13 @@ else
   cd "$APP_DIR"
 fi
 
-# Install Node.js dependencies
-npm install
+# Install dependencies via Bun
+bun install
 
 rm -rf cmp
 # Build TypeScript
 echo "Building TypeScript..."
-npx tsc --outDir cmp
+bun run build
 
 # Start the app (compiled JS)
-node cmp/index.js
+bun run cmp/index.js

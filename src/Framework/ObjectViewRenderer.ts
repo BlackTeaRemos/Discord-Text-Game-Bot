@@ -1,4 +1,3 @@
-/** Paged object view renderer with optional refresh and timeout cleanup. */
 import {
     ActionRowBuilder,
     ButtonBuilder,
@@ -11,6 +10,7 @@ import {
 } from 'discord.js';
 import { randomUUID } from 'crypto';
 import type { ObjectViewModel, ObjectViewPage, ObjectViewResolver } from './ObjectViewTypes.js';
+import { ResolveObjectViewTheme } from './ObjectViewTheme.js';
 import { Translate } from '../Services/I18nService.js';
 
 interface ObjectViewSession {
@@ -149,7 +149,21 @@ export class ObjectViewRenderer {
     }
 
     private __buildEmbed(model: ObjectViewModel, page: ObjectViewPage, index: number): EmbedBuilder {
-        const embed = new EmbedBuilder().setTitle(page.title || model.name).setDescription(page.description).setColor(model.color ?? 0x5865F2);
+        const theme = ResolveObjectViewTheme(model.objectType);
+        const resolvedColor = model.color ?? theme.color;
+        const titleText = `${theme.accentEmoji} ${page.title || model.name}`;
+
+        const embed = new EmbedBuilder()
+            .setTitle(titleText)
+            .setDescription(page.description)
+            .setColor(resolvedColor);
+
+        if (page.fields?.length) {
+            for (const field of page.fields) {
+                embed.addFields({ name: field.name, value: field.value, inline: field.inline ?? false });
+            }
+        }
+
         const footerParts: string[] = [];
         if (page.scopeLabel) {
             footerParts.push(page.scopeLabel);
@@ -161,12 +175,24 @@ export class ObjectViewRenderer {
         if (footerParts.length) {
             embed.setFooter({ text: footerParts.join(` • `) });
         }
+
+        const thumbnailUrl = page.thumbnailUrl ?? model.thumbnailUrl ?? theme.thumbnailUrl;
+        if (thumbnailUrl) {
+            embed.setThumbnail(thumbnailUrl);
+        }
+
         if (page.imageUrl || model.imageUrl) {
             embed.setImage(page.imageUrl ?? model.imageUrl ?? ``);
         }
+
+        if (page.timestamp) {
+            embed.setTimestamp(page.timestamp);
+        }
+
         if (model.friendlyName) {
             embed.setAuthor({ name: model.friendlyName });
         }
+
         return embed;
     }
 

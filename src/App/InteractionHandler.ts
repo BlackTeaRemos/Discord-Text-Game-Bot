@@ -32,8 +32,7 @@ export function CreateInteractionHandler(options: { loadedCommands: Record<strin
             interaction.executionContext = createExecutionContext(interaction.id);
 
             try {
-                const _resolvedLocale = await ResolveUserLocale(interaction.user.id, interaction.executionContext);
-                log.debug(`Interaction start: resolved locale for ${interaction.user.id} -> ${_resolvedLocale}`, `InteractionHandler`);
+                await ResolveUserLocale(interaction.user.id, interaction.executionContext);
             } catch(error) {
                 log.warning(`Failed to resolve user locale: ${String(error)}`, `InteractionHandler`);
             }
@@ -96,35 +95,29 @@ export function CreateInteractionHandler(options: { loadedCommands: Record<strin
                     deferredByHandler = true;
                 } catch(e) {
                     // If deferring fails, continue without blocking; the request may still work.
-                        log.warning(`Failed to defer interaction reply: ${String(e)}`, `InteractionHandler`);
-                try {
-                    const _origReply = interaction.reply?.bind(interaction);
-                    (interaction as any).reply = async(options: any) => {
-                        try {
-                            return (await interaction.editReply(options)) as any;
-                        } catch(err) {
-                            if (_origReply) {
-                                return _origReply(options);
-                            }
-                            throw err;
-                        }
-                    };
-                } catch {}
+                    log.warning(`Failed to defer interaction reply: ${String(e)}`, `InteractionHandler`);
+                }
             }
 
-            // DEBUG: Log before permission request
-            log.debug(
-                `Preparing to request permission`,
-                `InteractionHandler`,
-                JSON.stringify({
-                    commandName: interaction.commandName,
-                    userId: interaction.user.id,
-                    guildId: interaction.guildId,
-                    channelId: interaction.channel?.id,
-                    templatesCount: templates.length,
-                    templates: templates,
-                }),
-            );
+            // Patch the interaction so commands never need to know about defer state.
+            // reply() transparently delegates to editReply() when already deferred.
+            // deferReply() becomes a no-op to prevent duplicate defer attempts.
+            if (interaction.deferred || deferredByHandler) {
+                const _originalReply = interaction.reply?.bind(interaction);
+                (interaction as any).reply = async(options: any) => {
+                    try {
+                        return (await interaction.editReply(options)) as any;
+                    } catch(editError) {
+                        if (_originalReply) {
+                            return _originalReply(options);
+                        }
+                        throw editError;
+                    }
+                };
+                (interaction as any).deferReply = async() => {
+                    return; // already deferred, no-op
+                };
+            }
 
             // Global gate: resolve required tokens, check permanent grants, and request admin approval if needed.
             // This gate remains independent from any local flow-level permission checks.
@@ -133,31 +126,14 @@ export function CreateInteractionHandler(options: { loadedCommands: Record<strin
                 context: resolverCtx as any,
                 member: flowMember,
                 requestApproval: payload => {
-                    log.debug(
-                        `RequestPermissionFromAdmin called`,
-                        `InteractionHandler`,
-                        JSON.stringify({ tokens: payload.tokens, reason: payload.reason }),
-                    );
                     return RequestPermissionFromAdmin(interaction, payload as any);
                 },
             });
-
-            log.debug(
-                `Permission resolution result`,
-                `InteractionHandler`,
-                JSON.stringify({
-                    success: resolution.success,
-                    reason: resolution.detail.reason,
-                    tokensCount: resolution.detail.tokens.length,
-                    decision: resolution.detail.decision,
-                }),
-            );
 
             if (!resolution.success) {
                 throw new Error(resolution.detail.reason ?? `Permission denied`);
             }
 
-            log.debug(`Permission gate passed, executing command`, `InteractionHandler`);
             // Execute the command after the global gate passes.
             await command.execute(interaction);
         } catch(err: any) {
