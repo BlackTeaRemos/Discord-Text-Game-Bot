@@ -58,12 +58,13 @@ export class DiscordService {
             );
         });
 
+        // Discord.js debug events are silenced to reduce log noise in production
 
         this.client.on(`warn`, info => {
             log.warning(`Warning: ${info}`, `DiscordService`);
         });
 
-        this.client.once(Events.ClientReady, async() => {
+        this.client.once(Events.ClientReady, async () => {
             try {
                 // Fetch the guild (server) and log it
                 const guild = await this.client.guilds.fetch(guildId);
@@ -106,7 +107,7 @@ export class DiscordService {
                         });
                         this._channels.push(cmdChannel);
                         log.info(`'${uniqueName}' channel created.`, `DiscordService`);
-                    } catch(err) {
+                    } catch (err) {
                         log.error(
                             `Failed to create cmd- channel: ${err instanceof Error ? err.stack || err.message : String(err)}`,
                             `DiscordService`,
@@ -115,7 +116,7 @@ export class DiscordService {
                 }
 
                 MAIN_EVENT_BUS.emit(`discord:ready`, this.client, this._category, this._channels);
-            } catch(err) {
+            } catch (err) {
                 log.error(
                     `Error during ready event: ${err instanceof Error ? err.stack || err.message : String(err)}`,
                     `DiscordService`,
@@ -125,6 +126,8 @@ export class DiscordService {
         });
 
         this.client.on(Events.MessageCreate, msg => {
+            // Emit raw message events for downstream consumers (prompts, editors, diagnostics)
+            // Individual listeners are responsible for ignoring irrelevant channels
             MAIN_EVENT_BUS.emit(`discord:message:raw`, msg);
         });
 

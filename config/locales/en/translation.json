@@ -135,6 +135,14 @@
           "type": "Type",
           "organization": "Org",
           "noDescription": "No description available"
+        },
+        "detail": {
+          "createdAt": "Created",
+          "updatedAt": "Updated",
+          "owner": "Owner",
+          "propertiesTitle": "Properties",
+          "relationshipsTitle": "Relationships",
+          "actionsTitle": "Available Actions"
         }
       },
       "template": {
@@ -529,7 +537,8 @@
   "objectView": {
     "pageIndicator": "Page {{index}}/{{total}}",
     "prev": "Prev",
-    "next": "Next"
+    "next": "Next",
+    "navigateTo": "Navigate to..."
   }
   ,
   "organizationPrompt": {

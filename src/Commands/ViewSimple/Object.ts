@@ -3,11 +3,14 @@ import type { ChatInputCommandInteraction } from 'discord.js';
 import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
 import { ResolveObjectByUid } from '../../Flow/Object/ResolveByUid.js';
 import { FetchDescriptionForObject } from '../../Flow/Object/Description/FetchForObject.js';
+import { FetchObjectDetail } from '../../Flow/Object/FetchObjectDetail.js';
+import { ResolveObjectActions } from '../../Flow/Object/ResolveObjectActions.js';
 import { log } from '../../Common/Log.js';
 import { ResolveViewAccess } from './ResolveViewAccess.js';
 import { TranslateFromContext } from '../../Services/I18nService.js';
 import { ObjectViewRenderer } from '../../Framework/ObjectViewRenderer.js';
-import type { ObjectViewModel } from '../../Framework/ObjectViewTypes.js';
+import { BuildDetailPages } from '../../Framework/ObjectDetailPageBuilder.js';
+import { CreateNavigationCallback } from '../../Framework/NavigateToObject.js';
 
 /** Shared renderer instance for generic object views */
 const _objectViewRenderer = new ObjectViewRenderer(`object_view`);
@@ -64,30 +67,52 @@ export async function ExecuteViewObject(
             organizationUids: organizationUidsForScope,
         });
 
+        const detail = await FetchObjectDetail(objectInfo.uid);
+
         const typeLabel = TranslateFromContext(interaction.executionContext, `objectRegistry.types.${objectInfo.type}`, {
             defaultValue: objectInfo.type,
         });
-        const idLabel = TranslateFromContext(interaction.executionContext, `commands.view.object.labels.id`);
-        const typeLabelName = TranslateFromContext(interaction.executionContext, `commands.view.object.labels.type`);
-        const organizationLabel = TranslateFromContext(interaction.executionContext, `commands.view.object.labels.organization`);
-        const userLabel = TranslateFromContext(interaction.executionContext, `commands.view.common.user`);
         const noDescription = TranslateFromContext(interaction.executionContext, `commands.view.object.labels.noDescription`);
 
-        const viewModel: ObjectViewModel = {
-            id: objectInfo.uid,
-            objectType: objectInfo.type,
-            name: objectInfo.name,
-            pages: [{
-                description: description?.slice(0, 2048) ?? noDescription,
-                fields: [
-                    { name: idLabel, value: `\`${objectInfo.uid}\``, inline: true },
-                    { name: typeLabelName, value: typeLabel, inline: true },
-                    { name: organizationLabel, value: access.organizationName || userLabel, inline: true },
-                ],
-            }],
-        };
+        const actions = ResolveObjectActions(objectInfo.type, objectInfo.uid);
 
-        await _objectViewRenderer.RenderInitial(interaction, viewModel);
+        const viewModel = BuildDetailPages({
+            detail: detail ?? {
+                uid: objectInfo.uid,
+                labels: [],
+                properties: { name: objectInfo.name },
+                parameters: {},
+                relationships: [],
+                createdAt: null,
+                updatedAt: null,
+            },
+            objectType: typeLabel,
+            description,
+            organizationName: access.organizationName,
+            actions,
+            noDescriptionLabel: noDescription,
+            overviewLabels: {
+                type: TranslateFromContext(interaction.executionContext, `commands.view.object.labels.type`),
+                organization: TranslateFromContext(interaction.executionContext, `commands.view.object.labels.organization`),
+                createdAt: TranslateFromContext(interaction.executionContext, `commands.view.object.detail.createdAt`),
+                updatedAt: TranslateFromContext(interaction.executionContext, `commands.view.object.detail.updatedAt`),
+                owner: TranslateFromContext(interaction.executionContext, `commands.view.object.detail.owner`),
+                userScope: TranslateFromContext(interaction.executionContext, `commands.view.common.user`),
+                propertiesTitle: TranslateFromContext(interaction.executionContext, `commands.view.object.detail.propertiesTitle`),
+                relationshipsTitle: TranslateFromContext(interaction.executionContext, `commands.view.object.detail.relationshipsTitle`),
+                actionsTitle: TranslateFromContext(interaction.executionContext, `commands.view.object.detail.actionsTitle`),
+            },
+        });
+
+        const onNavigate = CreateNavigationCallback({
+            interaction,
+            executionContext: interaction.executionContext,
+            organizationName: access.organizationName,
+            organizationUid: access.organizationUid,
+            renderer: _objectViewRenderer,
+        });
+
+        await _objectViewRenderer.RenderInitial(interaction, viewModel, true, undefined, undefined, undefined, onNavigate);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         log.error(`Failed to view object`, message, `ViewObject`);

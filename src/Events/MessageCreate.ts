@@ -1,3 +1,6 @@
+/**
+ * Handles the 'messageCreate' event from Discord, processing new incoming messages.
+ */
 import type { Message } from 'discord.js';
 import { log } from '../Common/Log.js';
 import { flowManager } from '../Common/Flow/Manager.js';
@@ -13,7 +16,7 @@ export async function OnMessageCreate(message: Message): Promise<void> {
     // Delegate to flow manager for any active user flows expecting message input
     try {
         await flowManager.onMessage(message);
-    } catch(error) {
+    } catch (error) {
         log.error(`Flow manager failed to process message ${message.id}: ${(error as Error).message}`, `Flow`);
     }
 }

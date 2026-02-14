@@ -23,6 +23,7 @@ export interface ObjectViewField {
  * @property thumbnailUrl string | undefined Optional small thumbnail per page. Example: "https://.../icon.png"
  * @property footer string | undefined Optional footer text. Example: "Last updated today"
  * @property timestamp Date | undefined Optional timestamp rendered by Discord. Example: new Date()
+ * @property selectOptions ObjectViewSelectOption[] | undefined Navigable select menu entries for this page
  */
 export interface ObjectViewPage {
     title?: string;
@@ -33,7 +34,27 @@ export interface ObjectViewPage {
     thumbnailUrl?: string;
     footer?: string;
     timestamp?: Date;
+    selectOptions?: ObjectViewSelectOption[];
 }
+
+/**
+ * Single option for a select menu on an object view page
+ * @property label string Display label. Example: "Dragon's Lair"
+ * @property value string Navigation target uid. Example: "obj_abc123"
+ * @property description string | undefined Short description. Example: "Factory"
+ */
+export interface ObjectViewSelectOption {
+    label: string;
+    value: string;
+    description?: string;
+}
+
+/**
+ * Callback invoked when a user selects a relationship target to navigate to
+ * @param targetUid string The uid of the selected object
+ * @returns Promise<void>
+ */
+export type NavigationCallback = (targetUid: string) => Promise<void>;
 
 /**
  * Describes the full object view model that will be rendered and paged.

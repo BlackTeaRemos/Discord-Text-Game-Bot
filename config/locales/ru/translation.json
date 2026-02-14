@@ -140,6 +140,14 @@
           "type": "Тип",
           "organization": "Орг",
           "noDescription": "Описание отсутствует"
+        },
+        "detail": {
+          "createdAt": "Создан",
+          "updatedAt": "Обновлён",
+          "owner": "Владелец",
+          "propertiesTitle": "Свойства",
+          "relationshipsTitle": "Связи",
+          "actionsTitle": "Доступные действия"
         }
       },
       "template": {
@@ -534,7 +542,8 @@
   "objectView": {
     "pageIndicator": "Страница {{index}}/{{total}}",
     "prev": "Назад",
-    "next": "Вперёд"
+    "next": "Вперёд",
+    "navigateTo": "Перейти к..."
   }
   ,
   "organizationPrompt": {

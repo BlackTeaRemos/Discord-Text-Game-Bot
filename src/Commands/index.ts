@@ -21,6 +21,8 @@ export interface BotCommand {
     execute(interaction: ChatInputCommandInteraction): Promise<void>;
     /** Permission token templates for this command */
     permissionTokens?: any;
+    /** Optional autocomplete handler for this command */
+    autocomplete?: (interaction: any) => Promise<void>;
 }
 
 export interface BotCommandsMap {
@@ -62,6 +64,7 @@ export const commandsReady: Promise<void> = (async() => {
                             data: inst.data,
                             execute: inst.execute.bind(inst),
                             permissionTokens: inst.permissionTokens ?? (mod as any).permissionTokens,
+                            autocomplete: typeof inst.autocomplete === `function` ? inst.autocomplete.bind(inst) : undefined,
                         };
                         continue;
                     }
@@ -78,6 +81,7 @@ export const commandsReady: Promise<void> = (async() => {
                 data: moduleExports.data,
                 execute: moduleExports.execute,
                 permissionTokens: moduleExports.permissionTokens,
+                autocomplete: typeof moduleExports.autocomplete === `function` ? moduleExports.autocomplete : undefined,
             };
             continue;
         }
@@ -91,6 +95,7 @@ export const commandsReady: Promise<void> = (async() => {
                             data: inst.data,
                             execute: inst.execute.bind(inst),
                             permissionTokens: inst.permissionTokens ?? (Ex as any).permissionTokens,
+                            autocomplete: typeof inst.autocomplete === `function` ? inst.autocomplete.bind(inst) : undefined,
                         };
                     }
                 } catch {}

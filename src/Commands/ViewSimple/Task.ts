@@ -11,10 +11,7 @@ import type { TaskListItem } from '../../Domain/Task.js';
 import { ListGamesForServer } from '../../Flow/Object/Game/ListGamesForServer.js';
 import { GetGameCurrentTurn } from '../../Flow/Object/Game/Turn.js';
 import { FetchTasksForViewer } from '../../Flow/Task/fetchTasksForViewer.js';
-import { FetchTaskById } from '../../Flow/Task/FetchTaskById.js';
-import { UpdateTaskStatus } from '../../Flow/Task/updateTaskStatus.js';
 import { ResolveStatusesForGroup } from '../../Flow/Task/ResolveStatusesForGroup.js';
-import { FetchDescriptionForObject } from '../../Flow/Object/Description/FetchForObject.js';
 import { neo4jClient } from '../../Setup/Neo4j.js';
 import { flowManager } from '../../Common/Flow/Manager.js';
 import { log } from '../../Common/Log.js';
@@ -24,13 +21,12 @@ import {
     ResolveExecutionOrganization,
     ResolveOrganization,
 } from '../../Flow/Object/Organization/index.js';
-import type { ExecutionContext } from '../../Domain/Command.js';
 import { TranslateFromContext } from '../../Services/I18nService.js';
+import type { ExecutionContext } from '../../Domain/Command.js';
+import { ShowTaskDetail } from './TaskDetail.js';
 
 const VIEW_TASK_PREV_ID = `view_task_prev`;
 const VIEW_TASK_NEXT_ID = `view_task_next`;
-const VIEW_TASK_FINISH_ID = `view_task_finish`;
-const VIEW_TASK_CANCEL_ID = `view_task_cancel`;
 const PAGE_SIZE = 10;
 
 /**
@@ -40,17 +36,6 @@ interface ViewTaskState {
     tasks: TaskListItem[]; // all fetched tasks
     pageIndex: number; // current page index
     totalPages: number; // total page count
-    baseInteraction: ChatInputCommandInteraction; // original interaction
-    organizationName: string; // execution organization label
-    organizationUid: string | null; // execution organization uid for scope filtering
-    executionContext: ExecutionContext; // interaction execution context
-}
-
-/**
- * Flow state for task detail viewing
- */
-interface ViewTaskDetailState {
-    task: TaskListItem; // current task item
     baseInteraction: ChatInputCommandInteraction; // original interaction
     organizationName: string; // execution organization label
     organizationUid: string | null; // execution organization uid for scope filtering
@@ -160,7 +145,7 @@ export async function ExecuteViewTask(
         }
 
         if (taskIdOption) {
-            await __ShowTaskDetail(
+            await ShowTaskDetail(
                 interaction as unknown as ChatInputCommandInteraction,
                 taskIdOption,
                 allowOverride,
@@ -309,148 +294,6 @@ async function __RenderTaskList(state: ViewTaskState, organizationName: string):
         embeds: [embed],
         components: [row],
     });
-}
-
-/**
- * Render a single task detail view
- * Uses scoped description system, falling back to the entity's own description field.
- * @param state ViewTaskDetailState Current detail state
- * @returns Promise<void> Resolves when reply is updated
- */
-async function __RenderTaskDetail(state: ViewTaskDetailState, organizationName: string): Promise<void> {
-    const task = state.task;
-    const title = TranslateFromContext(state.executionContext, `commands.view.task.labels.detailTitle`, {
-        params: { id: task.id },
-    });
-    const noDescription = TranslateFromContext(state.executionContext, `commands.view.task.labels.noDescription`);
-    const statusLabel = TranslateFromContext(state.executionContext, `objectRegistry.task.status`);
-    const shortLabel = TranslateFromContext(state.executionContext, `objectRegistry.task.short`);
-    const organizationLabel = TranslateFromContext(state.executionContext, `objectRegistry.task.organization`);
-    const userLabel = TranslateFromContext(state.executionContext, `commands.view.common.user`);
-    const shortValue = task.shortDescription || TranslateFromContext(state.executionContext, `commands.view.task.labels.noShortDescription`);
-
-    // Use scoped description system, fall back to entity's own description field
-    const organizationUidsForScope = state.organizationUid
-        ? [state.organizationUid]
-        : []; // resolved org UIDs for description scoping
-    const scopedDescription = await FetchDescriptionForObject({
-        objectUid: task.id,
-        objectType: `task`,
-        userUid: state.baseInteraction.user.id,
-        organizationUids: organizationUidsForScope,
-    });
-    const displayDescription = scopedDescription || task.description || noDescription;
-
-    const embed = new EmbedBuilder()
-        .setTitle(title)
-        .setDescription(displayDescription)
-        .setColor(`Blue`)
-        .addFields([
-            { name: statusLabel, value: String(task.status), inline: true },
-            { name: shortLabel, value: shortValue, inline: true },
-            { name: organizationLabel, value: organizationName || userLabel, inline: true },
-        ]);
-
-    const finishButton = new ButtonBuilder()
-        .setCustomId(VIEW_TASK_FINISH_ID)
-        .setLabel(TranslateFromContext(state.executionContext, `commands.view.task.actions.finish`))
-        .setStyle(ButtonStyle.Success);
-
-    const cancelButton = new ButtonBuilder()
-        .setCustomId(VIEW_TASK_CANCEL_ID)
-        .setLabel(TranslateFromContext(state.executionContext, `commands.view.task.actions.cancel`))
-        .setStyle(ButtonStyle.Danger);
-
-    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(finishButton, cancelButton);
-
-    await state.baseInteraction.editReply({
-        embeds: [embed],
-        components: [row],
-    });
-}
-
-/**
- * Show task detail and handle status updates
- * @param interaction ChatInputCommandInteraction Base interaction
- * @param taskId string Task id to display example task_123
- * @returns Promise<void> Resolves when detail flow starts
- */
-async function __ShowTaskDetail(
-    interaction: ChatInputCommandInteraction,
-    taskId: string,
-    allowOverride: boolean,
-    organizationUid: string | null,
-    organizationName: string,
-    executionContext: ExecutionContext,
-): Promise<void> {
-    const task = await FetchTaskById(neo4jClient, {
-        taskId,
-        organizationUid: organizationUid ?? ``,
-        viewerDiscordId: interaction.user.id,
-        allowOverride,
-    });
-
-    if (!task) {
-        await interaction.editReply({
-            content: TranslateFromContext(executionContext, `commands.view.task.errors.notFoundOrDenied`),
-        });
-        return;
-    }
-
-    const initialState: ViewTaskDetailState = {
-        task,
-        baseInteraction: interaction,
-        organizationName,
-        organizationUid,
-        executionContext,
-    };
-
-    await flowManager
-        .builder(interaction.user.id, interaction, initialState)
-        .step([VIEW_TASK_FINISH_ID, VIEW_TASK_CANCEL_ID], `view_task_detail`)
-        .prompt(async ctx => {
-            await __RenderTaskDetail(ctx.state, ctx.state.organizationName);
-        })
-        .onInteraction(async (ctx, incomingInteraction) => {
-            if (!incomingInteraction.isButton()) {
-                return false;
-            }
-
-            let nextStatus: string | null = null;
-            if (incomingInteraction.customId === VIEW_TASK_FINISH_ID) {
-                nextStatus = `complete`;
-            } else if (incomingInteraction.customId === VIEW_TASK_CANCEL_ID) {
-                nextStatus = `failed`;
-            }
-
-            if (!nextStatus) {
-                return false;
-            }
-
-            await incomingInteraction.deferUpdate();
-
-            const updated = await UpdateTaskStatus(neo4jClient, {
-                taskId: ctx.state.task.id,
-                organizationUid: organizationUid ?? ``,
-                viewerDiscordId: interaction.user.id,
-                status: nextStatus as any,
-                allowOverride,
-            });
-
-            if (!updated) {
-                await interaction.followUp({
-                    content: TranslateFromContext(executionContext, `commands.view.task.errors.updateFailed`),
-                    flags: MessageFlags.Ephemeral,
-                });
-                return false;
-            }
-
-            ctx.state.task = updated;
-            await __RenderTaskDetail(ctx.state, ctx.state.organizationName);
-            return false;
-        })
-        .next()
-        .start();
 }
 
 /**

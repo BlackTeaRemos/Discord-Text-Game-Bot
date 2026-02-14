@@ -8,10 +8,10 @@ import { log } from '../../Common/Log.js';
 import { ResolveViewAccess } from './ResolveViewAccess.js';
 import { TranslateFromContext } from '../../Services/I18nService.js';
 import { ObjectViewRenderer } from '../../Framework/ObjectViewRenderer.js';
-import type { ObjectViewModel, ObjectViewPage, ObjectViewField } from '../../Framework/ObjectViewTypes.js';
+import type { ObjectViewModel, ObjectViewPage } from '../../Framework/ObjectViewTypes.js';
 
 /** Maximum number of objects displayed per page */
-const MAX_OBJECTS_PER_PAGE = 10;
+const MAX_OBJECTS_PER_PAGE = 25;
 
 /** Shared renderer instance for object list views */
 const _objectListViewRenderer = new ObjectViewRenderer(`objlist_view`);
@@ -111,7 +111,7 @@ export async function ExecuteViewObjectList(
                 (pageIndex + 1) * MAX_OBJECTS_PER_PAGE,
             );
 
-            const fields: ObjectViewField[] = [];
+            const objectLines: string[] = [];
             for (const gameObject of pageObjects) {
                 let templateName = templateNameCache.get(gameObject.templateUid);
                 if (!templateName) {
@@ -120,29 +120,17 @@ export async function ExecuteViewObjectList(
                     templateNameCache.set(gameObject.templateUid, templateName);
                 }
 
-                const keyParameterValues = gameObject.parameters
-                    .slice(0, 3)
-                    .map(parameterValue => {
-                        return `${parameterValue.key}: ${parameterValue.value}`;
-                    })
-                    .join(` | `);
-
-                const fieldValue = [
-                    `${templateLabel}: ${templateName}`,
-                    keyParameterValues || `-`,
-                    `\`${gameObject.uid}\``,
-                ].join(`\n`);
-
-                fields.push({ name: gameObject.name, value: fieldValue, inline: false });
+                objectLines.push(`**${gameObject.name}** (${templateName}) \`${gameObject.uid}\``);
             }
 
-            const pageDescription = templateFilterName
+            const headerLine = templateFilterName
                 ? `${countLabel} | ${templateLabel}: ${templateFilterName}`
                 : countLabel;
 
+            const pageDescription = `${headerLine}\n\n${objectLines.join(`\n`)}`;
+
             pages.push({
                 description: pageDescription,
-                fields,
             });
         }
 
