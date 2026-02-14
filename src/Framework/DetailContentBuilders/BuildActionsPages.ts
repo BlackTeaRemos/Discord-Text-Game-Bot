@@ -23,5 +23,5 @@ export function BuildActionsPages(
         return `\`${action.command}\`\n-# ${action.description}`;
     });
 
-    return SplitIntoPages(lines, title, `\n\n`);
+    return SplitIntoPages(lines, title, `\n\n`, `actions`);
 }

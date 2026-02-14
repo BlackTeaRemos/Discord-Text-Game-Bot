@@ -27,9 +27,9 @@ export async function OnInteractionCreate(interaction: Interaction): Promise<voi
             handled = await HandleOrganizationSelectControlInteraction(interaction as StringSelectMenuInteraction);
         }
 
-        if (!handled && (interaction.isButton() || interaction.isStringSelectMenu())) {
+        if (!handled && interaction.isButton()) {
             handled = await ObjectViewRenderer.DispatchInteraction(
-                interaction as ButtonInteraction | StringSelectMenuInteraction,
+                interaction as ButtonInteraction,
             );
         }
 

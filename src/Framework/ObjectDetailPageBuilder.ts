@@ -80,7 +80,7 @@ export function BuildDetailPages(options: BuildDetailPagesOptions): ObjectViewMo
         if (combinedLength <= MAX_PAGE_LENGTH) {
             overviewPage.description = `${overviewPage.description}\n\n${propertiesText}`;
         } else {
-            const propertyPages = SplitIntoPages(propertyLines, overviewLabels.propertiesTitle);
+            const propertyPages = SplitIntoPages(propertyLines, overviewLabels.propertiesTitle, `\n`, `properties`);
             relationshipPages.unshift(...propertyPages);
         }
     }
@@ -114,6 +114,7 @@ function __BuildOverviewPage(
     return {
         title: ``,
         description: descriptionWithUid,
+        section: `overview`,
     };
 }
 
@@ -161,5 +162,6 @@ function __BuildInfoPage(
         title: labels.type,
         description: ``,
         fields,
+        section: `info`,
     };
 }

@@ -10,7 +10,6 @@ import { ResolveViewAccess } from './ResolveViewAccess.js';
 import { TranslateFromContext } from '../../Services/I18nService.js';
 import { ObjectViewRenderer } from '../../Framework/ObjectViewRenderer.js';
 import { BuildDetailPages } from '../../Framework/ObjectDetailPageBuilder.js';
-import { CreateNavigationCallback } from '../../Framework/NavigateToObject.js';
 
 /** Shared renderer instance for generic object views */
 const _objectViewRenderer = new ObjectViewRenderer(`object_view`);
@@ -104,15 +103,7 @@ export async function ExecuteViewObject(
             },
         });
 
-        const onNavigate = CreateNavigationCallback({
-            interaction,
-            executionContext: interaction.executionContext,
-            organizationName: access.organizationName,
-            organizationUid: access.organizationUid,
-            renderer: _objectViewRenderer,
-        });
-
-        await _objectViewRenderer.RenderInitial(interaction, viewModel, true, undefined, undefined, undefined, onNavigate);
+        await _objectViewRenderer.RenderInitial(interaction, viewModel);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         log.error(`Failed to view object`, message, `ViewObject`);

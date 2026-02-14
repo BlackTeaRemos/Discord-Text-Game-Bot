@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 import type { Message } from 'discord.js';
-import type { ObjectViewModel, ObjectViewPage, ObjectViewResolver, NavigationCallback } from './ObjectViewTypes.js';
+import type { ObjectViewModel, ObjectViewPage, ObjectViewResolver } from './ObjectViewTypes.js';
 
 /**
  * Tracks a single active object view session with pagination state and timeout
@@ -8,7 +8,6 @@ import type { ObjectViewModel, ObjectViewPage, ObjectViewResolver, NavigationCal
  * @property model ObjectViewModel Current view model
  * @property index number Active page index
  * @property resolver ObjectViewResolver | undefined Optional data refresher
- * @property onNavigate NavigationCallback | undefined Callback for relationship navigation
  * @property message Message | undefined Discord message reference for editing
  * @property timeoutMs number Session expiry duration in milliseconds
  * @property deleteOnTimeout boolean Whether to delete the message on expiry
@@ -20,7 +19,6 @@ export interface ObjectViewSession {
     model: ObjectViewModel;
     index: number;
     resolver?: ObjectViewResolver;
-    onNavigate?: NavigationCallback;
     message?: Message<boolean>;
     timeoutMs: number;
     deleteOnTimeout: boolean;
@@ -54,7 +52,6 @@ export class ObjectViewSessionManager {
      * @param ephemeral boolean Whether the reply is ephemeral
      * @param timeoutMs number Session timeout in milliseconds
      * @param deleteOnTimeout boolean Delete message on timeout
-     * @param onNavigate NavigationCallback | undefined Callback for select navigation
      * @returns string Unique session ID
      *
      * @example
@@ -66,7 +63,6 @@ export class ObjectViewSessionManager {
         ephemeral: boolean,
         timeoutMs: number,
         deleteOnTimeout: boolean,
-        onNavigate?: NavigationCallback,
     ): string {
         const sessionId = `${this._idPrefix}_${randomUUID()}`;
         this._sessions.set(sessionId, {
@@ -74,7 +70,6 @@ export class ObjectViewSessionManager {
             pages: model.pages,
             index: 0,
             resolver,
-            onNavigate,
             timeoutMs,
             deleteOnTimeout,
             ephemeral,

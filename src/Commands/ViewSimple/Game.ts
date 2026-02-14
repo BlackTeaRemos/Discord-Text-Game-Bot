@@ -12,7 +12,6 @@ import { ResolveViewAccess } from './ResolveViewAccess.js';
 import { TranslateFromContext } from '../../Services/I18nService.js';
 import { ObjectViewRenderer } from '../../Framework/ObjectViewRenderer.js';
 import { BuildDetailPages } from '../../Framework/ObjectDetailPageBuilder.js';
-import { CreateNavigationCallback } from '../../Framework/NavigateToObject.js';
 
 /** Shared renderer instance for game views */
 const _gameViewRenderer = new ObjectViewRenderer(`game_view`);
@@ -121,15 +120,7 @@ export async function ExecuteViewGame(
             viewModel.pages[0].fields.unshift({ name: currentTurnLabel, value: String(currentTurn), inline: true });
         }
 
-        const onNavigate = CreateNavigationCallback({
-            interaction,
-            executionContext: interaction.executionContext,
-            organizationName: access.organizationName,
-            organizationUid: access.organizationUid,
-            renderer: _gameViewRenderer,
-        });
-
-        await _gameViewRenderer.RenderInitial(interaction, viewModel, true, undefined, undefined, undefined, onNavigate);
+        await _gameViewRenderer.RenderInitial(interaction, viewModel);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         log.error(`Failed to view game`, message, `ViewGame`);

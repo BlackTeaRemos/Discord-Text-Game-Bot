@@ -7,14 +7,13 @@ import {
     EmbedBuilder,
     InteractionReplyOptions,
     Message,
-    StringSelectMenuBuilder,
-    StringSelectMenuInteraction,
 } from 'discord.js';
-import type { ObjectViewModel, ObjectViewPage, ObjectViewResolver, NavigationCallback } from './ObjectViewTypes.js';
+import type { ObjectViewModel, ObjectViewPage, ObjectViewResolver } from './ObjectViewTypes.js';
 import { ResolveObjectViewTheme } from './ObjectViewThemeRegistry.js';
 import './ObjectViewThemeDefaults.js';
 import { Translate } from '../Services/I18nService.js';
 import { ObjectViewSessionManager } from './ObjectViewSessionManager.js';
+import { ResolveSectionAnchors } from './ResolveSectionAnchors.js';
 
 /**
  * Renders paginated Discord embeds for object views and dispatches component interactions
@@ -41,13 +40,13 @@ export class ObjectViewRenderer {
      * Dispatch an interaction to the correct renderer instance
      * Tries all registered renderers until one handles the interaction
      *
-     * @param interaction ButtonInteraction | StringSelectMenuInteraction Incoming component interaction
+     * @param interaction ButtonInteraction Incoming button interaction
      * @returns Promise<boolean> True if any renderer handled it
      *
      * @example
      * const handled = await ObjectViewRenderer.DispatchInteraction(interaction);
      */
-    static async DispatchInteraction(interaction: ButtonInteraction | StringSelectMenuInteraction): Promise<boolean> {
+    static async DispatchInteraction(interaction: ButtonInteraction): Promise<boolean> {
         for (const renderer of ObjectViewRenderer.__registry.values()) {
             const handled = await renderer.HandleInteraction(interaction);
             if (handled) {
@@ -66,7 +65,6 @@ export class ObjectViewRenderer {
      * @param resolver ObjectViewResolver | undefined Optional data refresher
      * @param timeoutMs number Session timeout in milliseconds
      * @param deleteOnTimeout boolean Delete message on timeout
-     * @param onNavigate NavigationCallback | undefined Callback for relationship navigation
      * @returns Promise<Message | void> The sent message if available
      */
     async RenderInitial(
@@ -76,13 +74,12 @@ export class ObjectViewRenderer {
         resolver?: ObjectViewResolver,
         timeoutMs = 5 * 60 * 1000,
         deleteOnTimeout = false,
-        onNavigate?: NavigationCallback,
     ): Promise<Message<boolean> | void> {
-        const sessionId = this._sessionManager.Create(model, resolver, ephemeral, timeoutMs, deleteOnTimeout, onNavigate);
+        const sessionId = this._sessionManager.Create(model, resolver, ephemeral, timeoutMs, deleteOnTimeout);
         const page = this._sessionManager.GetPage(sessionId, 0);
         const reply: InteractionReplyOptions = {
             embeds: [this.__buildEmbed(model, page, 0)],
-            components: this.__buildControls(sessionId, model.pages.length, 0, page),
+            components: this.__buildControls(sessionId, model.pages, 0),
             ephemeral,
         };
         const send = interaction.replied || interaction.deferred
@@ -94,33 +91,19 @@ export class ObjectViewRenderer {
     }
 
     /**
-     * Handle a pagination button or select menu interaction
+     * Handle a pagination or section jump button interaction
      * Routes to the correct session and updates the embed
      *
-     * @param interaction ButtonInteraction | StringSelectMenuInteraction Incoming component interaction
+     * @param interaction ButtonInteraction Incoming button interaction
      * @returns Promise<boolean> True if this renderer handled the interaction
      */
-    async HandleInteraction(interaction: ButtonInteraction | StringSelectMenuInteraction): Promise<boolean> {
+    async HandleInteraction(interaction: ButtonInteraction): Promise<boolean> {
         const [prefix, sessionId, action] = (interaction.customId || ``).split(`:`);
         if (prefix !== this._customIdPrefix || !sessionId || !action) {
             return false;
         }
         const session = this._sessionManager.Get(sessionId);
         if (!session) {
-            return false;
-        }
-
-        if (action === `nav` && interaction.isStringSelectMenu() && session.onNavigate) {
-            const selectedUid = interaction.values[0];
-            if (selectedUid) {
-                await interaction.deferUpdate();
-                try {
-                    await session.onNavigate(selectedUid);
-                } catch {
-                    // Navigation failure is non-fatal
-                }
-                return true;
-            }
             return false;
         }
 
@@ -131,10 +114,16 @@ export class ObjectViewRenderer {
         if (action === `next`) {
             session.index = Math.min(session.pages.length - 1, session.index + 1);
         }
+        if (action.startsWith(`jump_`)) {
+            const targetIndex = parseInt(action.slice(5), 10);
+            if (!isNaN(targetIndex) && targetIndex >= 0 && targetIndex < session.pages.length) {
+                session.index = targetIndex;
+            }
+        }
         const page = this._sessionManager.GetPage(sessionId, session.index);
         await interaction.update({
             embeds: [this.__buildEmbed(session.model, page, session.index)],
-            components: this.__buildControls(sessionId, session.pages.length, session.index, page),
+            components: this.__buildControls(sessionId, session.pages, session.index),
         });
         this._sessionManager.ArmTimeout(sessionId, session.message);
         return true;
@@ -150,8 +139,11 @@ export class ObjectViewRenderer {
 
         const embed = new EmbedBuilder()
             .setTitle(titleText)
-            .setDescription(page.description)
             .setColor(resolvedColor);
+
+        if (page.description) {
+            embed.setDescription(page.description);
+        }
 
         if (page.fields?.length) {
             for (const field of page.fields) {
@@ -193,11 +185,11 @@ export class ObjectViewRenderer {
 
     private __buildControls(
         sessionId: string,
-        totalPages: number,
+        pages: ObjectViewPage[],
         index: number,
-        page?: ObjectViewPage,
-    ): ActionRowBuilder<ButtonBuilder | StringSelectMenuBuilder>[] {
-        const rows: ActionRowBuilder<ButtonBuilder | StringSelectMenuBuilder>[] = [];
+    ): ActionRowBuilder<ButtonBuilder>[] {
+        const rows: ActionRowBuilder<ButtonBuilder>[] = [];
+        const totalPages = pages.length;
 
         if (totalPages > 1) {
             const prev = new ButtonBuilder()
@@ -213,18 +205,24 @@ export class ObjectViewRenderer {
             rows.push(new ActionRowBuilder<ButtonBuilder>().addComponents(prev, next));
         }
 
-        if (page?.selectOptions?.length) {
-            const selectMenu = new StringSelectMenuBuilder()
-                .setCustomId(`${this._customIdPrefix}:${sessionId}:nav`)
-                .setPlaceholder(Translate(`objectView.navigateTo`))
-                .addOptions(
-                    page.selectOptions.slice(0, 25).map(opt => ({
-                        label: opt.label,
-                        value: opt.value,
-                        description: opt.description,
-                    })),
-                );
-            rows.push(new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(selectMenu));
+        // Section quick-nav row below pagination
+        const sectionAnchors = ResolveSectionAnchors(pages);
+        if (sectionAnchors.length > 0 && totalPages > 1) {
+            // Determine which section the current page belongs to
+            const currentSection = pages[index]?.section
+                ?? sectionAnchors.findLast(anchor => { return anchor.pageIndex <= index; })?.section;
+
+            const sectionButtons = sectionAnchors.map(anchor => {
+                const label = Translate(`objectView.section.${anchor.section}`);
+                const isActive = anchor.section === currentSection;
+                return new ButtonBuilder()
+                    .setCustomId(`${this._customIdPrefix}:${sessionId}:jump_${anchor.pageIndex}`)
+                    .setLabel(label)
+                    .setStyle(isActive ? ButtonStyle.Success : ButtonStyle.Secondary)
+                    .setDisabled(isActive);
+            });
+            // Discord allows max 5 buttons per row
+            rows.push(new ActionRowBuilder<ButtonBuilder>().addComponents(...sectionButtons.slice(0, 5)));
         }
 
         return rows;

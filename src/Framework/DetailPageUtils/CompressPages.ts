@@ -2,15 +2,73 @@ import type { ObjectViewPage } from '../ObjectViewTypes.js';
 import { MAX_PAGE_LENGTH, SECTION_SEPARATOR } from './Constants.js';
 
 /**
- * Compress all sections into a single page when total content fits
- * Returns original pages unchanged when content exceeds MAX_PAGE_LENGTH
+ * Group of consecutive pages sharing the same section tag
+ * @property section string | undefined Common section identifier
+ * @property pages ObjectViewPage[] Pages in this group
+ */
+interface SectionGroup {
+    section: string | undefined;
+    pages: ObjectViewPage[];
+}
+
+/**
+ * Compress pages within the same section into a single page when content fits
+ * Different sections remain on separate pages to support section quick-nav
+ * Returns original pages for a section when its combined content exceeds MAX_PAGE_LENGTH
  *
  * @param pages ObjectViewPage[] All section pages to attempt compressing
- * @returns ObjectViewPage[] Either a single merged page or the original pages
+ * @returns ObjectViewPage[] Compressed pages preserving section boundaries
+ *
+ * @example
+ * // Two overview pages merge into one, relationships stay separate
+ * CompressPages([overviewA, overviewB, relationsA, relationsB])
  */
 export function CompressPages(pages: ObjectViewPage[]): ObjectViewPage[] {
-    const sectionTexts: string[] = [];
+    const groups = __GroupBySection(pages);
+    const result: ObjectViewPage[] = [];
+
+    for (const group of groups) {
+        if (group.pages.length <= 1) {
+            result.push(...group.pages);
+            continue;
+        }
+
+        const merged = __MergeGroup(group);
+        if (merged) {
+            result.push(merged);
+        } else {
+            result.push(...group.pages);
+        }
+    }
+
+    return result;
+}
+
+/**
+ * Group consecutive pages by their section tag
+ */
+function __GroupBySection(pages: ObjectViewPage[]): SectionGroup[] {
+    const groups: SectionGroup[] = [];
+    let currentGroup: SectionGroup | null = null;
+
     for (const page of pages) {
+        if (!currentGroup || currentGroup.section !== page.section) {
+            currentGroup = { section: page.section, pages: [] };
+            groups.push(currentGroup);
+        }
+        currentGroup.pages.push(page);
+    }
+
+    return groups;
+}
+
+/**
+ * Attempt to merge all pages in a group into a single page
+ * Returns null if merged content exceeds MAX_PAGE_LENGTH
+ */
+function __MergeGroup(group: SectionGroup): ObjectViewPage | null {
+    const sectionTexts: string[] = [];
+    for (const page of group.pages) {
         if (page.title) {
             sectionTexts.push(`**${page.title}**\n${page.description}`);
         } else {
@@ -20,17 +78,15 @@ export function CompressPages(pages: ObjectViewPage[]): ObjectViewPage[] {
 
     const mergedDescription = sectionTexts.join(SECTION_SEPARATOR);
     if (mergedDescription.length > MAX_PAGE_LENGTH) {
-        return pages;
+        return null;
     }
 
-    const mergedFields = pages.flatMap(page => { return page.fields ?? []; });
-    const mergedSelectOptions = pages.flatMap(page => { return page.selectOptions ?? []; });
+    const mergedFields = group.pages.flatMap(page => { return page.fields ?? []; });
 
-    const compressed: ObjectViewPage = {
+    return {
+        title: group.pages[0].title,
         description: mergedDescription,
+        section: group.section,
         fields: mergedFields.length > 0 ? mergedFields : undefined,
-        selectOptions: mergedSelectOptions.length > 0 ? mergedSelectOptions : undefined,
     };
-
-    return [compressed];
 }

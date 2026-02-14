@@ -10,14 +10,16 @@ import { MAX_PAGE_LENGTH } from './Constants.js';
  * @param lines string[] Content lines to split
  * @param title string Page title applied to each resulting page
  * @param separator string Join separator between blocks in a page
+ * @param section string | undefined Section identifier tag for quick-nav buttons
  * @returns ObjectViewPage[] One or more pages with description text
  *
- * @example SplitIntoPages(['a','b','','c','d'], 'Props') // blocks [a,b] and [c,d]
+ * @example SplitIntoPages(['a','b','','c','d'], 'Props', '\n', 'properties')
  */
 export function SplitIntoPages(
     lines: string[],
     title: string,
     separator: string = `\n`,
+    section?: string,
 ): ObjectViewPage[] {
     const blocks = GroupIntoBlocks(lines);
     const pages: ObjectViewPage[] = [];
@@ -30,7 +32,7 @@ export function SplitIntoPages(
 
         if (currentLength + addedLength > MAX_PAGE_LENGTH && currentBlocks.length > 0) {
             const pageText = currentBlocks.map(pageBlock => { return pageBlock.join(separator); }).join(`\n\n`);
-            pages.push({ title, description: pageText });
+            pages.push({ title, description: pageText, section });
             currentBlocks = [];
             currentLength = 0;
         }
@@ -41,7 +43,7 @@ export function SplitIntoPages(
 
     if (currentBlocks.length > 0) {
         const pageText = currentBlocks.map(pageBlock => { return pageBlock.join(separator); }).join(`\n\n`);
-        pages.push({ title, description: pageText });
+        pages.push({ title, description: pageText, section });
     }
 
     return pages;
