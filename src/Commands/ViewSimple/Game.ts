@@ -1,4 +1,4 @@
-import { MessageFlags } from 'discord.js';
+import { AttachmentBuilder, MessageFlags } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
 import { ListGamesForServer } from '../../Flow/Object/Game/ListGamesForServer.js';
@@ -12,6 +12,7 @@ import { ResolveViewAccess } from './ResolveViewAccess.js';
 import { TranslateFromContext } from '../../Services/I18nService.js';
 import { ObjectViewRenderer } from '../../Framework/ObjectViewRenderer.js';
 import { BuildDetailPages } from '../../Framework/ObjectDetailPageBuilder.js';
+import { RenderObjectCard } from '../../Framework/ImageGen/ObjectCardRenderer.js';
 
 /** Shared renderer instance for game views */
 const _gameViewRenderer = new ObjectViewRenderer(`game_view`);
@@ -118,6 +119,36 @@ export async function ExecuteViewGame(
         if (viewModel.pages[0]) {
             viewModel.pages[0].fields = viewModel.pages[0].fields ?? [];
             viewModel.pages[0].fields.unshift({ name: currentTurnLabel, value: String(currentTurn), inline: true });
+        }
+
+        // Generate visual card image for the overview page
+        try {
+            const resolvedDetail = detail ?? {
+                uid: game.uid,
+                labels: [`Game`],
+                properties: {
+                    name: gameData.name,
+                    friendly_name: gameData.friendly_name,
+                    image: gameData.image,
+                },
+                parameters: gameData.parameters ?? {},
+                relationships: [],
+                createdAt: null,
+                updatedAt: null,
+            };
+            const cardPng = await RenderObjectCard({
+                detail: resolvedDetail,
+                objectType: `game`,
+                description,
+                typeLabel: TranslateFromContext(interaction.executionContext, `objectRegistry.types.game`, { defaultValue: `Game` }),
+            });
+            const attachment = new AttachmentBuilder(cardPng, { name: `card.png` });
+            viewModel.files = [attachment];
+            if (viewModel.pages[0]) {
+                viewModel.pages[0].imageUrl = `attachment://card.png`;
+            }
+        } catch (cardError) {
+            log.warning(`Card rendering failed`, `ViewGame`, cardError instanceof Error ? cardError.message : String(cardError));
         }
 
         await _gameViewRenderer.RenderInitial(interaction, viewModel);

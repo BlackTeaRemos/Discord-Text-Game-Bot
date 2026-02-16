@@ -80,6 +80,7 @@ export class ObjectViewRenderer {
         const reply: InteractionReplyOptions = {
             embeds: [this.__buildEmbed(model, page, 0)],
             components: this.__buildControls(sessionId, model.pages, 0),
+            files: model.files ?? [],
             ephemeral,
         };
         const send = interaction.replied || interaction.deferred
@@ -124,6 +125,7 @@ export class ObjectViewRenderer {
         await interaction.update({
             embeds: [this.__buildEmbed(session.model, page, session.index)],
             components: this.__buildControls(sessionId, session.pages, session.index),
+            files: session.model.files ?? [],
         });
         this._sessionManager.ArmTimeout(sessionId, session.message);
         return true;

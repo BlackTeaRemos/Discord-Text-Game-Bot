@@ -1,4 +1,4 @@
-import { MessageFlags } from 'discord.js';
+import { AttachmentBuilder, MessageFlags } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
 import { ResolveObjectByUid } from '../../Flow/Object/ResolveByUid.js';
@@ -10,6 +10,7 @@ import { ResolveViewAccess } from './ResolveViewAccess.js';
 import { TranslateFromContext } from '../../Services/I18nService.js';
 import { ObjectViewRenderer } from '../../Framework/ObjectViewRenderer.js';
 import { BuildDetailPages } from '../../Framework/ObjectDetailPageBuilder.js';
+import { RenderObjectCard } from '../../Framework/ImageGen/ObjectCardRenderer.js';
 
 /** Shared renderer instance for generic object views */
 const _objectViewRenderer = new ObjectViewRenderer(`object_view`);
@@ -102,6 +103,34 @@ export async function ExecuteViewObject(
                 actionsTitle: TranslateFromContext(interaction.executionContext, `commands.view.object.detail.actionsTitle`),
             },
         });
+
+        // Generate visual card image for the overview page
+        try {
+            const resolvedDetail = detail ?? {
+                uid: objectInfo.uid,
+                labels: [],
+                properties: { name: objectInfo.name },
+                parameters: {},
+                relationships: [],
+                createdAt: null,
+                updatedAt: null,
+            };
+            const cardPng = await RenderObjectCard({
+                detail: resolvedDetail,
+                objectType: objectInfo.type,
+                description,
+                typeLabel,
+            });
+            const attachment = new AttachmentBuilder(cardPng, { name: `card.png` });
+            viewModel.files = [attachment];
+            // Set overview page image to the attachment
+            if (viewModel.pages.length > 0) {
+                viewModel.pages[0].imageUrl = `attachment://card.png`;
+            }
+        } catch (cardError) {
+            // Card rendering failure is non-fatal, proceed without image
+            log.warning(`Card rendering failed`, `ViewObject`, cardError instanceof Error ? cardError.message : String(cardError));
+        }
 
         await _objectViewRenderer.RenderInitial(interaction, viewModel);
     } catch (error) {

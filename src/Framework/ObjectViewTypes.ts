@@ -1,4 +1,4 @@
-import type { APIEmbedField } from 'discord.js';
+import type { APIEmbedField, AttachmentBuilder } from 'discord.js';
 
 /**
  * Structured field rendered inside an embed page.
@@ -47,6 +47,7 @@ export interface ObjectViewPage {
  * @property thumbnailUrl string | undefined Thumbnail shown on all pages. Example: "https://.../icon.png"
  * @property color number | undefined Embed color integer override. Themes provide default. Example: 0x5865F2
  * @property pages ObjectViewPage[] Ordered pages to render. Example: [{ description: "Page" }]
+ * @property files AttachmentBuilder[] | undefined File attachments sent with the message. Example: [new AttachmentBuilder(pngBuffer, { name: 'card.png' })]
  */
 export interface ObjectViewModel {
     id: string;
@@ -57,6 +58,7 @@ export interface ObjectViewModel {
     thumbnailUrl?: string;
     color?: number;
     pages: ObjectViewPage[];
+    files?: AttachmentBuilder[];
 }
 
 /**
