@@ -23,12 +23,14 @@ export function BuildOrganizationSetParentSubcommand(
             return option
                 .setName(`id`)
                 .setDescription(Translate(`commands.organization.setParent.options.id`))
+                .setAutocomplete(true)
                 .setRequired(true);
         })
         .addStringOption(option => {
             return option
                 .setName(`parent`)
                 .setDescription(Translate(`commands.organization.setParent.options.parent`))
+                .setAutocomplete(true)
                 .setRequired(false);
         });
 }

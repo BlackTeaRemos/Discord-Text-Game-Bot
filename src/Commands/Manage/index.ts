@@ -6,6 +6,7 @@ import { ExecuteManageGame } from './Game.js';
 import { ExecuteManageTemplate } from './Template.js';
 import { ExecuteManageObject } from './Object.js';
 import { AutocompleteTemplateName } from '../Common/AutocompleteTemplateName.js';
+import { AutocompleteOrganization } from '../Common/AutocompleteOrganization.js';
 import { Translate, TranslateFromContext, BuildLocalizations } from '../../Services/I18nService.js';
 
 export const data = new SlashCommandBuilder()
@@ -44,6 +45,7 @@ export const data = new SlashCommandBuilder()
                 return option
                     .setName(`organization`)
                     .setDescription(`Organization UID that will own this object (uses your default if omitted)`)
+                    .setAutocomplete(true)
                     .setRequired(false);
             })
             .addStringOption(option => {
@@ -94,5 +96,13 @@ export async function execute(
  * @returns Promise<void>
  */
 export async function autocomplete(interaction: AutocompleteInteraction): Promise<void> {
-    await AutocompleteTemplateName(interaction);
+    const focusedOption = interaction.options.getFocused(true);
+
+    if (focusedOption.name === `template`) {
+        await AutocompleteTemplateName(interaction);
+    } else if (focusedOption.name === `organization`) {
+        await AutocompleteOrganization(interaction);
+    } else {
+        await interaction.respond([]);
+    }
 }

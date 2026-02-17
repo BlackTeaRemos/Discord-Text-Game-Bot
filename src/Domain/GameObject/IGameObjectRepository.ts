@@ -33,6 +33,16 @@ export interface IGameObjectRepository {
     }): Promise<IGameObject[]>;
 
     /**
+     * Search game objects by name within a game scope
+     * Case-insensitive partial match on object name
+     * @param gameUid string Game identifier
+     * @param searchTerm string Partial name to match
+     * @param limit number Maximum results to return, default 25
+     * @returns Promise<IGameObject[]> Matching instances
+     */
+    SearchByName(gameUid: string, searchTerm: string, limit?: number): Promise<IGameObject[]>;
+
+    /**
      * Update parameter values on an object instance.
      * @param uid string Object instance uid.
      * @param parameters IParameterValue[] New parameter values to set (partial update, merge semantics).

@@ -35,6 +35,7 @@ export function BuildOrganizationCreateSubcommand(
             return option
                 .setName(`parent`)
                 .setDescription(Translate(`commands.organization.create.options.parent`))
+                .setAutocomplete(true)
                 .setRequired(false);
         });
 }

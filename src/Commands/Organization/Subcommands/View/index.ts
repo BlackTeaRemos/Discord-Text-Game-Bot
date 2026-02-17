@@ -23,6 +23,7 @@ export function BuildOrganizationViewSubcommand(
             return option
                 .setName(`id`)
             .setDescription(Translate(`commands.organization.view.options.id`))
+                .setAutocomplete(true)
                 .setRequired(true);
         });
 }

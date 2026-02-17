@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, MessageFlags } from 'discord.js';
-import type { ChatInputCommandInteraction } from 'discord.js';
+import type { AutocompleteInteraction, ChatInputCommandInteraction } from 'discord.js';
 import { dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import type { TokenSegmentInput } from '../../Common/Permission/index.js';
@@ -7,6 +7,8 @@ import type { InteractionExecutionContextCarrier } from '../../Common/Type/Inter
 import { log } from '../../Common/Log.js';
 import { BuildCommandSubcommandIndex, LoadCommandSubcommands } from '../CommandSubcommand.js';
 import type { CommandBuilder } from '../CommandSubcommand.js';
+import { AutocompleteOrganization } from '../Common/AutocompleteOrganization.js';
+import { AutocompleteObjectName } from '../Common/AutocompleteObjectName.js';
 import { Translate, TranslateFromContext } from '../../Services/I18nService.js';
 
 const _filePath = fileURLToPath(import.meta.url); // module file path
@@ -107,5 +109,27 @@ export async function execute(
         });
     } finally {
         // no-op
+    }
+}
+
+/** Organization option names that trigger organization autocomplete */
+const _ORGANIZATION_OPTIONS = new Set([`id`, `parent`]);
+
+/**
+ * Handle autocomplete interactions for /organization subcommands
+ * Routes by focused option name to the appropriate autocomplete handler
+ *
+ * @param interaction AutocompleteInteraction Discord autocomplete interaction
+ * @returns Promise<void>
+ */
+export async function autocomplete(interaction: AutocompleteInteraction): Promise<void> {
+    const focusedOption = interaction.options.getFocused(true);
+
+    if (_ORGANIZATION_OPTIONS.has(focusedOption.name)) {
+        await AutocompleteOrganization(interaction, focusedOption.name);
+    } else if (focusedOption.name === `object`) {
+        await AutocompleteObjectName(interaction, `object`);
+    } else {
+        await interaction.respond([]);
     }
 }

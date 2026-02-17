@@ -8,6 +8,8 @@ import { ExecuteViewObject } from './Object.js';
 import { ExecuteViewTemplate } from './Template.js';
 import { ExecuteViewObjectList } from './ObjectList.js';
 import { AutocompleteTemplateName } from '../Common/AutocompleteTemplateName.js';
+import { AutocompleteObjectName } from '../Common/AutocompleteObjectName.js';
+import { AutocompleteOrganization } from '../Common/AutocompleteOrganization.js';
 import { Translate, TranslateFromContext } from '../../Services/I18nService.js';
 
 export const data = new SlashCommandBuilder()
@@ -21,6 +23,7 @@ export const data = new SlashCommandBuilder()
                 return option
                     .setName(`organization`)
                     .setDescription(Translate(`commands.view.options.organization`))
+                    .setAutocomplete(true)
                     .setRequired(false);
             });
     })
@@ -50,6 +53,7 @@ export const data = new SlashCommandBuilder()
                 return option
                     .setName(`organization`)
                     .setDescription(Translate(`commands.view.options.organization`))
+                    .setAutocomplete(true)
                     .setRequired(false);
             });
     })
@@ -61,12 +65,14 @@ export const data = new SlashCommandBuilder()
                 return option
                     .setName(`id`)
                     .setDescription(Translate(`commands.view.options.object.id`))
+                    .setAutocomplete(true)
                     .setRequired(true);
             })
             .addStringOption(option => {
                 return option
                     .setName(`organization`)
                     .setDescription(Translate(`commands.view.options.organization`))
+                    .setAutocomplete(true)
                     .setRequired(false);
             });
     })
@@ -90,6 +96,7 @@ export const data = new SlashCommandBuilder()
                 return option
                     .setName(`organization`)
                     .setDescription(Translate(`commands.view.options.organization`))
+                    .setAutocomplete(true)
                     .setRequired(false);
             });
     });
@@ -133,12 +140,22 @@ export async function execute(
 }
 
 /**
- * Handle autocomplete interactions for /view subcommands.
- * Delegates template name completion to the shared handler.
+ * Handle autocomplete interactions for /view subcommands
+ * Routes to template name or object name completion based on focused option
  *
- * @param interaction AutocompleteInteraction Discord autocomplete interaction.
+ * @param interaction AutocompleteInteraction Discord autocomplete interaction
  * @returns Promise<void>
  */
 export async function autocomplete(interaction: AutocompleteInteraction): Promise<void> {
-    await AutocompleteTemplateName(interaction);
+    const focusedOption = interaction.options.getFocused(true);
+
+    if (focusedOption.name === `template`) {
+        await AutocompleteTemplateName(interaction);
+    } else if (focusedOption.name === `id`) {
+        await AutocompleteObjectName(interaction);
+    } else if (focusedOption.name === `organization`) {
+        await AutocompleteOrganization(interaction);
+    } else {
+        await interaction.respond([]);
+    }
 }

@@ -197,6 +197,47 @@ export class GameObjectRepository implements IGameObjectRepository {
     }
 
     /**
+     * Search game objects by name within a game scope
+     * Case-insensitive partial match on object name
+     *
+     * @param gameUid string Game identifier
+     * @param searchTerm string Partial name to match
+     * @param limit number Maximum results to return, default 25
+     * @returns Promise<IGameObject[]> Matching instances
+     *
+     * @example
+     * const results = await repo.SearchByName('game_abc', 'fact', 10);
+     */
+    public async SearchByName(
+        gameUid: string,
+        searchTerm: string,
+        limit: number = 25,
+    ): Promise<IGameObject[]> {
+        const session = await neo4jClient.GetSession(`READ`);
+        try {
+            const safeLimit = Math.min(Math.max(1, Math.floor(limit)), 25);
+
+            const query = `
+                MATCH (obj:${INSTANCE_LABEL})
+                WHERE obj.gameUid = $gameUid
+                  AND toLower(obj.name) CONTAINS toLower($searchTerm)
+                RETURN obj ORDER BY obj.name LIMIT ${safeLimit}
+            `;
+
+            const result = await session.run(query, {
+                gameUid,
+                searchTerm,
+            });
+
+            return result.records.map(record => {
+                return __MapNodeToInstance(record.get(`obj`).properties);
+            });
+        } finally {
+            await session.close();
+        }
+    }
+
+    /**
      * Update parameter values on an instance (merge semantics).
      * @param uid string Object uid.
      * @param parameters IParameterValue[] New/updated parameter values.

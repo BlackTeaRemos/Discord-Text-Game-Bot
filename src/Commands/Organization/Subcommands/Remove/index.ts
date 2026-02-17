@@ -17,10 +17,10 @@ export function BuildOrganizationRemoveSubcommand(
         .setName(_subcommandName)
         .setDescription(Translate(`commands.organization.remove.description`))
         .addStringOption(opt => {
-            return opt.setName(`id`).setDescription(Translate(`commands.organization.remove.options.id`)).setRequired(true);
+            return opt.setName(`id`).setDescription(Translate(`commands.organization.remove.options.id`)).setAutocomplete(true).setRequired(true);
         })
         .addStringOption(opt => {
-            return opt.setName(`object`).setDescription(Translate(`commands.organization.remove.options.object`)).setRequired(true);
+            return opt.setName(`object`).setDescription(Translate(`commands.organization.remove.options.object`)).setAutocomplete(true).setRequired(true);
         });
 }
 
