@@ -63,8 +63,8 @@ export const data = new SlashCommandBuilder()
             .setDescription(Translate(`commands.view.subcommands.object.description`))
             .addStringOption(option => {
                 return option
-                    .setName(`id`)
-                    .setDescription(Translate(`commands.view.options.object.id`))
+                    .setName(`object`)
+                    .setDescription(Translate(`commands.view.options.object.object`))
                     .setAutocomplete(true)
                     .setRequired(true);
             })
@@ -78,8 +78,8 @@ export const data = new SlashCommandBuilder()
     })
     .addSubcommand(subcommand => {
         return subcommand
-            .setName(`template`)
-            .setDescription(Translate(`commands.view.subcommands.template.description`));
+            .setName(`templates`)
+            .setDescription(Translate(`commands.view.subcommands.templates.description`));
     })
     .addSubcommand(subcommand => {
         return subcommand
@@ -123,7 +123,7 @@ export async function execute(
         case `object`:
             await ExecuteViewObject(interaction);
             break;
-        case `template`:
+        case `templates`:
             await ExecuteViewTemplate(interaction);
             break;
         case `objects`:
@@ -151,8 +151,8 @@ export async function autocomplete(interaction: AutocompleteInteraction): Promis
 
     if (focusedOption.name === `template`) {
         await AutocompleteTemplateName(interaction);
-    } else if (focusedOption.name === `id`) {
-        await AutocompleteObjectName(interaction);
+    } else if (focusedOption.name === `object`) {
+        await AutocompleteObjectName(interaction, `object`);
     } else if (focusedOption.name === `organization`) {
         await AutocompleteOrganization(interaction);
     } else {

@@ -113,7 +113,7 @@ export async function execute(
 }
 
 /** Organization option names that trigger organization autocomplete */
-const _ORGANIZATION_OPTIONS = new Set([`id`, `parent`]);
+const _ORGANIZATION_OPTIONS = new Set([`organization`, `parent`]);
 
 /**
  * Handle autocomplete interactions for /organization subcommands

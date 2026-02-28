@@ -16,7 +16,7 @@ import { BuildDetailPages } from '../../Framework/ObjectDetailPageBuilder.js';
 import { neo4jClient } from '../../Setup/Neo4j.js';
 import { flowManager } from '../../Common/Flow/Manager.js';
 import type { ExecutionContext } from '../../Domain/Command.js';
-import { TranslateFromContext } from '../../Services/I18nService.js';
+import { TranslateFromContext, GetCachedLocale } from '../../Services/I18nService.js';
 import type { ObjectViewPage } from '../../Framework/ObjectViewTypes.js';
 
 const VIEW_TASK_DETAIL_PREV_ID = `view_task_detail_prev`;
@@ -73,7 +73,7 @@ export async function ShowTaskDetail(
         return;
     }
 
-    const detail = await FetchObjectDetail(task.id);
+    const detail = await FetchObjectDetail(task.id, true);
     const organizationUidsForScope = organizationUid ? [organizationUid] : [];
     const scopedDescription = await FetchDescriptionForObject({
         objectUid: task.id,
@@ -94,6 +94,7 @@ export async function ShowTaskDetail(
             relationships: [],
             createdAt: task.createdAt,
             updatedAt: task.updatedAt,
+            parameterHistory: [],
         },
         objectType: `task`,
         description: displayDescription,
@@ -111,6 +112,7 @@ export async function ShowTaskDetail(
             relationshipsTitle: TranslateFromContext(executionContext, `commands.view.object.detail.relationshipsTitle`),
             actionsTitle: TranslateFromContext(executionContext, `commands.view.object.detail.actionsTitle`),
         },
+        locale: GetCachedLocale(executionContext),
     });
 
     // Inject status field into first page

@@ -1,5 +1,9 @@
 import { neo4jClient } from '../../../Setup/Neo4j.js';
+import { InMemoryCache } from '../../../Common/InMemoryCache.js';
 import type { ViewCharacter } from './View.js';
+
+/** In-memory TTL cache for active character lookups (5 min, 200 entries). */
+const _activeCharacterCache = new InMemoryCache<ViewCharacter | null>(5 * 60 * 1000, 200);
 
 /**
  * Associate a character with an organization.
@@ -51,6 +55,11 @@ export async function RemoveCharacterFromOrganization(characterUid: string): Pro
  * @returns Promise<ViewCharacter | null> Active character or null if none set.
  */
 export async function GetUserActiveCharacter(discordId: string): Promise<ViewCharacter | null> {
+    const cached = _activeCharacterCache.Get(discordId);
+    if (cached !== undefined) {
+        return cached;
+    }
+
     const session = await neo4jClient.GetSession(`READ`);
     try {
         const query = `
@@ -59,16 +68,19 @@ export async function GetUserActiveCharacter(discordId: string): Promise<ViewCha
         const result = await session.run(query, { discordId });
         const record = result.records[0];
         if (!record) {
+            _activeCharacterCache.Set(discordId, null);
             return null;
         }
         const characterNode = record.get(`c`).properties;
-        return {
+        const viewCharacter: ViewCharacter = {
             uid: characterNode.uid,
             name: characterNode.name,
             friendly_name: characterNode.friendly_name,
             description: characterNode.description || ``,
             organizationUid: characterNode.organization_uid || null,
         };
+        _activeCharacterCache.Set(discordId, viewCharacter);
+        return viewCharacter;
     } finally {
         await session.close();
     }
@@ -92,6 +104,7 @@ export async function SetUserActiveCharacter(discordId: string, characterUid: st
             MATCH (c:Character { uid: $characterUid })
             MERGE (u)-[:ASSUMES_CHARACTER]->(c)`;
         await session.run(query, { discordId, characterUid });
+        _activeCharacterCache.Delete(discordId);
     } finally {
         await session.close();
     }
@@ -110,6 +123,7 @@ export async function ClearUserActiveCharacter(discordId: string): Promise<void>
             MATCH (u:User { discord_id: $discordId })-[r:ASSUMES_CHARACTER]->(:Character)
             DELETE r`;
         await session.run(query, { discordId });
+        _activeCharacterCache.Delete(discordId);
     } finally {
         await session.close();
     }

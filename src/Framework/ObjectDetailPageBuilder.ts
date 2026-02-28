@@ -26,6 +26,7 @@ export interface BuildDetailPagesOptions {
     actions: ObjectAction[];
     noDescriptionLabel: string;
     overviewLabels: OverviewLabels;
+    locale?: string;
 }
 
 /**
@@ -64,11 +65,11 @@ export interface OverviewLabels {
  * await renderer.RenderInitial(interaction, model);
  */
 export function BuildDetailPages(options: BuildDetailPagesOptions): ObjectViewModel {
-    const { detail, objectType, description, organizationName, actions, noDescriptionLabel, overviewLabels } = options;
+    const { detail, objectType, description, organizationName, actions, noDescriptionLabel, overviewLabels, locale = `en` } = options;
     const displayName = String(detail.properties.friendly_name ?? detail.properties.name ?? detail.uid);
 
     const overviewPage = __BuildOverviewPage(detail, description, noDescriptionLabel);
-    const propertyLines = BuildPropertyLines(detail);
+    const propertyLines = BuildPropertyLines(detail, locale);
     const relationshipPages = BuildRelationshipsPages(detail, overviewLabels.relationshipsTitle);
     const infoPage = __BuildInfoPage(detail, objectType, organizationName, overviewLabels);
     const actionPages = BuildActionsPages(actions, overviewLabels.actionsTitle);

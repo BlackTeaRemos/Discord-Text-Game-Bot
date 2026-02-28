@@ -1,5 +1,6 @@
 import type { IParameterDefinition } from './IParameterDefinition.js';
 import type { IActionDefinition } from './IActionDefinition.js';
+import type { ITemplateDisplayConfig } from './ITemplateDisplayConfig.js';
 
 export interface IGameObjectTemplate {
     /** Unique template identifier. @example 'tpl_factory_abc123' */
@@ -19,6 +20,9 @@ export interface IGameObjectTemplate {
 
     /** Action definitions executed on events. Each contains expressions referencing parameter keys. */
     actions: IActionDefinition[];
+
+    /** Optional display configuration controlling how objects are rendered on visual cards. */
+    displayConfig?: ITemplateDisplayConfig;
 
     /** ISO timestamp of creation. @example '2026-02-08T12:00:00.000Z' */
     createdAt: string;

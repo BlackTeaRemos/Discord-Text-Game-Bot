@@ -17,16 +17,17 @@
   "type": "module",
   "dependencies": {
     "@fontsource/inter": "^5.1.1",
+    "@fontsource/quantico": "^5.2.7",
     "@resvg/resvg-wasm": "^2.6.2",
     "@stylistic/eslint-plugin": "^5.4.0",
     "discord.js": "^14.20.0",
-    "satori": "^0.12.2",
     "i18next": "^25.5.0",
     "i18next-fs-backend": "^2.6.0",
     "joi": "^17.13.3",
     "js-yaml": "^4.1.0",
     "minio": "^8.0.0",
     "neo4j-driver": "^5.23.0",
+    "satori": "^0.12.2",
     "sqlite3": "^5.1.7"
   },
   "devDependencies": {

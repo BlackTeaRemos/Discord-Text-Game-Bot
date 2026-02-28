@@ -66,6 +66,9 @@
                 "template": {
                     "description": "Список всех шаблонов"
                 },
+                "templates": {
+                    "description": "Список всех шаблонов"
+                },
                 "objects": {
                     "description": "Список объектов с фильтром по шаблону"
                 }
@@ -83,7 +86,8 @@
                     "creator": "Фильтр по создателю задачи"
                 },
                 "object": {
-                    "id": "Идентификатор объекта для просмотра"
+                    "id": "Идентификатор объекта для просмотра",
+                    "object": "Объект для просмотра"
                 },
                 "objects": {
                     "template": "Фильтр по имени шаблона"
@@ -189,6 +193,9 @@
                 },
                 "description": {
                     "description": "Редактировать описание объекта"
+                },
+                "object": {
+                    "description": "Создать экземпляр игрового объекта из шаблона"
                 }
             },
             "options": {
@@ -198,6 +205,11 @@
                 "description": {
                     "id": "Идентификатор объекта для описания",
                     "organization": "UID организации для выполнения (используйте 'global' для общей организации)"
+                },
+                "object": {
+                    "template": "Имя шаблона для создания экземпляра",
+                    "organization": "Организация-владелец объекта (по умолчанию ваша)",
+                    "name": "Пользовательское имя экземпляра объекта"
                 }
             },
             "errors": {
@@ -277,13 +289,14 @@
                     "createdBy": "Создано пользователем {{userTag}}"
                 },
                 "messages": {
-                    "success": "Организация создана. Используйте `/create description` с UID для добавления описания."
+                    "success": "Организация создана. Используйте `/edit description` с UID для добавления описания."
                 }
             },
             "setParent": {
                 "description": "Изменить родительскую организацию (иерархия)",
                 "options": {
-                    "id": "UID организации для изменения",
+                "id": "UID организации для изменения",
+                    "organization": "Организация для изменения",
                     "parent": "UID новой родительской организации (оставьте пустым для корня)"
                 },
                 "errors": {
@@ -353,6 +366,22 @@
                     "success": "Назначен `{{name}}` ({{uid}}) организации `{{organizationUid}}`."
                 }
             },
+            "assign": {
+                "description": "Назначить объект организации",
+                "options": {
+                    "organization": "Организация для назначения объекта",
+                    "object": "Объект для назначения"
+                },
+                "errors": {
+                    "organizationNotFound": "Организация `{{organization}}` не найдена.",
+                    "objectNotFound": "Объект `{{object}}` не найден.",
+                    "failed": "Не удалось назначить объект: {{reason}}",
+                    "unknownError": "Неизвестная ошибка"
+                },
+                "messages": {
+                    "success": "Назначен `{{name}}` ({{uid}}) организации `{{organizationUid}}`."
+                }
+            },
             "remove": {
                 "description": "Удалить объект из организации",
                 "options": {
@@ -369,10 +398,27 @@
                     "success": "Удалён `{{name}}` ({{uid}}) из организации `{{organizationUid}}`."
                 }
             },
+            "unassign": {
+                "description": "Удалить объект из организации",
+                "options": {
+                    "organization": "Организация для удаления объекта",
+                    "object": "Объект для удаления"
+                },
+                "errors": {
+                    "organizationNotFound": "Организация `{{organization}}` не найдена.",
+                    "objectNotFound": "Объект `{{object}}` не найден.",
+                    "failed": "Не удалось удалить объект: {{reason}}",
+                    "unknownError": "Неизвестная ошибка"
+                },
+                "messages": {
+                    "success": "Удалён `{{name}}` ({{uid}}) из организации `{{organizationUid}}`."
+                }
+            },
             "view": {
                 "description": "Просмотр сведений об организации и иерархии",
                 "options": {
-                    "id": "UID организации для просмотра (используйте 'global' для общей организации)"
+                    "id": "UID организации для просмотра (используйте 'global' для общей организации)",
+                    "organization": "Организация для просмотра (используйте 'global' для общей организации)"
                 },
                 "errors": {
                     "emptyId": "UID организации не может быть пустым.",
@@ -424,6 +470,52 @@
                 }
             }
         },
+        "edit": {
+            "description": "Редактирование игровых сущностей",
+            "subcommands": {
+                "description": {
+                    "description": "Редактировать описание объекта"
+                }
+            },
+            "options": {
+                "description": {
+                    "object": "Объект для редактирования описания",
+                    "organization": "Организация для выполнения (используйте 'global' для общей организации)"
+                }
+            },
+            "errors": {
+                "unknownSubcommand": "Неизвестная подкоманда: {{subcommand}}"
+            },
+            "descriptionFlow": {
+                "errors": {
+                    "emptyId": "Идентификатор объекта не может быть пустым",
+                    "notFound": "Объект с ID `{{id}}` не найден",
+                    "invalidTarget": "Описание нельзя создавать для описаний.",
+                    "permissionDeniedOrg": "Доступ запрещён ({{organization}}).",
+                    "permissionDeniedUser": "Доступ запрещён (Пользователь).",
+                    "failed": "Не удалось открыть редактор описания: {{message}}"
+                },
+                "messages": {
+                    "opening": "Открываю редактор описания для **{{type}}** `{{uid}}` от имени {{organization}}..."
+                }
+            }
+        },
+        "import": {
+            "description": "Импорт игровых данных",
+            "subcommands": {
+                "template": {
+                    "description": "Загрузить JSON шаблон для определения типа игрового объекта"
+                }
+            },
+            "options": {
+                "template": {
+                    "file": "JSON файл шаблона для загрузки"
+                }
+            },
+            "errors": {
+                "unknownSubcommand": "Неизвестная подкоманда: {{subcommand}}"
+            }
+        },
         "tutorial": {
             "description": "Просмотреть интерактивное руководство",
             "options": {
@@ -441,15 +533,56 @@
                 "navigationFailed": "Ошибка навигации: {{message}}",
                 "failed": "Не удалось показать руководство: {{message}}"
             }
+        },
+        "permit": {
+            "description": "Управление разрешениями пользователей",
+            "subcommands": {
+                "all": {
+                    "description": "Выдать все разрешения команду пользователю"
+                },
+                "list": {
+                    "description": "Список всех постоянных разрешений пользователя"
+                },
+                "revoke": {
+                    "description": "Отозвать все разрешения у пользователя"
+                }
+            },
+            "options": {
+                "user": "Целевой пользователь"
+            },
+            "grantAll": {
+                "title": "Разрешения выданы",
+                "description": "Выдано {{count}}/{{total}} токенов для {{user}}.",
+                "tokensField": "Токены"
+            },
+            "list": {
+                "title": "Разрешения",
+                "description": "{{user}} имеет {{count}} постоянных разрешений.",
+                "grantsField": "Разрешения",
+                "noGrants": "{{user}} не имеет постоянных разрешений."
+            },
+            "revoke": {
+                "title": "Разрешения отозваны",
+                "description": "Отозвано {{count}} токенов у {{user}}."
+            },
+            "errors": {
+                "guildOnly": "Эта команда доступна только на сервере.",
+                "unknownSubcommand": "Неизвестная подкоманда: {{subcommand}}",
+                "grantFailed": "Не удалось выдать разрешения: {{reason}}",
+                "listFailed": "Не удалось получить список разрешений: {{reason}}",
+                "revokeFailed": "Не удалось отозвать разрешения: {{reason}}"
+            }
         }
     },
     "objectRegistry": {
         "types": {
             "game": "Игры",
+            "character": "Персонажи",
             "organization": "Организации",
             "user": "Пользователи",
             "building": "Фабрики",
-            "task": "Задачи"
+            "task": "Задачи",
+            "template": "Шаблоны"
         },
         "common": {
             "name": "Название",
@@ -678,6 +811,18 @@
         "notFound": "Описание не найдено",
         "removed": "Описание удалено.",
         "error": "Ошибка: {{message}}"
+    },
+    "card": {
+        "sections": {
+            "description": "Информация",
+            "properties": "Свойства",
+            "parameters": "Переменные",
+            "actions": "Действия"
+        },
+        "footer": {
+            "createdAt": "Создан",
+            "updatedAt": "Обновлён"
+        }
     },
     "permission": {
         "missingGuild": "Не удалось определить контекст сервера. Попробуйте в канале сервера.",

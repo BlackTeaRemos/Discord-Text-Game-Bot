@@ -18,7 +18,7 @@ import { TranslateFromContext } from '../../Services/I18nService.js';
 export async function ExecuteOrganizationSetParent(
     interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
 ): Promise<void> {
-    const organizationUid = interaction.options.getString(`id`, true);
+    const organizationUid = interaction.options.getString(`organization`, true);
     const newParentUid = interaction.options.getString(`parent`) ?? null;
 
     if (!organizationUid.trim()) {

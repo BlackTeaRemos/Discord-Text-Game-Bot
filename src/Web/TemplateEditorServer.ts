@@ -3,9 +3,13 @@ import { URL } from 'url';
 import { log } from '../Common/Log.js';
 import { BuildTemplateEditorHtml } from './TemplateEditorPage.js';
 import { BuildTutorialPageHtml } from './TutorialPage.js';
+import { BuildDisplayConfigPageHtml } from './DisplayConfigPage.js';
 import { ValidateTemplateJson } from '../Flow/GameObject/ValidateTemplateJson.js';
 import { ExpressionEvaluator } from '../Flow/GameObject/ExpressionEvaluator.js';
 import { GameObjectTemplateRepository } from '../Repository/GameObject/GameObjectTemplateRepository.js';
+import { ValidateDisplayConfig } from '../Flow/GameObject/ValidateDisplayConfig.js';
+import type { ITemplateDisplayConfig } from '../Domain/GameObject/ITemplateDisplayConfig.js';
+import { RenderCardPreview } from '../Flow/GameObject/RenderCardPreview.js';
 
 /** Default port for the template editor web server. */
 const DEFAULT_PORT = 3500;
@@ -116,7 +120,7 @@ export class TemplateEditorServer {
 
         // CORS headers for API endpoints
         response.setHeader(`Access-Control-Allow-Origin`, `*`);
-        response.setHeader(`Access-Control-Allow-Methods`, `GET, POST, OPTIONS`);
+        response.setHeader(`Access-Control-Allow-Methods`, `GET, POST, PUT, OPTIONS`);
         response.setHeader(`Access-Control-Allow-Headers`, `Content-Type`);
 
         if (request.method === `OPTIONS`) {
@@ -153,6 +157,27 @@ export class TemplateEditorServer {
 
         if (pathname === `/api/validate-context` && request.method === `POST`) {
             this.__HandleContextAwareValidation(request, response);
+            return;
+        }
+
+        if (pathname === `/api/display-config` && request.method === `GET`) {
+            const templateUid = parsedUrl.searchParams.get(`templateUid`);
+            this.__HandleGetDisplayConfig(response, templateUid);
+            return;
+        }
+
+        if (pathname === `/api/display-config` && request.method === `PUT`) {
+            this.__HandlePutDisplayConfig(request, response);
+            return;
+        }
+
+        if (pathname === `/api/card-preview` && request.method === `POST`) {
+            this.__HandleCardPreview(request, response);
+            return;
+        }
+
+        if (pathname === `/display-config`) {
+            this.__ServeDisplayConfigPage(response);
             return;
         }
 
@@ -511,6 +536,208 @@ export class TemplateEditorServer {
             response.end(JSON.stringify({ valid: false, errors: [`Internal server error.`] }));
         });
     }
+
+    /**
+     * Handle GET /api/display-config?templateUid=xxx -- fetch display config for a template.
+     * Returns the template's display configuration or a default scaffold if none exists.
+     * @param response ServerResponse HTTP response.
+     * @param templateUid string | null Template identifier from query string.
+     */
+    private async __HandleGetDisplayConfig(response: ServerResponse, templateUid: string | null): Promise<void> {
+        if (!templateUid) {
+            response.writeHead(400, { 'Content-Type': `application/json` });
+            response.end(JSON.stringify({ error: `Missing required query parameter: templateUid` }));
+            return;
+        }
+
+        try {
+            const template = await this._templateRepository.GetByUid(templateUid);
+            if (!template) {
+                response.writeHead(404, { 'Content-Type': `application/json` });
+                response.end(JSON.stringify({ error: `Template not found.` }));
+                return;
+            }
+
+            const displayConfig = template.displayConfig ?? __BuildDefaultDisplayConfig(template);
+
+            response.writeHead(200, { 'Content-Type': `application/json` });
+            response.end(JSON.stringify({
+                templateUid: template.uid,
+                templateName: template.name,
+                parameters: template.parameters,
+                config: displayConfig,
+            }));
+        } catch (fetchError) {
+            const message = fetchError instanceof Error ? fetchError.message : String(fetchError);
+            log.error(`Failed to get display config: ${message}`, LOG_TAG, `__HandleGetDisplayConfig`);
+            response.writeHead(500, { 'Content-Type': `application/json` });
+            response.end(JSON.stringify({ error: `Failed to fetch display config.` }));
+        }
+    }
+
+    /**
+     * Handle PUT /api/display-config -- save display config for a template.
+     * Request body: { templateUid: string, config: ITemplateDisplayConfig }
+     * @param request IncomingMessage Incoming PUT request.
+     * @param response ServerResponse HTTP response.
+     */
+    private __HandlePutDisplayConfig(request: IncomingMessage, response: ServerResponse): void {
+        let requestBody = ``;
+
+        request.on(`data`, (chunk: Buffer) => {
+            requestBody += chunk.toString();
+            if (requestBody.length > 1_048_576) {
+                response.writeHead(413, { 'Content-Type': `application/json` });
+                response.end(JSON.stringify({ error: `Request body too large.` }));
+                request.destroy();
+            }
+        });
+
+        request.on(`end`, async () => {
+            try {
+                const parsed = JSON.parse(requestBody);
+                const templateUid = parsed.templateUid as string | undefined;
+                const config = parsed.config as ITemplateDisplayConfig | undefined;
+
+                if (!templateUid || !config) {
+                    response.writeHead(400, { 'Content-Type': `application/json` });
+                    response.end(JSON.stringify({ error: `Missing "templateUid" or "config" in request body.` }));
+                    return;
+                }
+
+                const validationErrors = ValidateDisplayConfig(config);
+                if (validationErrors.length > 0) {
+                    response.writeHead(400, { 'Content-Type': `application/json` });
+                    response.end(JSON.stringify({ error: `Invalid display config.`, details: validationErrors }));
+                    return;
+                }
+
+                await this._templateRepository.Update(templateUid, { displayConfig: config });
+
+                response.writeHead(200, { 'Content-Type': `application/json` });
+                response.end(JSON.stringify({ success: true }));
+            } catch (saveError) {
+                const message = saveError instanceof Error ? saveError.message : String(saveError);
+                log.error(`Failed to save display config: ${message}`, LOG_TAG, `__HandlePutDisplayConfig`);
+                response.writeHead(500, { 'Content-Type': `application/json` });
+                response.end(JSON.stringify({ error: `Failed to save display config.` }));
+            }
+        });
+
+        request.on(`error`, (requestError: Error) => {
+            log.error(`Display config PUT error: ${requestError.message}`, LOG_TAG);
+            response.writeHead(500, { 'Content-Type': `application/json` });
+            response.end(JSON.stringify({ error: `Internal server error.` }));
+        });
+    }
+
+    /**
+     * Handle POST /api/card-preview -- render a card preview and return PNG.
+     * Request body: { templateUid: string, config?: ITemplateDisplayConfig }
+     * Returns image/png on success.
+     * @param request IncomingMessage Incoming POST request.
+     * @param response ServerResponse HTTP response with PNG body.
+     */
+    private __HandleCardPreview(request: IncomingMessage, response: ServerResponse): void {
+        let requestBody = ``;
+
+        request.on(`data`, (chunk: Buffer) => {
+            requestBody += chunk.toString();
+            if (requestBody.length > 1_048_576) {
+                response.writeHead(413, { 'Content-Type': `application/json` });
+                response.end(JSON.stringify({ error: `Request body too large.` }));
+                request.destroy();
+            }
+        });
+
+        request.on(`end`, async () => {
+            try {
+                const parsed = JSON.parse(requestBody);
+                const templateUid = parsed.templateUid as string | undefined;
+                const configOverride = parsed.config as ITemplateDisplayConfig | undefined;
+
+                if (!templateUid) {
+                    response.writeHead(400, { 'Content-Type': `application/json` });
+                    response.end(JSON.stringify({ error: `Missing "templateUid" in request body.` }));
+                    return;
+                }
+
+                const pngBuffer = await RenderCardPreview(templateUid, configOverride);
+                if (!pngBuffer) {
+                    response.writeHead(404, { 'Content-Type': `application/json` });
+                    response.end(JSON.stringify({ error: `Template not found or no objects to preview.` }));
+                    return;
+                }
+
+                response.writeHead(200, {
+                    'Content-Type': `image/png`,
+                    'Content-Length': pngBuffer.length,
+                    'Cache-Control': `no-cache`,
+                });
+                response.end(pngBuffer);
+            } catch (renderError) {
+                const message = renderError instanceof Error ? renderError.message : String(renderError);
+                log.error(`Card preview render error: ${message}`, LOG_TAG, `__HandleCardPreview`);
+                response.writeHead(500, { 'Content-Type': `application/json` });
+                response.end(JSON.stringify({ error: `Failed to render card preview.` }));
+            }
+        });
+
+        request.on(`error`, (requestError: Error) => {
+            log.error(`Card preview API error: ${requestError.message}`, LOG_TAG);
+            response.writeHead(500, { 'Content-Type': `application/json` });
+            response.end(JSON.stringify({ error: `Internal server error.` }));
+        });
+    }
+
+    /**
+     * Serve the display configuration page.
+     * @param response ServerResponse HTTP response.
+     */
+    private __ServeDisplayConfigPage(response: ServerResponse): void {
+        response.writeHead(200, {
+            'Content-Type': `text/html; charset=utf-8`,
+            'Cache-Control': `no-cache`,
+        });
+        response.end(BuildDisplayConfigPageHtml());
+    }
+}
+
+/**
+ * Build a default display configuration from a template's parameter definitions.
+ * Creates one group per unique category (or a single "General" group for uncategorized parameters),
+ * and sets all parameters to sparkline graphs, visible, ordered by definition position.
+ *
+ * @param template IGameObjectTemplate Template to generate default config from.
+ * @returns ITemplateDisplayConfig Default configuration.
+ */
+function __BuildDefaultDisplayConfig(template: { parameters: Array<{ key: string; category?: string }> }): ITemplateDisplayConfig {
+    const categorySet = new Set<string>();
+    for (const parameter of template.parameters) {
+        categorySet.add(parameter.category ?? `general`);
+    }
+
+    const groups = Array.from(categorySet).map((category, index) => {
+        return {
+            key: category,
+            label: category.charAt(0).toUpperCase() + category.slice(1),
+            sortOrder: index,
+        };
+    });
+
+    const parameterDisplay = template.parameters.map((parameter, index) => {
+        return {
+            key: parameter.key,
+            graphType: `sparkline` as const,
+            hidden: false,
+            displayOrder: index,
+        };
+    });
+
+    return {
+        groups,
+        parameterDisplay,
+    };
 }
 
 /**

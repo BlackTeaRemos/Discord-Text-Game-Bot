@@ -9,17 +9,18 @@ import { GameObjectTemplateRepository } from '../../Repository/GameObject/GameOb
 import { GameObjectRepository } from '../../Repository/GameObject/GameObjectRepository.js';
 import { TranslateFromContext } from '../../Services/I18nService.js';
 import type { IActionDefinition } from '../../Domain/GameObject/IActionDefinition.js';
+import type { ITemplateDisplayConfig } from '../../Domain/GameObject/ITemplateDisplayConfig.js';
 
-/** Log tag for this module. */
-const LOG_TAG = `Commands/Manage/Template`;
+/** Log tag for this module */
+const LOG_TAG = `Commands/Import/Template`;
 
 /**
- * Execute the /manage template subcommand.
- * Downloads the attached JSON file, validates it, and creates a template for the server's game.
- * @param interaction InteractionExecutionContextCarrier<ChatInputCommandInteraction> Discord interaction.
+ * Execute the /import template subcommand
+ * Downloads the attached JSON file, validates it, and creates or merges a template for the server's game
+ * @param interaction InteractionExecutionContextCarrier<ChatInputCommandInteraction> Discord interaction
  * @returns Promise<void>
  */
-export async function ExecuteManageTemplate(
+export async function ExecuteImportTemplate(
     interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
 ): Promise<void> {
     const serverId = interaction.guildId;
@@ -97,6 +98,15 @@ export async function ExecuteManageTemplate(
             };
         });
 
+        // Cast displayConfig from JSON schema to domain type
+        const displayConfig: ITemplateDisplayConfig | undefined = templateSchema.displayConfig
+            ? {
+                  styleConfig: templateSchema.displayConfig.styleConfig,
+                  groups: templateSchema.displayConfig.groups,
+                  parameterDisplay: templateSchema.displayConfig.parameterDisplay,
+              }
+            : undefined;
+
         // Check if a template with the same name already exists
         const existingTemplate = await templateRepository.FindByName(game.uid, templateSchema.name);
 
@@ -150,6 +160,7 @@ export async function ExecuteManageTemplate(
                             templateSchema.description ?? ``,
                             templateRepository,
                             objectRepository,
+                            displayConfig,
                         );
 
                         if (mergeResult.success) {
@@ -185,6 +196,7 @@ export async function ExecuteManageTemplate(
                     templateSchema.description ?? ``,
                     templateRepository,
                     objectRepository,
+                    displayConfig,
                 );
 
                 if (mergeResult.success) {
@@ -208,6 +220,7 @@ export async function ExecuteManageTemplate(
             description: templateSchema.description ?? ``,
             parameters: templateSchema.parameters,
             actions: actionDefinitions,
+            displayConfig,
         });
 
         await interaction.editReply({
@@ -217,15 +230,15 @@ export async function ExecuteManageTemplate(
         log.info(`Template "${created.name}" created for game "${game.uid}".`, LOG_TAG);
     } catch(error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Failed to upload template: ${message}`, LOG_TAG, `ExecuteManageTemplate`);
+        log.error(`Failed to upload template: ${message}`, LOG_TAG, `ExecuteImportTemplate`);
         await interaction.editReply({ content: `Failed to create template: ${message}` });
     }
 }
 
 /**
- * Build a human-readable summary of merge diff changes.
- * @param analysis IMergeAnalysisResult Diff analysis.
- * @returns string Formatted diff summary for Discord message.
+ * Build a human-readable summary of merge diff changes
+ * @param analysis IMergeAnalysisResult Diff analysis
+ * @returns string Formatted diff summary for Discord message
  */
 function __BuildMergeDiffSummary(analysis: IMergeAnalysisResult): string {
     const lines: string[] = [];

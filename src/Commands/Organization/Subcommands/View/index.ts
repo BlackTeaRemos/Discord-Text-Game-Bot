@@ -21,8 +21,8 @@ export function BuildOrganizationViewSubcommand(
         .setDescription(Translate(`commands.organization.view.description`))
         .addStringOption(option => {
             return option
-                .setName(`id`)
-            .setDescription(Translate(`commands.organization.view.options.id`))
+                .setName(`organization`)
+            .setDescription(Translate(`commands.organization.view.options.organization`))
                 .setAutocomplete(true)
                 .setRequired(true);
         });

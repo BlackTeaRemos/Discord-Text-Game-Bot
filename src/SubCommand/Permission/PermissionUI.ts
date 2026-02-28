@@ -58,52 +58,46 @@ export async function RequestPermissionFromAdmin(
         });
     }
 
-    // Fetch all members and find administrators (exclude bots)
-    let members = guild.members.cache;
+    // Attempt to find admins from the cached member list first to avoid
+    // a full guild.members.fetch() which can take 1-30s on large guilds.
+    const cachedMembers = guild.members.cache;
+    const admins = cachedMembers.filter(memberEntry => {
+        return !memberEntry.user.bot && memberEntry.permissions.has(PermissionsBitField.Flags.Administrator);
+    });
 
-    const needsFetch =
-        members.size === 0 ||
-        members.filter(m => {
-            return !m.user.bot && m.permissions.has(PermissionsBitField.Flags.Administrator);
-        }).size === 0;
-
-    if (needsFetch) {
+    // If no admins found in cache, fetch the guild owner specifically (~200ms)
+    // instead of fetching the entire member list.
+    const ownerId = guild.ownerId;
+    if (admins.size === 0 && ownerId) {
         try {
-            members = await guild.members.fetch();
-        } catch(err) {
-            log.error(
-                `Failed to fetch guild members`,
+            const ownerMember = await guild.members.fetch(ownerId);
+            if (ownerMember && !ownerMember.user.bot) {
+                admins.set(ownerMember.id, ownerMember);
+            }
+        } catch(ownerFetchError) {
+            log.warning(
+                `Failed to fetch guild owner ${ownerId}: ${String(ownerFetchError)}`,
                 `PermissionUI`,
-                String(err),
             );
         }
     }
 
-    if (members.size === 0) {
-        const message = `Unable to inspect any guild members. Ask an administrator to invite me again with the "Server Members" intent enabled.`;
-        await _respondToUser(message);
-        throw new PermissionApprovalError(message, {
-            reason: `no_members_available`,
-            guildId: guild.id,
-            userId: interaction.user.id,
-        });
-    }
-    const admins = members.filter(m => {
-        return !m.user.bot && m.permissions.has(PermissionsBitField.Flags.Administrator);
-    });
-
-    const ownerId = guild.ownerId;
-    if (ownerId) {
-        let ownerMember = members.get(ownerId);
-        if (!ownerMember) {
-            try {
-                ownerMember = await guild.members.fetch(ownerId);
-            } catch {
-                ownerMember = undefined;
+    // Last resort: fetch all members only if we still have no admins
+    if (admins.size === 0) {
+        try {
+            const fetchedMembers = await guild.members.fetch();
+            const fetchedAdmins = fetchedMembers.filter(memberEntry => {
+                return !memberEntry.user.bot && memberEntry.permissions.has(PermissionsBitField.Flags.Administrator);
+            });
+            for (const [adminId, adminMember] of fetchedAdmins) {
+                admins.set(adminId, adminMember);
             }
-        }
-        if (ownerMember && !ownerMember.user.bot) {
-            admins.set(ownerMember.id, ownerMember);
+        } catch(fetchError) {
+            log.error(
+                `Failed to fetch guild members`,
+                `PermissionUI`,
+                String(fetchError),
+            );
         }
     }
 

@@ -19,7 +19,7 @@ import { TranslateFromContext } from '../../Services/I18nService.js';
 export async function ExecuteOrganizationView(
     interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
 ): Promise<void> {
-    const organizationUid = interaction.options.getString(`id`, true);
+    const organizationUid = interaction.options.getString(`organization`, true);
 
     if (!organizationUid.trim()) {
         await interaction.reply({

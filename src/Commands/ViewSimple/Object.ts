@@ -7,7 +7,7 @@ import { FetchObjectDetail } from '../../Flow/Object/FetchObjectDetail.js';
 import { ResolveObjectActions } from '../../Flow/Object/ResolveObjectActions.js';
 import { log } from '../../Common/Log.js';
 import { ResolveViewAccess } from './ResolveViewAccess.js';
-import { TranslateFromContext } from '../../Services/I18nService.js';
+import { TranslateFromContext, GetCachedLocale } from '../../Services/I18nService.js';
 import { ObjectViewRenderer } from '../../Framework/ObjectViewRenderer.js';
 import { BuildDetailPages } from '../../Framework/ObjectDetailPageBuilder.js';
 import { RenderObjectCard } from '../../Framework/ImageGen/ObjectCardRenderer.js';
@@ -23,7 +23,7 @@ const _objectViewRenderer = new ObjectViewRenderer(`object_view`);
 export async function ExecuteViewObject(
     interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
 ): Promise<void> {
-    const objectId = interaction.options.getString(`id`, true);
+    const objectId = interaction.options.getString(`object`, true);
     if (!objectId.trim()) {
         await interaction.reply({
             content: TranslateFromContext(interaction.executionContext, `commands.view.object.errors.emptyId`),
@@ -67,7 +67,7 @@ export async function ExecuteViewObject(
             organizationUids: organizationUidsForScope,
         });
 
-        const detail = await FetchObjectDetail(objectInfo.uid);
+        const detail = await FetchObjectDetail(objectInfo.uid, true);
 
         const typeLabel = TranslateFromContext(interaction.executionContext, `objectRegistry.types.${objectInfo.type}`, {
             defaultValue: objectInfo.type,
@@ -85,6 +85,7 @@ export async function ExecuteViewObject(
                 relationships: [],
                 createdAt: null,
                 updatedAt: null,
+                parameterHistory: [],
             },
             objectType: typeLabel,
             description,
@@ -102,6 +103,7 @@ export async function ExecuteViewObject(
                 relationshipsTitle: TranslateFromContext(interaction.executionContext, `commands.view.object.detail.relationshipsTitle`),
                 actionsTitle: TranslateFromContext(interaction.executionContext, `commands.view.object.detail.actionsTitle`),
             },
+            locale: GetCachedLocale(interaction.executionContext),
         });
 
         // Generate visual card image for the overview page
@@ -114,12 +116,14 @@ export async function ExecuteViewObject(
                 relationships: [],
                 createdAt: null,
                 updatedAt: null,
+                parameterHistory: [],
             };
             const cardPng = await RenderObjectCard({
                 detail: resolvedDetail,
                 objectType: objectInfo.type,
                 description,
                 typeLabel,
+                locale: GetCachedLocale(interaction.executionContext),
             });
             const attachment = new AttachmentBuilder(cardPng, { name: `card.png` });
             viewModel.files = [attachment];

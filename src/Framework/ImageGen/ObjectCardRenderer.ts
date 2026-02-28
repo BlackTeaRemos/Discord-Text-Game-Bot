@@ -1,9 +1,10 @@
 import type { ObjectDetail } from '../../Flow/Object/FetchObjectDetail.js';
 import { ResolveObjectViewTheme } from '../ObjectViewThemeRegistry.js';
-import { IntColorToCss } from './CardTheme.js';
+import { ACCENT_COLOR } from './CardTheme.js';
 import { BuildCardLayout } from './CardLayout.js';
 import type { CardLayoutOptions } from './CardLayout.js';
 import { RenderToPng } from './RenderToPng.js';
+import type { ITemplateDisplayConfig } from '../../Domain/GameObject/ITemplateDisplayConfig.js';
 
 /**
  * Options for rendering an object card image
@@ -11,12 +12,16 @@ import { RenderToPng } from './RenderToPng.js';
  * @property objectType string Type discriminator for theming. Example: 'game'
  * @property description string | null Object description text
  * @property typeLabel string | undefined Human-readable type label override
+ * @property locale string Locale code for translated section labels. Example: 'en'
+ * @property displayConfig ITemplateDisplayConfig | undefined Optional display config for grouping and graph control
  */
 export interface RenderObjectCardOptions {
     detail: ObjectDetail;
     objectType: string;
     description: string | null;
     typeLabel?: string;
+    locale?: string;
+    displayConfig?: ITemplateDisplayConfig;
 }
 
 /**
@@ -31,19 +36,22 @@ export interface RenderObjectCardOptions {
  *     detail: await FetchObjectDetail('game_abc'),
  *     objectType: 'game',
  *     description: 'A cooperative space exploration game',
+ *     locale: 'en',
  * });
  * const attachment = new AttachmentBuilder(png, { name: 'card.png' });
  */
 export async function RenderObjectCard(options: RenderObjectCardOptions): Promise<Buffer> {
-    const { detail, objectType, description, typeLabel } = options;
+    const { detail, objectType, description, typeLabel, locale = `en`, displayConfig } = options;
     const theme = ResolveObjectViewTheme(objectType);
 
     const layoutOptions: CardLayoutOptions = {
         detail,
-        accentColor: IntColorToCss(theme.color),
+        accentColor: ACCENT_COLOR,
         accentEmoji: theme.accentEmoji,
         objectType: typeLabel ?? objectType,
         description,
+        locale,
+        displayConfig,
     };
 
     const elementTree = BuildCardLayout(layoutOptions);

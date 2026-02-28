@@ -2,6 +2,7 @@ import { randomUUID } from 'crypto';
 import { neo4jClient } from '../../Setup/Neo4j.js';
 import { log } from '../../Common/Log.js';
 import type { IGameObjectTemplate } from '../../Domain/GameObject/IGameObjectTemplate.js';
+import type { ITemplateDisplayConfig } from '../../Domain/GameObject/ITemplateDisplayConfig.js';
 import type { IGameObjectTemplateRepository } from '../../Domain/GameObject/IGameObjectTemplateRepository.js';
 
 /** Neo4j node label for template nodes. */
@@ -24,7 +25,7 @@ function __GenerateTemplateUid(): string {
  * @returns IGameObjectTemplate Mapped template object.
  */
 function __MapNodeToTemplate(properties: Record<string, any>): IGameObjectTemplate {
-    return {
+    const template: IGameObjectTemplate = {
         uid: properties.uid,
         gameUid: properties.gameUid,
         name: properties.name,
@@ -34,6 +35,12 @@ function __MapNodeToTemplate(properties: Record<string, any>): IGameObjectTempla
         createdAt: properties.createdAt,
         updatedAt: properties.updatedAt,
     };
+
+    if (properties.display_config_json) {
+        template.displayConfig = JSON.parse(properties.display_config_json) as ITemplateDisplayConfig;
+    }
+
+    return template;
 }
 
 /**
@@ -56,6 +63,9 @@ export class GameObjectTemplateRepository implements IGameObjectTemplateReposito
             const now = new Date().toISOString();
             const parametersJson = JSON.stringify(template.parameters);
             const actionsJson = JSON.stringify(template.actions);
+            const displayConfigJson = template.displayConfig
+                ? JSON.stringify(template.displayConfig)
+                : null;
 
             const query = `
                 MATCH (game:Game { uid: $gameUid })
@@ -66,6 +76,7 @@ export class GameObjectTemplateRepository implements IGameObjectTemplateReposito
                     description: $description,
                     parameters_json: $parametersJson,
                     actions_json: $actionsJson,
+                    display_config_json: $displayConfigJson,
                     createdAt: $now,
                     updatedAt: $now
                 })
@@ -80,6 +91,7 @@ export class GameObjectTemplateRepository implements IGameObjectTemplateReposito
                 description: template.description ?? ``,
                 parametersJson,
                 actionsJson,
+                displayConfigJson,
                 now,
             });
 
@@ -202,6 +214,13 @@ export class GameObjectTemplateRepository implements IGameObjectTemplateReposito
             if (updates.actions !== undefined) {
                 setClauses.push(`tpl.actions_json = $actionsJson`);
                 params.actionsJson = JSON.stringify(updates.actions);
+            }
+
+            if (updates.displayConfig !== undefined) {
+                setClauses.push(`tpl.display_config_json = $displayConfigJson`);
+                params.displayConfigJson = updates.displayConfig
+                    ? JSON.stringify(updates.displayConfig)
+                    : null;
             }
 
             const query = `

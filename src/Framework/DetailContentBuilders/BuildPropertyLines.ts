@@ -5,7 +5,8 @@ import { FormatPropertyKey } from '../DetailFormatters/FormatPropertyKey.js';
 import { FormatPropertyValue } from '../DetailFormatters/FormatPropertyValue.js';
 import { FormatParameterValue } from '../DetailFormatters/FormatParameterValue.js';
 import { ParseJsonProperty } from '../DetailFormatters/ParseJsonProperty.js';
-import { HIDDEN_PROPERTIES } from './HiddenProperties.js';
+import { HIDDEN_PROPERTIES, HIDDEN_PROPERTY_PATTERN } from './HiddenProperties.js';
+import { Translate } from '../../Services/I18nService.js';
 
 /**
  * Build formatted lines for visible properties, template parameters and template actions
@@ -13,16 +14,18 @@ import { HIDDEN_PROPERTIES } from './HiddenProperties.js';
  * Returns empty array when no displayable content exists
  *
  * @param detail ObjectDetail Full detail payload
+ * @param locale string Locale code for translated section labels. @example 'en'
  * @returns string[] Array of formatted Markdown lines
  */
 export function BuildPropertyLines(
     detail: ObjectDetail,
+    locale: string = `en`,
 ): string[] {
     const lines: string[] = [];
 
     const visibleProperties = Object.entries(detail.properties)
         .filter(([key]) => {
-            return !HIDDEN_PROPERTIES.has(key);
+            return !HIDDEN_PROPERTIES.has(key) && !HIDDEN_PROPERTY_PATTERN.test(key);
         });
 
     if (visibleProperties.length > 0) {
@@ -38,7 +41,8 @@ export function BuildPropertyLines(
         if (lines.length > 0) {
             lines.push(``);
         }
-        lines.push(`__Variables__`);
+        const variablesLabel = Translate(`card.sections.parameters`, { locale, defaultValue: `Variables` });
+        lines.push(`__${variablesLabel}__`);
         for (const paramValue of templateParams) {
             const label = FormatPropertyKey(paramValue.key);
             lines.push(`**${label}**: \`${String(paramValue.value)}\``);
@@ -52,7 +56,8 @@ export function BuildPropertyLines(
             lines.push(``);
         }
         if (!templateParams || templateParams.length === 0) {
-            lines.push(`__Parameters__`);
+            const parametersLabel = Translate(`card.sections.parameters`, { locale, defaultValue: `Variables` });
+            lines.push(`__${parametersLabel}__`);
         }
         for (const [key, value] of legacyParameterEntries) {
             lines.push(`**${FormatPropertyKey(key)}**: ${FormatParameterValue(value)}`);
@@ -65,7 +70,8 @@ export function BuildPropertyLines(
         if (lines.length > 0) {
             lines.push(``);
         }
-        lines.push(`__Actions__`);
+        const actionsLabel = Translate(`card.sections.actions`, { locale, defaultValue: `Actions` });
+        lines.push(`__${actionsLabel}__`);
         for (const action of templateActions) {
             const enabledMark = action.enabled ? `+` : `-`;
             const triggerLabel = FormatPropertyKey(action.trigger);
@@ -74,7 +80,12 @@ export function BuildPropertyLines(
                 lines.push(`-# ${action.description}`);
             }
             if (action.expressions && action.expressions.length > 0) {
-                const expressionPreview = action.expressions.slice(0, 3).map((expr: string) => { return `\`${expr}\``; }).join(`, `);
+                const expressionPreview = action.expressions
+                    .slice(0, 3)
+                    .map((expr: string) => {
+                        return `\`${expr}\``;
+                    })
+                    .join(`, `);
                 lines.push(`-# ${expressionPreview}`);
             }
         }

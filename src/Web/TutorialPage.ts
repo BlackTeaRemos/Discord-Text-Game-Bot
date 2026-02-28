@@ -283,11 +283,21 @@ function __GetTemplatesSection(): string {
             <h3>Web Editor</h3>
             <p>A visual editor is available for building templates without writing JSON manually:</p>
             <div class="command-block">http://localhost:3500/editor</div>
-            <p>Features: form-based editing, live JSON preview, expression validation, cross-reference autocomplete, copy/download JSON.</p>
-            <div class="note">Enter a Game UID in the editor to enable server-aware validation and see available cross-references from other templates.</div>
+            <p>The editor has two areas: a main content panel for parameters, actions, and JSON preview, and a sidebar for the display config.</p>
+
+            <h3>Display Config Sidebar</h3>
+            <p>The sidebar controls how the object card renders. It contains four panels:</p>
+            <table>
+                <tr><th>Panel</th><th>Purpose</th></tr>
+                <tr><td><code>Style</code></td><td>Color pickers for card background, borders, accent, text tones, and border radius</td></tr>
+                <tr><td><code>Groups</code></td><td>Parameter groups shown as labeled sections on the card. Drag the key header of a parameter row from the editor into a group to assign it. Each assigned param gets Graph type and Hide controls.</td></tr>
+                <tr><td><code>Charts</code></td><td>Multi-parameter charts. Drag param key headers into a chart drop zone. Configure chart type (combined, cumulative, relative) and height.</td></tr>
+                <tr><td><code>Layout Order</code></td><td>Drag to reorder the rendering order of groups and charts on the card.</td></tr>
+            </table>
+            <div class="note">Each parameter row has a distinct key header bar at the top. Drag from that bar — not from the fields below — to assign the param to a group or chart.</div>
 
             <h3>Uploading Templates</h3>
-            <div class="command-block">/manage template</div>
+            <div class="command-block">/import template</div>
             <p>Attach the JSON file to the command. The bot validates the schema and creates the template.</p>
 
             <h3>Template Merging</h3>
@@ -299,7 +309,7 @@ function __GetTemplatesSection(): string {
             <p>Existing objects are migrated: new parameters get defaults, removed parameters are stripped.</p>
 
             <h3>Listing Templates</h3>
-            <div class="command-block">/view template</div>
+            <div class="command-block">/view templates</div>
             <p>Shows all templates in the game with parameter count and action count.</p>
         </section>`;
 }
@@ -316,7 +326,7 @@ function __GetObjectsSection(): string {
             <p>Objects are instances of templates, owned by an organization. Each object carries its own parameter values that diverge from template defaults over time.</p>
 
             <h3>Creating an Object</h3>
-            <div class="command-block">/manage object</div>
+            <div class="command-block">/create object</div>
             <p>Specify a template and optionally a custom name. The object is created with default parameter values from the template, assigned to your resolved organization.</p>
             <div class="flow-diagram">Template "Factory" (productionRate: 10, rawMaterials: 100)
   └── Create Object "Northern Ironworks"
@@ -523,7 +533,7 @@ function __GetTasksDescriptionsSection(): string {
   4. Return null (no description)</div>
 
             <h3>Editing Descriptions</h3>
-            <div class="command-block">/create description id: obj_abc123</div>
+            <div class="command-block">/edit description object: obj_abc123</div>
             <p>Opens an interactive text editor flow. The scope is determined by your execution context (user or organization).</p>
         </section>`;
 }

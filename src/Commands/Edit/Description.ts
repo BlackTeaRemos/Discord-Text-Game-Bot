@@ -13,17 +13,17 @@ import { resolve } from '../../Common/Permission/index.js';
 import { TranslateFromContext } from '../../Services/I18nService.js';
 
 /**
- * Open description editor for any object by id
+ * Open description editor for any object by identifier
  * @param interaction InteractionExecutionContextCarrier<ChatInputCommandInteraction> Discord interaction
  * @returns Promise<void> Resolves when editor flow completes
  */
-export async function ExecuteCreateDescription(
+export async function ExecuteEditDescription(
     interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
 ): Promise<void> {
-    const objectId = interaction.options.getString(`id`, true);
+    const objectId = interaction.options.getString(`object`, true);
     if (!objectId.trim()) {
         await interaction.reply({
-            content: TranslateFromContext(interaction.executionContext, `commands.create.descriptionFlow.errors.emptyId`),
+            content: TranslateFromContext(interaction.executionContext, `commands.edit.descriptionFlow.errors.emptyId`),
             flags: MessageFlags.Ephemeral,
         });
         return;
@@ -37,7 +37,7 @@ export async function ExecuteCreateDescription(
         const objectInfo = await ResolveObjectByUid(objectId.trim());
         if (!objectInfo) {
             await interaction.editReply({
-                content: TranslateFromContext(interaction.executionContext, `commands.create.descriptionFlow.errors.notFound`, {
+                content: TranslateFromContext(interaction.executionContext, `commands.edit.descriptionFlow.errors.notFound`, {
                     params: { id: objectId },
                 }),
             });
@@ -46,7 +46,7 @@ export async function ExecuteCreateDescription(
 
         if (objectInfo.type === `description`) {
             await interaction.editReply({
-                content: TranslateFromContext(interaction.executionContext, `commands.create.descriptionFlow.errors.invalidTarget`),
+                content: TranslateFromContext(interaction.executionContext, `commands.edit.descriptionFlow.errors.invalidTarget`),
             });
             return;
         }
@@ -62,31 +62,31 @@ export async function ExecuteCreateDescription(
                 context: {
                     organizationUid: executionOrganization.organizationUid,
                     userId: interaction.user.id,
-                    action: `create_description`,
+                    action: `edit_description`,
                 },
                 skipApproval: false,
             });
 
             if (!organizationPermission.allowed) {
                 await interaction.editReply({
-                    content: TranslateFromContext(interaction.executionContext, `commands.create.descriptionFlow.errors.permissionDeniedOrg`, {
+                    content: TranslateFromContext(interaction.executionContext, `commands.edit.descriptionFlow.errors.permissionDeniedOrg`, {
                         params: { organization: executionOrganization.organizationName },
                     }),
                 });
                 return;
             }
         } else {
-            const resolution = await resolve([`user:${interaction.user.id}:create_description`], {
-                member: await interaction.guild?.members.fetch(interaction.user.id).then(m => {
-                    return m ? { id: m.id, guildId: m.guild.id, permissions: m.permissions } as any : null;
+            const resolution = await resolve([`user:${interaction.user.id}:edit_description`], {
+                member: await interaction.guild?.members.fetch(interaction.user.id).then(member => {
+                    return member ? { id: member.id, guildId: member.guild.id, permissions: member.permissions } as any : null;
                 }),
                 permissions: {
-                    [`user:${interaction.user.id}:create_description`]: `allowed`,
+                    [`user:${interaction.user.id}:edit_description`]: `allowed`,
                 },
             });
             if (!resolution.success) {
                 await interaction.editReply({
-                    content: TranslateFromContext(interaction.executionContext, `commands.create.descriptionFlow.errors.permissionDeniedUser`),
+                    content: TranslateFromContext(interaction.executionContext, `commands.edit.descriptionFlow.errors.permissionDeniedUser`),
                 });
                 return;
             }
@@ -96,7 +96,7 @@ export async function ExecuteCreateDescription(
         const permissions = __BuildEditorPermissions(canEditGlobal);
 
         await interaction.editReply({
-            content: TranslateFromContext(interaction.executionContext, `commands.create.descriptionFlow.messages.opening`, {
+            content: TranslateFromContext(interaction.executionContext, `commands.edit.descriptionFlow.messages.opening`, {
                 params: {
                     type: objectInfo.type,
                     uid: objectInfo.uid,
@@ -115,9 +115,9 @@ export async function ExecuteCreateDescription(
         });
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Failed to open description editor`, message, `CreateDescription`);
+        log.error(`Failed to open description editor`, message, `EditDescription`);
         await interaction.editReply({
-            content: TranslateFromContext(interaction.executionContext, `commands.create.descriptionFlow.errors.failed`, {
+            content: TranslateFromContext(interaction.executionContext, `commands.edit.descriptionFlow.errors.failed`, {
                 params: { message },
             }),
         });

@@ -1,4 +1,6 @@
 import { neo4jClient } from '../../Setup/Neo4j.js';
+import { ParameterSnapshotRepository } from '../../Repository/GameObject/ParameterSnapshotRepository.js';
+import type { IParameterSnapshot } from '../../Domain/GameObject/IParameterSnapshot.js';
 
 /**
  * Represents a relationship from the object to another node
@@ -38,6 +40,8 @@ export interface ObjectDetail {
     relationships: ObjectRelationship[];
     createdAt: number | null;
     updatedAt: number | null;
+    /** Historical parameter snapshots, newest-first. Empty when history not requested. */
+    parameterHistory: IParameterSnapshot[];
 }
 
 /** Properties excluded from the public properties map */
@@ -59,7 +63,7 @@ const _INTERNAL_PROPERTIES = new Set([
  * // detail.parameters -> { currentTurn: '3' }
  * // detail.relationships -> [{ relationshipType: 'HAS_GAME', ... }]
  */
-export async function FetchObjectDetail(uid: string): Promise<ObjectDetail | null> {
+export async function FetchObjectDetail(uid: string, includeHistory: boolean = false): Promise<ObjectDetail | null> {
     const session = await neo4jClient.GetSession(`READ`);
     try {
         const query = `
@@ -150,6 +154,18 @@ export async function FetchObjectDetail(uid: string): Promise<ObjectDetail | nul
         const createdAtRaw = nodeProps.created_at ?? nodeProps.createdAt ?? null;
         const updatedAtRaw = nodeProps.updated_at ?? nodeProps.updatedAt ?? null;
 
+        // Fetch parameter history if requested
+        let parameterHistory: IParameterSnapshot[] = [];
+        if (includeHistory) {
+            try {
+                const snapshotRepository = new ParameterSnapshotRepository();
+                parameterHistory = await snapshotRepository.GetRecentSnapshots(uid, 20);
+            } catch {
+                // History fetch failures must not break detail retrieval
+                parameterHistory = [];
+            }
+        }
+
         return {
             uid,
             labels: nodeLabels,
@@ -158,6 +174,7 @@ export async function FetchObjectDetail(uid: string): Promise<ObjectDetail | nul
             relationships,
             createdAt: createdAtRaw ? Number(createdAtRaw) : null,
             updatedAt: updatedAtRaw ? Number(updatedAtRaw) : null,
+            parameterHistory,
         };
     } finally {
         await session.close();

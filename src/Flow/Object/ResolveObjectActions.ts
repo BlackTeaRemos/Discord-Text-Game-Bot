@@ -18,39 +18,39 @@ const _ACTION_REGISTRY: Record<string, ObjectAction[]> = {
     game: [
         { command: `/view game`, description: `View game overview` },
         { command: `/manage game`, description: `Manage turn and settings` },
-        { command: `/create description id:{uid}`, description: `Edit game description` },
+        { command: `/edit description object:{uid}`, description: `Edit game description` },
         { command: `/view objects`, description: `List game objects` },
-        { command: `/view template`, description: `List game templates` },
+        { command: `/view templates`, description: `List game templates` },
     ],
     task: [
         { command: `/view task id:{uid}`, description: `View task details` },
         { command: `/view task`, description: `List all tasks` },
     ],
     organization: [
-        { command: `/organization view id:{uid}`, description: `View org details` },
-        { command: `/organization add id:{uid} object:{...}`, description: `Assign object to org` },
-        { command: `/organization remove id:{uid} object:{...}`, description: `Remove object from org` },
-        { command: `/organization setparent id:{uid}`, description: `Change org hierarchy` },
-        { command: `/create description id:{uid}`, description: `Edit org description` },
+        { command: `/organization view organization:{uid}`, description: `View org details` },
+        { command: `/organization assign organization:{uid} object:{...}`, description: `Assign object to org` },
+        { command: `/organization unassign organization:{uid} object:{...}`, description: `Remove object from org` },
+        { command: `/organization set_parent organization:{uid}`, description: `Change org hierarchy` },
+        { command: `/edit description object:{uid}`, description: `Edit org description` },
     ],
     character: [
-        { command: `/view object id:{uid}`, description: `View character` },
-        { command: `/create description id:{uid}`, description: `Edit character description` },
+        { command: `/view object object:{uid}`, description: `View character` },
+        { command: `/edit description object:{uid}`, description: `Edit character description` },
     ],
     factory: [
-        { command: `/view object id:{uid}`, description: `View building` },
-        { command: `/create description id:{uid}`, description: `Edit building description` },
+        { command: `/view object object:{uid}`, description: `View building` },
+        { command: `/edit description object:{uid}`, description: `Edit building description` },
     ],
     user: [
-        { command: `/view object id:{uid}`, description: `View user profile` },
+        { command: `/view object object:{uid}`, description: `View user profile` },
         { command: `/user config`, description: `Manage user settings` },
     ],
 };
 
 /** Fallback actions available for any object type */
 const _GENERIC_ACTIONS: ObjectAction[] = [
-    { command: `/view object id:{uid}`, description: `View object details` },
-    { command: `/create description id:{uid}`, description: `Edit description` },
+    { command: `/view object object:{uid}`, description: `View object details` },
+    { command: `/edit description object:{uid}`, description: `Edit description` },
 ];
 
 /**
@@ -64,7 +64,7 @@ const _GENERIC_ACTIONS: ObjectAction[] = [
  * @example
  * const actions = ResolveObjectActions('game', 'game_abc');
  * // actions[0].command -> '/view game'
- * // actions[2].command -> '/create description id:game_abc'
+ * // actions[2].command -> '/edit description object:game_abc'
  */
 export function ResolveObjectActions(objectType: string, objectUid: string): ObjectAction[] {
     const template = _ACTION_REGISTRY[objectType] ?? _GENERIC_ACTIONS;

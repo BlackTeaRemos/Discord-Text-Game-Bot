@@ -66,6 +66,9 @@
                 "template": {
                     "description": "List all templates"
                 },
+                "templates": {
+                    "description": "List all templates"
+                },
                 "objects": {
                     "description": "List objects with optional template filter"
                 }
@@ -78,7 +81,8 @@
                     "creator": "Filter by task creator"
                 },
                 "object": {
-                    "id": "Object identifier to view"
+                    "id": "Object identifier to view",
+                    "object": "Object to view"
                 },
                 "objects": {
                     "template": "Filter by template name"
@@ -184,6 +188,9 @@
                 },
                 "description": {
                     "description": "Edit description for an object"
+                },
+                "object": {
+                    "description": "Create a game object instance from a template"
                 }
             },
             "options": {
@@ -193,6 +200,11 @@
                 "description": {
                     "id": "Object identifier to edit description for",
                     "organization": "Organization UID to execute as (use 'global' for shared org)"
+                },
+                "object": {
+                    "template": "Template name to instantiate",
+                    "organization": "Organization that will own this object (uses your default if omitted)",
+                    "name": "Custom name for the object instance"
                 }
             },
             "errors": {
@@ -272,13 +284,14 @@
                     "createdBy": "Created by {{userTag}}"
                 },
                 "messages": {
-                    "success": "Organization created successfully. Use `/create description` with the UID to add a description."
+                    "success": "Organization created successfully. Use `/edit description` with the UID to add a description."
                 }
             },
             "setParent": {
                 "description": "Change organization parent (hierarchy)",
                 "options": {
-                    "id": "Organization UID to modify",
+                "id": "Organization UID to modify",
+                    "organization": "Organization to modify",
                     "parent": "New parent organization UID (leave empty to make root)"
                 },
                 "errors": {
@@ -348,6 +361,22 @@
                     "success": "Assigned `{{name}}` ({{uid}}) to organization `{{organizationUid}}`."
                 }
             },
+            "assign": {
+                "description": "Assign an object to an organization",
+                "options": {
+                    "organization": "Organization to assign the object to",
+                    "object": "Object to assign"
+                },
+                "errors": {
+                    "organizationNotFound": "Organization `{{organization}}` not found.",
+                    "objectNotFound": "Object `{{object}}` not found.",
+                    "failed": "Failed to assign object: {{reason}}",
+                    "unknownError": "Unknown error"
+                },
+                "messages": {
+                    "success": "Assigned `{{name}}` ({{uid}}) to organization `{{organizationUid}}`."
+                }
+            },
             "remove": {
                 "description": "Remove an object from an organization",
                 "options": {
@@ -364,10 +393,27 @@
                     "success": "Removed `{{name}}` ({{uid}}) from organization `{{organizationUid}}`."
                 }
             },
+            "unassign": {
+                "description": "Remove an object from an organization",
+                "options": {
+                    "organization": "Organization to unassign the object from",
+                    "object": "Object to unassign"
+                },
+                "errors": {
+                    "organizationNotFound": "Organization `{{organization}}` not found.",
+                    "objectNotFound": "Object `{{object}}` not found.",
+                    "failed": "Failed to unassign object: {{reason}}",
+                    "unknownError": "Unknown error"
+                },
+                "messages": {
+                    "success": "Removed `{{name}}` ({{uid}}) from organization `{{organizationUid}}`."
+                }
+            },
             "view": {
                 "description": "View organization details and hierarchy",
                 "options": {
-                    "id": "Organization UID to view (use 'global' for shared org)"
+                "id": "Organization UID to view (use 'global' for shared org)",
+                    "organization": "Organization to view (use 'global' for shared org)"
                 },
                 "errors": {
                     "emptyId": "Organization UID cannot be empty.",
@@ -419,6 +465,52 @@
                 }
             }
         },
+        "edit": {
+            "description": "Edit game entities",
+            "subcommands": {
+                "description": {
+                    "description": "Edit description for an object"
+                }
+            },
+            "options": {
+                "description": {
+                    "object": "Object to edit description for",
+                    "organization": "Organization to execute as (use 'global' for shared org)"
+                }
+            },
+            "errors": {
+                "unknownSubcommand": "Unknown subcommand: {{subcommand}}"
+            },
+            "descriptionFlow": {
+                "errors": {
+                    "emptyId": "Object identifier cannot be empty",
+                    "notFound": "Object with ID `{{id}}` not found",
+                    "invalidTarget": "Descriptions cannot target other descriptions.",
+                    "permissionDeniedOrg": "Permission denied ({{organization}}).",
+                    "permissionDeniedUser": "Permission denied (User).",
+                    "failed": "Failed to open description editor: {{message}}"
+                },
+                "messages": {
+                    "opening": "Opening description editor for **{{type}}** `{{uid}}` as {{organization}}..."
+                }
+            }
+        },
+        "import": {
+            "description": "Import game data",
+            "subcommands": {
+                "template": {
+                    "description": "Upload a JSON template to define a game object type"
+                }
+            },
+            "options": {
+                "template": {
+                    "file": "JSON template file to upload"
+                }
+            },
+            "errors": {
+                "unknownSubcommand": "Unknown subcommand: {{subcommand}}"
+            }
+        },
         "tutorial": {
             "description": "View the interactive tutorial",
             "options": {
@@ -436,15 +528,56 @@
                 "navigationFailed": "Navigation failed: {{message}}",
                 "failed": "Failed to show tutorial: {{message}}"
             }
+        },
+        "permit": {
+            "description": "Manage user permission grants",
+            "subcommands": {
+                "all": {
+                    "description": "Grant all command permissions to a user"
+                },
+                "list": {
+                    "description": "List all permanent grants for a user"
+                },
+                "revoke": {
+                    "description": "Revoke all permanent grants from a user"
+                }
+            },
+            "options": {
+                "user": "Target user"
+            },
+            "grantAll": {
+                "title": "Permissions Granted",
+                "description": "Granted {{count}}/{{total}} tokens to {{user}}.",
+                "tokensField": "Tokens"
+            },
+            "list": {
+                "title": "Permission Grants",
+                "description": "{{user}} holds {{count}} permanent grants.",
+                "grantsField": "Grants",
+                "noGrants": "{{user}} has no permanent grants."
+            },
+            "revoke": {
+                "title": "Permissions Revoked",
+                "description": "Revoked {{count}} tokens from {{user}}."
+            },
+            "errors": {
+                "guildOnly": "This command can only be used in a server.",
+                "unknownSubcommand": "Unknown subcommand: {{subcommand}}",
+                "grantFailed": "Failed to grant permissions: {{reason}}",
+                "listFailed": "Failed to list permissions: {{reason}}",
+                "revokeFailed": "Failed to revoke permissions: {{reason}}"
+            }
         }
     },
     "objectRegistry": {
         "types": {
             "game": "Games",
+            "character": "Characters",
             "organization": "Organizations",
             "user": "Users",
             "building": "Factories",
-            "task": "Tasks"
+            "task": "Tasks",
+            "template": "Templates"
         },
         "common": {
             "name": "Name",
@@ -680,6 +813,18 @@
         "notFound": "Description not found",
         "removed": "Description removed.",
         "error": "Error: {{message}}"
+    },
+    "card": {
+        "sections": {
+            "description": "Information",
+            "properties": "Properties",
+            "parameters": "Variables",
+            "actions": "Actions"
+        },
+        "footer": {
+            "createdAt": "Created",
+            "updatedAt": "Updated"
+        }
     },
     "permission": {
         "missingGuild": "Unable to locate the server context for approval. Try again from within the guild.",

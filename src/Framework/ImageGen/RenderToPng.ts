@@ -80,27 +80,97 @@ async function __loadResvg(): Promise<ResvgConstructor> {
  * Font data used by Satori for text rendering
  * Loaded once and cached for subsequent renders
  */
-let _fontDataCache: ArrayBuffer | null = null;
+let _interFontCache: ArrayBuffer | null = null;
+let _quanticoRegularCache: ArrayBuffer | null = null;
+let _quanticoBoldCache: ArrayBuffer | null = null;
 
 /**
- * Load the Inter font from the @fontsource/inter package in node_modules
- * Resolved via createRequire for compatibility with both Node.js and Bun
+ * Load the Inter font from the @fontsource/inter package
  *
  * @returns Promise<ArrayBuffer | null> Font data buffer or null
  */
-async function __loadFont(): Promise<ArrayBuffer | null> {
-    if (_fontDataCache) {
-        return _fontDataCache;
+async function __loadInterFont(): Promise<ArrayBuffer | null> {
+    if (_interFontCache) {
+        return _interFontCache;
     }
     try {
         const nodeRequire = createRequire(import.meta.url);
         const fontPath = nodeRequire.resolve(`@fontsource/inter/files/inter-latin-400-normal.woff`);
         const fontBuffer = await readFile(fontPath);
-        _fontDataCache = fontBuffer.buffer as ArrayBuffer;
-        return _fontDataCache;
+        _interFontCache = fontBuffer.buffer as ArrayBuffer;
+        return _interFontCache;
     } catch {
         return null;
     }
+}
+
+/**
+ * Load Quantico Regular (400) font from @fontsource/quantico package
+ *
+ * @returns Promise<ArrayBuffer | null> Font data buffer or null
+ */
+async function __loadQuanticoRegular(): Promise<ArrayBuffer | null> {
+    if (_quanticoRegularCache) {
+        return _quanticoRegularCache;
+    }
+    try {
+        const nodeRequire = createRequire(import.meta.url);
+        const fontPath = nodeRequire.resolve(`@fontsource/quantico/files/quantico-latin-400-normal.woff`);
+        const fontBuffer = await readFile(fontPath);
+        _quanticoRegularCache = fontBuffer.buffer as ArrayBuffer;
+        return _quanticoRegularCache;
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Load Quantico Bold (700) font from @fontsource/quantico package
+ *
+ * @returns Promise<ArrayBuffer | null> Font data buffer or null
+ */
+async function __loadQuanticoBold(): Promise<ArrayBuffer | null> {
+    if (_quanticoBoldCache) {
+        return _quanticoBoldCache;
+    }
+    try {
+        const nodeRequire = createRequire(import.meta.url);
+        const fontPath = nodeRequire.resolve(`@fontsource/quantico/files/quantico-latin-700-normal.woff`);
+        const fontBuffer = await readFile(fontPath);
+        _quanticoBoldCache = fontBuffer.buffer as ArrayBuffer;
+        return _quanticoBoldCache;
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Load all available fonts for Satori rendering
+ *
+ * @returns Promise<SatoriFont[]> Array of loaded font entries
+ */
+async function __loadAllFonts(): Promise<SatoriFont[]> {
+    const [interData, quanticoRegularData, quanticoBoldData] = await Promise.all([
+        __loadInterFont(),
+        __loadQuanticoRegular(),
+        __loadQuanticoBold(),
+    ]);
+
+    const fonts: SatoriFont[] = [];
+
+    if (interData) {
+        fonts.push({ name: `Inter`, data: interData, weight: 400, style: `normal` });
+    }
+
+    if (quanticoRegularData) {
+        fonts.push({ name: `Quantico`, data: quanticoRegularData, weight: 400, style: `normal` });
+    }
+
+    if (quanticoBoldData) {
+        fonts.push({ name: `Quantico`, data: quanticoBoldData, weight: 700, style: `normal` });
+    }
+
+    return fonts;
 }
 
 /**
@@ -121,31 +191,25 @@ export async function RenderToPng(
     width: number = CARD_WIDTH,
     maxHeight: number = CARD_MAX_HEIGHT,
 ): Promise<Buffer> {
-    const [satoriRender, ResvgClass, fontData] = await Promise.all([
+    const [satoriRender, ResvgClass, fonts] = await Promise.all([
         __loadSatori(),
         __loadResvg(),
-        __loadFont(),
+        __loadAllFonts(),
     ]);
 
-    const fonts: SatoriFont[] = [];
-    if (fontData) {
-        fonts.push({
-            name: `Inter`,
-            data: fontData,
-            weight: 400,
-            style: `normal`,
-        });
-    }
-
-    // Satori renders the element tree to SVG string
-    const svg = await satoriRender(element as unknown, {
+    // Satori renders at maxHeight canvas, then we crop to actual content
+    const rawSvg = await satoriRender(element as unknown, {
         width,
         height: maxHeight,
         fonts,
     });
 
-    // resvg converts SVG to PNG
-    const resvgInstance = new ResvgClass(svg, {
+    // Crop the SVG viewport to the actual card content height
+    // Satori's first <rect> is the root element background, its height = real content height
+    const croppedSvg = __cropSvgToContent(rawSvg, width);
+
+    // resvg converts cropped SVG to PNG
+    const resvgInstance = new ResvgClass(croppedSvg, {
         fitTo: {
             mode: `width`,
             value: width,
@@ -153,4 +217,40 @@ export async function RenderToPng(
     });
     const pngData = resvgInstance.render();
     return Buffer.from(pngData.asPng());
+}
+
+/**
+ * Crop the SVG viewport to match actual card content height
+ * Satori renders at maxHeight canvas but only the card content occupies a portion
+ * The first rect element in the SVG is the root flexbox background, its height = real content
+ *
+ * @param svg string Raw SVG output from Satori
+ * @param width number Card width for viewBox replacement
+ * @returns string SVG with height and viewBox cropped to content bounds
+ */
+function __cropSvgToContent(svg: string, width: number): string {
+    // Match the first <rect> with a height attribute -- this is the root element background
+    const rectHeightMatch = svg.match(/<rect[^>]*?height="([\d.]+)"[^>]*?>/);
+    if (!rectHeightMatch || !rectHeightMatch[1]) {
+        return svg;
+    }
+
+    const contentHeight = Math.ceil(parseFloat(rectHeightMatch[1]));
+    if (contentHeight <= 0 || isNaN(contentHeight)) {
+        return svg;
+    }
+
+    // Replace root SVG height attribute
+    let cropped = svg.replace(
+        /(<svg[^>]*?)height="[\d.]+"/,
+        `$1height="${contentHeight}"`,
+    );
+
+    // Replace viewBox to match
+    cropped = cropped.replace(
+        /viewBox="0 0 [\d.]+ [\d.]+"/,
+        `viewBox="0 0 ${width} ${contentHeight}"`,
+    );
+
+    return cropped;
 }

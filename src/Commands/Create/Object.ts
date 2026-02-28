@@ -1,6 +1,6 @@
 /**
- * /manage object -- Create a game object instance from a template for an organization.
- * Takes a template name (autocomplete from available templates) and an organization name.
+ * /create object -- Create a game object instance from a template for an organization
+ * Takes a template name (autocomplete from available templates) and an organization name
  */
 
 import { MessageFlags } from 'discord.js';
@@ -12,16 +12,16 @@ import { GameObjectTemplateRepository } from '../../Repository/GameObject/GameOb
 import { GameObjectRepository } from '../../Repository/GameObject/GameObjectRepository.js';
 import { ResolveExecutionOrganization } from '../../Flow/Object/Organization/index.js';
 
-/** Log tag for this module. */
-const LOG_TAG = `Commands/Manage/Object`;
+/** Log tag for this module */
+const LOG_TAG = `Commands/Create/Object`;
 
 /**
- * Execute the /manage object subcommand.
- * Creates a new game object instance from a template, owned by a specified organization.
- * @param interaction InteractionExecutionContextCarrier<ChatInputCommandInteraction> Discord interaction.
+ * Execute the /create object subcommand
+ * Creates a new game object instance from a template, owned by a specified organization
+ * @param interaction InteractionExecutionContextCarrier<ChatInputCommandInteraction> Discord interaction
  * @returns Promise<void>
  */
-export async function ExecuteManageObject(
+export async function ExecuteCreateObject(
     interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
 ): Promise<void> {
     const serverId = interaction.guildId;
@@ -90,7 +90,7 @@ export async function ExecuteManageObject(
         log.info(`Object "${created.name}" created from template "${template.name}" for org "${organizationUid}".`, LOG_TAG);
     } catch(error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Failed to create object: ${message}`, LOG_TAG, `ExecuteManageObject`);
+        log.error(`Failed to create object: ${message}`, LOG_TAG, `ExecuteCreateObject`);
         await interaction.editReply({ content: `Failed to create object: ${message}` });
     }
 }

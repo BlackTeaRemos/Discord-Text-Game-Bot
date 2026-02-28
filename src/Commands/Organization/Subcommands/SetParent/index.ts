@@ -21,8 +21,8 @@ export function BuildOrganizationSetParentSubcommand(
         .setDescription(Translate(`commands.organization.setParent.description`))
         .addStringOption(option => {
             return option
-                .setName(`id`)
-                .setDescription(Translate(`commands.organization.setParent.options.id`))
+                .setName(`organization`)
+                .setDescription(Translate(`commands.organization.setParent.options.organization`))
                 .setAutocomplete(true)
                 .setRequired(true);
         })

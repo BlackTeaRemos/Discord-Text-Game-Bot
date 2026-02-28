@@ -9,7 +9,7 @@ import { FetchObjectDetail } from '../../Flow/Object/FetchObjectDetail.js';
 import { ResolveObjectActions } from '../../Flow/Object/ResolveObjectActions.js';
 import { log } from '../../Common/Log.js';
 import { ResolveViewAccess } from './ResolveViewAccess.js';
-import { TranslateFromContext } from '../../Services/I18nService.js';
+import { TranslateFromContext, GetCachedLocale } from '../../Services/I18nService.js';
 import { ObjectViewRenderer } from '../../Framework/ObjectViewRenderer.js';
 import { BuildDetailPages } from '../../Framework/ObjectDetailPageBuilder.js';
 import { RenderObjectCard } from '../../Framework/ImageGen/ObjectCardRenderer.js';
@@ -77,7 +77,7 @@ export async function ExecuteViewGame(
             organizationUids: organizationUidsForScope,
         });
 
-        const detail = await FetchObjectDetail(game.uid);
+        const detail = await FetchObjectDetail(game.uid, true);
 
         const noDescription = TranslateFromContext(interaction.executionContext, `commands.view.game.labels.noDescription`);
         const actions = ResolveObjectActions(`game`, game.uid);
@@ -95,6 +95,7 @@ export async function ExecuteViewGame(
                 relationships: [],
                 createdAt: null,
                 updatedAt: null,
+                parameterHistory: [],
             },
             objectType: `game`,
             description,
@@ -112,9 +113,8 @@ export async function ExecuteViewGame(
                 relationshipsTitle: TranslateFromContext(interaction.executionContext, `commands.view.object.detail.relationshipsTitle`),
                 actionsTitle: TranslateFromContext(interaction.executionContext, `commands.view.object.detail.actionsTitle`),
             },
+            locale: GetCachedLocale(interaction.executionContext),
         });
-
-        // Inject current turn into first page fields
         const currentTurnLabel = TranslateFromContext(interaction.executionContext, `commands.view.game.labels.currentTurn`);
         if (viewModel.pages[0]) {
             viewModel.pages[0].fields = viewModel.pages[0].fields ?? [];
@@ -135,12 +135,14 @@ export async function ExecuteViewGame(
                 relationships: [],
                 createdAt: null,
                 updatedAt: null,
+                parameterHistory: [],
             };
             const cardPng = await RenderObjectCard({
                 detail: resolvedDetail,
                 objectType: `game`,
                 description,
                 typeLabel: TranslateFromContext(interaction.executionContext, `objectRegistry.types.game`, { defaultValue: `Game` }),
+                locale: GetCachedLocale(interaction.executionContext),
             });
             const attachment = new AttachmentBuilder(cardPng, { name: `card.png` });
             viewModel.files = [attachment];

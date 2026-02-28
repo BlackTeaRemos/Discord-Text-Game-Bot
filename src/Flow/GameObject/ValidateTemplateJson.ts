@@ -1,4 +1,5 @@
-import type { TemplateJsonSchema, TemplateParameterSchema, TemplateActionSchema } from './TemplateJsonSchema.js';
+import type { TemplateJsonSchema, TemplateParameterSchema, TemplateActionSchema, DisplayConfigSchema } from './TemplateJsonSchema.js';
+import { ValidateDisplayConfig } from './ValidateDisplayConfig.js';
 
 /** Valid identifier pattern for parameter keys and action keys. */
 const VALID_KEY_PATTERN = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
@@ -40,6 +41,7 @@ export function ValidateTemplateJson(input: unknown): TemplateValidationResult {
     __ValidateName(template, errors);
     const parameterKeys = __ValidateParameters(template, errors);
     __ValidateActions(template, parameterKeys, errors);
+    __ValidateDisplayConfig(template, parameterKeys, errors);
 
     return { valid: errors.length === 0, errors };
 }
@@ -205,5 +207,91 @@ export function CastTemplateJson(input: unknown): TemplateJsonSchema {
         description: (raw.description as string) ?? ``,
         parameters,
         actions,
+        displayConfig: raw.displayConfig ? __CastDisplayConfig(raw.displayConfig) : undefined,
+    };
+}
+
+/**
+ * Validate the optional displayConfig section of a template JSON.
+ * Delegates structural validation to ValidateDisplayConfig and cross-references
+ * parameterDisplay keys against known parameter keys.
+ * @param template Record<string, unknown> Template object.
+ * @param parameterKeys Set<string> Valid parameter keys from the parameters section.
+ * @param errors string[] Accumulator for errors.
+ */
+function __ValidateDisplayConfig(
+    template: Record<string, unknown>,
+    parameterKeys: Set<string>,
+    errors: string[],
+): void {
+    if (template.displayConfig === undefined || template.displayConfig === null) {
+        return; // displayConfig is optional
+    }
+
+    if (typeof template.displayConfig !== `object` || Array.isArray(template.displayConfig)) {
+        errors.push(`"displayConfig" must be an object when provided.`);
+        return;
+    }
+
+    const configErrors = ValidateDisplayConfig(template.displayConfig as any);
+    for (const configError of configErrors) {
+        errors.push(`displayConfig: ${configError}`);
+    }
+
+    // Cross-reference parameterDisplay keys against declared parameters
+    const config = template.displayConfig as Record<string, unknown>;
+    if (Array.isArray(config.parameterDisplay)) {
+        for (const entry of config.parameterDisplay as Array<Record<string, unknown>>) {
+            if (typeof entry.key === `string` && !parameterKeys.has(entry.key)) {
+                errors.push(`displayConfig.parameterDisplay: key "${entry.key}" does not match any declared parameter.`);
+            }
+        }
+    }
+
+    // Cross-reference group keys against parameter categories
+    if (Array.isArray(config.groups)) {
+        const groupKeys = new Set((config.groups as Array<Record<string, unknown>>).map(group => {
+            return group.key as string;
+        }));
+        if (Array.isArray(config.parameterDisplay)) {
+            for (const entry of config.parameterDisplay as Array<Record<string, unknown>>) {
+                if (typeof entry.group === `string` && !groupKeys.has(entry.group)) {
+                    errors.push(`displayConfig.parameterDisplay: group "${entry.group}" on key "${entry.key}" does not match any declared group.`);
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Cast an already-validated displayConfig object to the typed schema.
+ * @param raw unknown Validated displayConfig object.
+ * @returns DisplayConfigSchema Typed display config.
+ */
+function __CastDisplayConfig(raw: unknown): DisplayConfigSchema {
+    const config = raw as Record<string, unknown>;
+    return {
+        styleConfig: config.styleConfig ? config.styleConfig as DisplayConfigSchema[`styleConfig`] : undefined,
+        groups: Array.isArray(config.groups)
+            ? (config.groups as Array<Record<string, unknown>>).map(group => {
+                return {
+                    key: group.key as string,
+                    label: group.label as string,
+                    iconUrl: group.iconUrl as string | undefined,
+                    sortOrder: group.sortOrder as number,
+                };
+            })
+            : [],
+        parameterDisplay: Array.isArray(config.parameterDisplay)
+            ? (config.parameterDisplay as Array<Record<string, unknown>>).map(entry => {
+                return {
+                    key: entry.key as string,
+                    group: entry.group as string | undefined,
+                    graphType: (entry.graphType as string) as DisplayConfigSchema[`parameterDisplay`][number][`graphType`],
+                    hidden: entry.hidden as boolean,
+                    displayOrder: entry.displayOrder as number,
+                };
+            })
+            : [],
     };
 }

@@ -5,6 +5,7 @@ import type { IGameObject } from '../../Domain/GameObject/IGameObject.js';
 import type { IGameObjectRepository } from '../../Domain/GameObject/IGameObjectRepository.js';
 import type { IParameterValue } from '../../Domain/GameObject/IParameterValue.js';
 import type { IParameterDefinition } from '../../Domain/GameObject/IParameterDefinition.js';
+import { ParameterSnapshotRepository } from './ParameterSnapshotRepository.js';
 
 /** Neo4j node label for game object instances. */
 const INSTANCE_LABEL = `GameObject`;
@@ -277,7 +278,21 @@ export class GameObjectRepository implements IGameObjectRepository {
                 throw new Error(`Failed to update parameters for "${uid}".`);
             }
 
-            return __MapNodeToInstance(record.get(`obj`).properties);
+            const updatedInstance = __MapNodeToInstance(record.get(`obj`).properties);
+
+            // Capture parameter snapshot (fire-and-forget, failure must not break update)
+            try {
+                const snapshotRepository = new ParameterSnapshotRepository();
+                await snapshotRepository.CaptureSnapshot(uid, 0, mergedParameters);
+            } catch (snapshotError) {
+                log.error(
+                    `Snapshot capture failed after UpdateParameters: ${String(snapshotError)}`,
+                    `Repository/GameObject`,
+                    `UpdateParameters`,
+                );
+            }
+
+            return updatedInstance;
         } catch(error) {
             log.error(`Failed to update parameters: ${String(error)}`, `Repository/GameObject`, `UpdateParameters`);
             throw error;

@@ -152,3 +152,74 @@ export function HasPermanentGrant(
     }
     return false;
 }
+
+/**
+ * Return all serialized grant tokens for a user in a guild.
+ * @param guildId string Guild identifier (example: '123').
+ * @param userId string User identifier (example: '456').
+ * @returns string[] Set of serialized tokens currently granted (example: ['s:view', 's:create']).
+ * @example
+ * const tokens = GetUserGrants('123', '456');
+ */
+export function GetUserGrants(guildId: string, userId: string): string[] {
+    const guildMap = grantedForever.get(guildId);
+    if (!guildMap) {
+        return [];
+    }
+    const userTokens = guildMap.get(userId);
+    if (!userTokens) {
+        return [];
+    }
+    return Array.from(userTokens);
+}
+
+/**
+ * Revoke all permanent grants for a user in a guild.
+ * Removes from both in-memory cache and database.
+ * @param guildId string Guild identifier (example: '123').
+ * @param userId string User identifier (example: '456').
+ * @param revokedBy string Discord user id who performed the revoke (example: '789').
+ * @returns Promise<number> Number of tokens revoked (example: 5).
+ * @example
+ * const count = await RevokeAllGrants('123', '456', '789');
+ */
+export async function RevokeAllGrants(
+    guildId: string,
+    userId: string,
+    revokedBy: string,
+): Promise<number> {
+    if (!_repository) {
+        throw new Error(`Permission store not initialized; cannot revoke grants.`);
+    }
+
+    const existingTokens = GetUserGrants(guildId, userId);
+    if (existingTokens.length === 0) {
+        return 0;
+    }
+
+    let revokedCount = 0;
+    for (const serializedToken of existingTokens) {
+        try {
+            const changed = await _repository.RevokeGrantToken({
+                guildId,
+                userId,
+                token: serializedToken,
+                updatedBy: revokedBy,
+            });
+            if (changed) {
+                revokedCount++;
+            }
+        } catch (error) {
+            log.error(`Failed to revoke token ${serializedToken}: ${(error as Error).message}`, `PermissionStore`);
+        }
+    }
+
+    // Clear in-memory cache for this user
+    const guildMap = grantedForever.get(guildId);
+    if (guildMap) {
+        guildMap.delete(userId);
+    }
+
+    log.info(`Revoked ${revokedCount} grants for user ${userId} in guild ${guildId}`, `PermissionStore`);
+    return revokedCount;
+}

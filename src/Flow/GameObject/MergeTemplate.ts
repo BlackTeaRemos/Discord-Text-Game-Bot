@@ -17,6 +17,7 @@
 
 import { log } from '../../Common/Log.js';
 import type { IGameObjectTemplate } from '../../Domain/GameObject/IGameObjectTemplate.js';
+import type { ITemplateDisplayConfig } from '../../Domain/GameObject/ITemplateDisplayConfig.js';
 import type { IParameterDefinition } from '../../Domain/GameObject/IParameterDefinition.js';
 import type { IParameterValue } from '../../Domain/GameObject/IParameterValue.js';
 import type { IActionDefinition } from '../../Domain/GameObject/IActionDefinition.js';
@@ -238,9 +239,10 @@ export async function AnalyzeMerge(
  * @param newDescription string New description (optional override).
  * @param templateRepository IGameObjectTemplateRepository Template persistence.
  * @param objectRepository IGameObjectRepository Object instance persistence.
+ * @param newDisplayConfig ITemplateDisplayConfig | undefined Optional updated display config.
  * @returns Promise<IMergeExecutionResult> Merge outcome.
  * @example
- * const result = await ExecuteMerge(existing, newParams, newActions, 'desc', tplRepo, objRepo);
+ * const result = await ExecuteMerge(existing, newParams, newActions, 'desc', tplRepo, objRepo, displayConfig);
  */
 export async function ExecuteMerge(
     existingTemplate: IGameObjectTemplate,
@@ -249,6 +251,7 @@ export async function ExecuteMerge(
     newDescription: string,
     templateRepository: IGameObjectTemplateRepository,
     objectRepository: IGameObjectRepository,
+    newDisplayConfig?: ITemplateDisplayConfig,
 ): Promise<IMergeExecutionResult> {
     try {
         // Step 1: Update the template
@@ -256,6 +259,7 @@ export async function ExecuteMerge(
             description: newDescription,
             parameters: newParameters,
             actions: newActions,
+            ...(newDisplayConfig !== undefined ? { displayConfig: newDisplayConfig } : {}),
         });
 
         log.info(`Template "${existingTemplate.name}" definition updated.`, LOG_TAG);

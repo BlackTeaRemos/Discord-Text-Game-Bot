@@ -17,73 +17,120 @@ ${__GetStyles()}
 </style>
 </head>
 <body>
-<div class="container">
-    <h1>Game Object Template Editor</h1>
-
-    <section class="game-context-bar">
-        <div class="context-row">
-            <div class="field context-field">
-                <label for="gameUid">Game UID</label>
-                <input type="text" id="gameUid" placeholder="game_abc123">
+<div class="page-layout">
+    <aside class="dc-sidebar" id="dcSidebar">
+        <h2>Display Config</h2>
+        <div id="dcContent">
+            <div class="dc-panel">
+                <h3 class="dc-subtitle">Style</h3>
+                <div class="dc-style-grid" id="dcStyleGrid">
+                    <div class="dc-style-field"><label>Card BG</label><input type="color" id="dc_cardBackground" value="#000000" onchange="dcUpdateStyle('cardBackground', this.value)"></div>
+                    <div class="dc-style-field"><label>Panel BG</label><input type="color" id="dc_panelBackground" value="#09090b" onchange="dcUpdateStyle('panelBackground', this.value)"></div>
+                    <div class="dc-style-field"><label>Border</label><input type="color" id="dc_borderColor" value="#18181b" onchange="dcUpdateStyle('borderColor', this.value)"></div>
+                    <div class="dc-style-field"><label>Accent</label><input type="color" id="dc_accentColor" value="#f97316" onchange="dcUpdateStyle('accentColor', this.value)"></div>
+                    <div class="dc-style-field"><label>Accent Fill</label><input type="color" id="dc_accentFill" value="#7c2d12" onchange="dcUpdateStyle('accentFill', this.value)"></div>
+                    <div class="dc-style-field"><label>Text Primary</label><input type="color" id="dc_textPrimary" value="#f4f4f5" onchange="dcUpdateStyle('textPrimary', this.value)"></div>
+                    <div class="dc-style-field"><label>Text Value</label><input type="color" id="dc_textValue" value="#d4d4d8" onchange="dcUpdateStyle('textValue', this.value)"></div>
+                    <div class="dc-style-field"><label>Text Label</label><input type="color" id="dc_textLabel" value="#52525b" onchange="dcUpdateStyle('textLabel', this.value)"></div>
+                    <div class="dc-style-field"><label>Text Sec.</label><input type="color" id="dc_textSecondary" value="#a1a1aa" onchange="dcUpdateStyle('textSecondary', this.value)"></div>
+                    <div class="dc-style-field"><label>Text Muted</label><input type="color" id="dc_textMuted" value="#3f3f46" onchange="dcUpdateStyle('textMuted', this.value)"></div>
+                    <div class="dc-style-field"><label>Radius</label><input type="number" id="dc_cardBorderRadius" value="0" min="0" max="24" style="width:50px;" onchange="dcUpdateStyle('cardBorderRadius', parseInt(this.value))"></div>
+                </div>
+                <button class="btn-add" style="margin-top:4px;font-size:11px;" onclick="dcResetStyleDefaults()">Reset Defaults</button>
             </div>
-            <button class="btn-fetch" onclick="fetchTemplates()">Load Templates</button>
+            <div class="dc-panel">
+                <h3 class="dc-subtitle">Groups <button class="btn-add" onclick="dcAddGroup()">+ Group</button></h3>
+                <p style="font-size:11px;color:#52525b;margin-bottom:8px;">Drag params from the editor to assign. Drag groups to reorder.</p>
+                <div id="dcGroupsContainer"></div>
+            </div>
+            <div class="dc-panel">
+                <h3 class="dc-subtitle" style="color:#f97316;">Charts <button class="btn-add" onclick="dcAddChart()">+ Chart</button></h3>
+                <p style="font-size:11px;color:#52525b;margin-bottom:8px;">Drag params from the editor for multi-parameter charts.</p>
+                <div id="dcChartsContainer"></div>
+            </div>
+            <div class="dc-panel">
+                <h3 class="dc-subtitle">Layout Order</h3>
+                <p style="font-size:11px;color:#52525b;margin-bottom:8px;">Drag to set rendering order of groups and charts.</p>
+                <div id="dcLayoutOrderContainer"></div>
+            </div>
         </div>
-        <div id="availableRefsPanel" class="refs-panel" style="display:none;">
-            <h3>Available Cross-References</h3>
-            <div id="refsList" class="refs-list"></div>
-        </div>
-    </section>
+    </aside>
 
-    <details class="docs-panel">
-        <summary class="docs-toggle">Expression Language Reference</summary>
-        <div class="docs-content">
+    <main class="main-content">
+        <nav class="editor-nav">
+            <a href="/tutorial" class="nav-link">Tutorial</a>
+        </nav>
+
+        <section class="game-context-bar">
+            <div class="context-row">
+                <div class="field context-field">
+                    <label for="gameUid">Game UID</label>
+                    <input type="text" id="gameUid" placeholder="game_abc123">
+                </div>
+                <button class="btn-fetch" onclick="fetchTemplates()">Load Templates</button>
+            </div>
+            <div id="availableRefsPanel" class="refs-panel" style="display:none;">
+                <h3>Available Cross-References</h3>
+                <div id="refsList" class="refs-list"></div>
+            </div>
+        </section>
+
+        <details class="docs-panel">
+            <summary class="docs-toggle">Expression Language Reference</summary>
+            <div class="docs-content">
 ${__GetDocsHtml()}
-        </div>
-    </details>
-
-    <div class="editor-layout">
-        <div class="form-panel">
-            <section class="section">
-                <h2>General</h2>
-                <div class="field">
-                    <label for="templateName">Name</label>
-                    <input type="text" id="templateName" placeholder="Factory" oninput="updatePreview()">
-                </div>
-                <div class="field">
-                    <label for="templateDescription">Description</label>
-                    <textarea id="templateDescription" rows="2" placeholder="A production building that converts raw materials." oninput="updatePreview()"></textarea>
-                </div>
-            </section>
-
-            <section class="section">
-                <h2>Parameters <button class="btn-add" onclick="addParameter()">+ Add</button></h2>
-                <div id="parametersContainer"></div>
-            </section>
-
-            <section class="section">
-                <h2>Actions <button class="btn-add" onclick="addAction()">+ Add</button></h2>
-                <div id="actionsContainer"></div>
-            </section>
-        </div>
-
-        <div class="preview-panel">
-            <div class="preview-header">
-                <h2>JSON Preview</h2>
-                <div class="preview-actions">
-                    <button class="btn-validate" onclick="validateOnServer()">Validate</button>
-                    <button class="btn-copy" onclick="copyJson()">Copy</button>
-                    <button class="btn-download" onclick="downloadJson()">Download</button>
-                    <label class="btn-upload">
-                        Upload
-                        <input type="file" accept=".json" onchange="uploadJson(event)" hidden>
-                    </label>
-                </div>
             </div>
-            <pre id="jsonPreview" class="json-preview"></pre>
-            <div id="validationMessages" class="validation-messages"></div>
-            <div id="serverValidationMessages" class="validation-messages"></div>
+        </details>
+
+        <div class="editor-layout">
+            <div class="form-panel">
+                <section class="section">
+                    <h2>General</h2>
+                    <div class="field">
+                        <label for="templateName">Name</label>
+                        <input type="text" id="templateName" placeholder="Factory" oninput="updatePreview()">
+                    </div>
+                    <div class="field">
+                        <label for="templateDescription">Description</label>
+                        <textarea id="templateDescription" rows="2" placeholder="A production building that converts raw materials." oninput="updatePreview()"></textarea>
+                    </div>
+                </section>
+
+                <section class="section">
+                    <h2>Parameters <button class="btn-add" onclick="addParameter()">+ Add</button></h2>
+                    <div id="parametersContainer"></div>
+                </section>
+
+                <section class="section">
+                    <h2>Actions <button class="btn-add" onclick="addAction()">+ Add</button></h2>
+                    <div id="actionsContainer"></div>
+                </section>
+            </div>
+
+            <div class="preview-panel">
+                <div class="preview-header">
+                    <h2>JSON Preview</h2>
+                    <div class="preview-actions">
+                        <button class="btn-validate" onclick="validateOnServer()">Validate</button>
+                        <button class="btn-copy" onclick="copyJson()">Copy</button>
+                        <button class="btn-download" onclick="downloadJson()">Download</button>
+                        <label class="btn-upload">
+                            Upload
+                            <input type="file" accept=".json" onchange="uploadJson(event)" hidden>
+                        </label>
+                    </div>
+                </div>
+                <pre id="jsonPreview" class="json-preview"></pre>
+                <div id="validationMessages" class="validation-messages"></div>
+                <div id="serverValidationMessages" class="validation-messages"></div>
+
+                <details class="card-preview-panel" open>
+                    <summary class="card-preview-toggle">Card Preview</summary>
+                    <div id="cardPreviewContainer" class="card-preview-container"></div>
+                </details>
+            </div>
         </div>
-    </div>
+    </main>
 </div>
 <script>
 ${__GetScript()}
@@ -100,25 +147,50 @@ function __GetStyles(): string {
     return `
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: #1a1a2e;
-    color: #e0e0e0;
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #09090b;
+    color: #f4f4f5;
     line-height: 1.5;
 }
-.container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 20px;
+.page-layout {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    min-height: 100vh;
+}
+.main-content {
+    padding: 20px 24px;
+    overflow-y: auto;
 }
 h1 {
     text-align: center;
+    margin-bottom: 8px;
+    color: #f97316;
+}
+.editor-nav {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
     margin-bottom: 20px;
-    color: #7c83ff;
+}
+.nav-link {
+    color: #a1a1aa;
+    text-decoration: none;
+    font-size: 13px;
+    padding: 4px 10px;
+    border: 1px solid #3f3f46;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+.nav-link:hover {
+    background: #27272a;
 }
 h2 {
-    font-size: 1.1rem;
+    font-size: 16px;
+    font-weight: 600;
     margin-bottom: 12px;
-    color: #a0a8ff;
+    color: #a1a1aa;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -128,12 +200,76 @@ h2 {
     grid-template-columns: 1fr 1fr;
     gap: 24px;
 }
+@media (max-width: 1200px) {
+    .page-layout { grid-template-columns: 300px 1fr; }
+}
 @media (max-width: 900px) {
+    .page-layout { grid-template-columns: 1fr; }
+    .dc-sidebar { height: auto; position: static; border-right: none; border-bottom: 1px solid #27272a; }
     .editor-layout { grid-template-columns: 1fr; }
 }
+.dc-sidebar {
+    background: #18181b;
+    border-right: 1px solid #27272a;
+    padding: 16px;
+    overflow-y: auto;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+}
+.dc-sidebar h2 {
+    font-size: 14px;
+    color: #f97316;
+    margin: 0 0 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.dc-enable-row { margin-bottom: 12px; }
+.dc-panel { margin-bottom: 12px; }
+.dc-subtitle {
+    font-size: 12px;
+    color: #a1a1aa;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.dc-style-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+}
+.dc-style-field {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.dc-style-field label {
+    font-size: 11px;
+    color: #71717a;
+    white-space: nowrap;
+    min-width: 55px;
+}
+.dc-style-field input[type="color"] {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 1px solid #3f3f46;
+    border-radius: 3px;
+    cursor: pointer;
+    background: transparent;
+}
+.dc-style-field input[type="number"] {
+    width: 50px;
+    padding: 4px 6px;
+    font-size: 12px;
+}
 .form-panel, .preview-panel {
-    background: #16213e;
-    border-radius: 8px;
+    background: #18181b;
+    border: 1px solid #27272a;
+    border-radius: 6px;
     padding: 20px;
 }
 .preview-panel {
@@ -145,7 +281,7 @@ h2 {
 }
 .section {
     margin-bottom: 20px;
-    border-bottom: 1px solid #2a2a4a;
+    border-bottom: 1px solid #27272a;
     padding-bottom: 16px;
 }
 .section:last-child { border-bottom: none; }
@@ -154,31 +290,67 @@ h2 {
 }
 .field label {
     display: block;
-    font-size: 0.85rem;
-    color: #8888aa;
+    font-size: 12px;
+    color: #71717a;
     margin-bottom: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 input, textarea, select {
     width: 100%;
-    padding: 8px 10px;
-    background: #0f3460;
-    border: 1px solid #2a2a6a;
+    padding: 8px 12px;
+    background: #09090b;
+    border: 1px solid #3f3f46;
     border-radius: 4px;
-    color: #e0e0e0;
-    font-size: 0.9rem;
+    color: #f4f4f5;
+    font-size: 14px;
     font-family: inherit;
 }
 input:focus, textarea:focus, select:focus {
     outline: none;
-    border-color: #7c83ff;
+    border-color: #f97316;
 }
 .param-row, .action-row {
-    background: #0d1b3e;
-    border: 1px solid #1a2a5e;
+    background: #09090b;
+    border: 1px solid #27272a;
     border-radius: 6px;
-    padding: 12px;
     margin-bottom: 10px;
     position: relative;
+    overflow: hidden;
+}
+.action-row { padding: 12px; }
+.param-row.dragging { opacity: 0.4; }
+.param-key-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #18181b;
+    border-bottom: 1px solid #27272a;
+    cursor: grab;
+    user-select: none;
+    transition: background 0.15s;
+}
+.param-key-header:active { cursor: grabbing; }
+.param-key-header:hover { background: #1e1e22; }
+.param-key-header .param-drag-icon { color: #52525b; font-size: 14px; flex-shrink: 0; }
+.param-key-header input[data-field="key"] {
+    flex: 1;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    background: #09090b;
+    border: 1px solid #3f3f46;
+    border-radius: 4px;
+    color: #f97316;
+    padding: 4px 8px;
+    cursor: text;
+}
+.param-key-header .btn-remove {
+    position: static;
+    flex-shrink: 0;
+}
+.param-fields {
+    padding: 10px 12px;
 }
 .param-grid {
     display: grid;
@@ -195,53 +367,54 @@ input:focus, textarea:focus, select:focus {
     position: absolute;
     top: 8px;
     right: 8px;
-    background: #e74c3c;
-    color: white;
-    border: none;
+    background: #7f1d1d;
+    color: #fca5a5;
+    border: 1px solid #ef4444;
     border-radius: 3px;
     cursor: pointer;
     padding: 2px 8px;
-    font-size: 0.8rem;
+    font-size: 12px;
 }
-.btn-remove:hover { background: #c0392b; }
+.btn-remove:hover { background: #991b1b; }
 .btn-add {
-    background: #2ecc71;
-    color: white;
-    border: none;
+    background: #27272a;
+    color: #f4f4f5;
+    border: 1px solid #3f3f46;
     border-radius: 4px;
     padding: 4px 12px;
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: 12px;
 }
-.btn-add:hover { background: #27ae60; }
+.btn-add:hover { background: #3f3f46; }
 .btn-copy, .btn-download, .btn-upload, .btn-validate {
-    background: #3498db;
-    color: white;
-    border: none;
+    background: #27272a;
+    color: #f4f4f5;
+    border: 1px solid #3f3f46;
     border-radius: 4px;
     padding: 6px 14px;
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: 12px;
 }
-.btn-copy:hover, .btn-download:hover, .btn-upload:hover { background: #2980b9; }
+.btn-copy:hover, .btn-download:hover, .btn-upload:hover { background: #3f3f46; }
 .btn-validate {
-    background: #9b59b6;
+    background: #7c2d12;
+    border-color: #f97316;
 }
-.btn-validate:hover { background: #8e44ad; }
+.btn-validate:hover { background: #9a3412; }
 .btn-validate.loading {
     opacity: 0.6;
     cursor: wait;
 }
 .json-preview {
-    background: #0a0a1e;
-    border: 1px solid #1a1a4a;
+    background: #09090b;
+    border: 1px solid #27272a;
     border-radius: 6px;
     padding: 16px;
     font-family: 'Fira Code', 'Consolas', monospace;
-    font-size: 0.85rem;
+    font-size: 13px;
     white-space: pre-wrap;
     word-break: break-word;
-    color: #a8e6cf;
+    color: #d4d4d8;
     min-height: 200px;
     max-height: 60vh;
     overflow-y: auto;
@@ -258,18 +431,18 @@ input:focus, textarea:focus, select:focus {
 }
 .validation-messages {
     margin-top: 10px;
-    font-size: 0.85rem;
+    font-size: 13px;
 }
 .validation-error {
-    color: #e74c3c;
+    color: #ef4444;
     padding: 4px 0;
 }
 .validation-ok {
-    color: #2ecc71;
+    color: #22c55e;
     padding: 4px 0;
 }
 .validation-warning {
-    color: #f39c12;
+    color: #f59e0b;
     padding: 4px 0;
 }
 .expression-list {
@@ -283,22 +456,22 @@ input:focus, textarea:focus, select:focus {
 }
 .expression-row input { flex: 1; }
 .btn-expr-remove {
-    background: #555;
-    color: white;
-    border: none;
+    background: #27272a;
+    color: #a1a1aa;
+    border: 1px solid #3f3f46;
     border-radius: 3px;
     cursor: pointer;
     padding: 2px 6px;
-    font-size: 0.8rem;
+    font-size: 12px;
 }
 .btn-expr-add {
-    background: #555;
-    color: #aaa;
-    border: 1px dashed #666;
+    background: transparent;
+    color: #71717a;
+    border: 1px dashed #3f3f46;
     border-radius: 3px;
     cursor: pointer;
     padding: 4px 8px;
-    font-size: 0.8rem;
+    font-size: 12px;
     margin-top: 4px;
 }
 .checkbox-field {
@@ -309,17 +482,68 @@ input:focus, textarea:focus, select:focus {
 .checkbox-field input[type="checkbox"] {
     width: auto;
 }
+/* Display config inline section */
+.dc-group-card { background: #09090b; border: 1px solid #27272a; border-radius: 4px; padding: 10px; margin-bottom: 8px; transition: opacity 0.15s, border-color 0.15s; }
+.dc-group-card[draggable="true"] { cursor: grab; }
+.dc-group-card[draggable="true"]:active { cursor: grabbing; }
+.dc-group-card.dragging { opacity: 0.4; }
+.dc-group-card.drag-over { border-color: #f97316; }
+.dc-group-header { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
+.dc-group-header input { flex: 1; }
+.dc-drop-zone { min-height: 28px; border: 1px dashed #27272a; border-radius: 4px; padding: 4px; transition: border-color 0.15s, background 0.15s; }
+.dc-drop-zone.drag-over { border-color: #f97316; background: #09090b; }
+.dc-drop-zone-empty { padding: 8px; text-align: center; color: #3f3f46; font-size: 11px; }
+.dc-param-row { display: flex; gap: 6px; align-items: center; padding: 6px 4px; border-bottom: 1px solid #27272a; font-size: 12px; transition: opacity 0.15s, background 0.15s; }
+.dc-param-row:last-child { border-bottom: none; }
+.dc-param-row[draggable="true"] { cursor: grab; }
+.dc-param-row[draggable="true"]:active { cursor: grabbing; }
+.dc-param-row.dragging { opacity: 0.4; }
+.dc-param-name { width: 140px; font-weight: 600; color: #d4d4d8; font-size: 13px; }
+.dc-param-field { display: flex; flex-direction: column; }
+.dc-param-field label { font-size: 9px; color: #52525b; }
+.dc-param-field select, .dc-param-field input { padding: 3px 6px; font-size: 11px; }
+.dc-drag-handle { cursor: grab; color: #52525b; user-select: none; font-size: 12px; }
+/* Card preview */
+.card-preview-panel { margin-top: 16px; border: 1px solid #27272a; border-radius: 6px; }
+.card-preview-panel[open] { padding-bottom: 12px; }
+.card-preview-toggle { padding: 12px 16px; cursor: pointer; color: #a1a1aa; font-weight: 600; list-style: none; font-size: 14px; }
+.card-preview-toggle::-webkit-details-marker { display: none; }
+.card-preview-toggle::before { content: '\\25b6'; margin-right: 8px; font-size: 10px; display: inline-block; transition: transform 0.2s; }
+.card-preview-panel[open] .card-preview-toggle::before { transform: rotate(90deg); }
+.card-preview-container { padding: 12px 16px; display: flex; justify-content: center; }
+.card-mock { width: 400px; border-radius: var(--card-radius, 0); overflow: hidden; font-family: Inter, system-ui, sans-serif; }
+.card-mock .cm-accent-bar { height: 3px; width: 100%; }
+.card-mock .cm-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--cm-border); }
+.card-mock .cm-name { font-size: 16px; font-weight: 700; font-family: Quantico, sans-serif; text-transform: uppercase; color: var(--cm-text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card-mock .cm-type { font-size: 11px; color: var(--cm-text-muted); white-space: nowrap; }
+.card-mock .cm-section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-text-label); padding: 8px 16px 4px; border-bottom: 1px solid var(--cm-border); }
+.card-mock .cm-desc { font-size: 13px; color: var(--cm-text-secondary); padding: 6px 16px 10px; line-height: 1.5; border-bottom: 1px solid var(--cm-border); }
+.card-mock .cm-row { display: flex; align-items: center; height: 32px; padding: 0 16px; border-bottom: 1px solid var(--cm-border); position: relative; overflow: hidden; }
+.card-mock .cm-graph-bg { position: absolute; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.15; pointer-events: none; }
+.card-mock .cm-graph-bg svg { width: 100%; height: 100%; display: block; }
+.card-mock .cm-row-label { font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--cm-text-label); flex-shrink: 0; position: relative; z-index: 1; }
+.card-mock .cm-row-value { font-size: 13px; font-weight: 700; color: var(--cm-text-value); background: #00000066; padding: 0 4px; border-radius: 2px; margin-left: 8px; position: relative; z-index: 1; }
+.card-mock .cm-group-chart { padding: 8px 16px; border-bottom: 1px solid var(--cm-border); }
+.card-mock .cm-group-chart svg { width: 100%; display: block; border-radius: 3px; background: #00000033; }
+.card-mock .cm-chart-legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.card-mock .cm-legend-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--cm-text-secondary); }
+.card-mock .cm-legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.card-mock .cm-action-row { display: flex; align-items: center; gap: 8px; padding: 6px 16px; border-bottom: 1px solid var(--cm-border); }
+.card-mock .cm-action-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.card-mock .cm-action-label { font-size: 13px; font-weight: 500; color: var(--cm-text-value); }
+.card-mock .cm-action-trigger { font-size: 10px; color: var(--cm-accent); opacity: 0.7; }
+.card-mock .cm-footer { display: flex; justify-content: flex-end; align-items: center; padding: 8px 16px; border-top: 1px solid var(--cm-border); font-size: 10px; color: var(--cm-text-muted); }
 /* Docs panel styles */
 .docs-panel {
-    background: #16213e;
-    border-radius: 8px;
+    background: #18181b;
+    border-radius: 6px;
     margin-bottom: 20px;
-    border: 1px solid #2a2a5e;
+    border: 1px solid #27272a;
 }
 .docs-toggle {
     padding: 14px 20px;
     cursor: pointer;
-    color: #a0a8ff;
+    color: #a1a1aa;
     font-size: 1rem;
     font-weight: 600;
     user-select: none;
@@ -338,22 +562,22 @@ input:focus, textarea:focus, select:focus {
 }
 .docs-content {
     padding: 0 20px 20px;
-    font-size: 0.9rem;
+    font-size: 14px;
     line-height: 1.7;
 }
 .docs-content h3 {
-    color: #7c83ff;
+    color: #f97316;
     margin: 16px 0 8px;
     font-size: 1rem;
 }
 .docs-content h3:first-child { margin-top: 0; }
 .docs-content code {
-    background: #0a0a1e;
+    background: #09090b;
     padding: 2px 6px;
     border-radius: 3px;
     font-family: 'Fira Code', 'Consolas', monospace;
-    font-size: 0.85rem;
-    color: #a8e6cf;
+    font-size: 13px;
+    color: #d4d4d8;
 }
 .docs-content table {
     width: 100%;
@@ -361,40 +585,40 @@ input:focus, textarea:focus, select:focus {
     margin: 8px 0;
 }
 .docs-content th, .docs-content td {
-    border: 1px solid #2a2a5e;
+    border: 1px solid #27272a;
     padding: 6px 10px;
     text-align: left;
 }
 .docs-content th {
-    background: #0f3460;
-    color: #a0a8ff;
+    background: #27272a;
+    color: #a1a1aa;
     font-weight: 600;
 }
-.docs-content td { background: #0d1b3e; }
+.docs-content td { background: #09090b; }
 .docs-content .example-block {
-    background: #0a0a1e;
-    border: 1px solid #1a1a4a;
+    background: #09090b;
+    border: 1px solid #27272a;
     border-radius: 4px;
     padding: 10px 14px;
     margin: 8px 0;
     font-family: 'Fira Code', 'Consolas', monospace;
-    font-size: 0.85rem;
-    color: #a8e6cf;
+    font-size: 13px;
+    color: #d4d4d8;
     white-space: pre-wrap;
 }
 /* Server validation results */
 .server-validation-header {
-    color: #a0a8ff;
+    color: #f97316;
     font-weight: 600;
     margin-bottom: 6px;
 }
 /* Game context bar */
 .game-context-bar {
-    background: #16213e;
-    border-radius: 8px;
+    background: #18181b;
+    border-radius: 6px;
     padding: 16px 20px;
     margin-bottom: 20px;
-    border: 1px solid #2a2a5e;
+    border: 1px solid #27272a;
 }
 .context-row {
     display: flex;
@@ -403,28 +627,30 @@ input:focus, textarea:focus, select:focus {
 }
 .context-field { flex: 1; margin-bottom: 0; }
 .btn-fetch {
-    background: #e67e22;
-    color: white;
-    border: none;
+    background: #7c2d12;
+    color: #f4f4f5;
+    border: 1px solid #f97316;
     border-radius: 4px;
     padding: 8px 18px;
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: 14px;
     white-space: nowrap;
     height: 36px;
 }
-.btn-fetch:hover { background: #d35400; }
+.btn-fetch:hover { background: #9a3412; }
 .btn-fetch.loading { opacity: 0.6; cursor: wait; }
 /* Available cross-references panel */
 .refs-panel {
     margin-top: 14px;
-    border-top: 1px solid #2a2a5e;
+    border-top: 1px solid #27272a;
     padding-top: 12px;
 }
 .refs-panel h3 {
-    color: #a0a8ff;
-    font-size: 0.95rem;
+    color: #a1a1aa;
+    font-size: 14px;
     margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 .refs-list {
     display: flex;
@@ -432,45 +658,45 @@ input:focus, textarea:focus, select:focus {
     gap: 10px;
 }
 .ref-template-group {
-    background: #0d1b3e;
-    border: 1px solid #1a2a5e;
+    background: #09090b;
+    border: 1px solid #27272a;
     border-radius: 6px;
     padding: 10px;
     min-width: 180px;
     max-width: 300px;
 }
 .ref-template-name {
-    color: #7c83ff;
+    color: #f97316;
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 14px;
     margin-bottom: 6px;
 }
 .ref-param-tag {
     display: inline-block;
-    background: #0f3460;
-    border: 1px solid #2a2a6a;
+    background: #27272a;
+    border: 1px solid #3f3f46;
     border-radius: 3px;
     padding: 2px 8px;
     margin: 2px;
-    font-size: 0.8rem;
+    font-size: 12px;
     font-family: 'Fira Code', 'Consolas', monospace;
-    color: #a8e6cf;
+    color: #d4d4d8;
     cursor: pointer;
     user-select: all;
     transition: border-color 0.15s;
 }
-.ref-param-tag:hover { border-color: #7c83ff; }
+.ref-param-tag:hover { border-color: #f97316; }
 .ref-no-params {
-    color: #666;
-    font-size: 0.8rem;
+    color: #52525b;
+    font-size: 12px;
     font-style: italic;
 }
 /* Autocomplete dropdown */
 .autocomplete-dropdown {
     position: absolute;
     z-index: 100;
-    background: #0d1b3e;
-    border: 1px solid #7c83ff;
+    background: #18181b;
+    border: 1px solid #f97316;
     border-radius: 4px;
     max-height: 200px;
     overflow-y: auto;
@@ -481,29 +707,29 @@ input:focus, textarea:focus, select:focus {
     padding: 6px 12px;
     cursor: pointer;
     font-family: 'Fira Code', 'Consolas', monospace;
-    font-size: 0.85rem;
-    color: #a8e6cf;
-    border-bottom: 1px solid #1a2a5e;
+    font-size: 13px;
+    color: #d4d4d8;
+    border-bottom: 1px solid #27272a;
 }
 .autocomplete-item:last-child { border-bottom: none; }
 .autocomplete-item:hover,
 .autocomplete-item.selected {
-    background: #0f3460;
+    background: #27272a;
 }
 .autocomplete-item .ac-template-label {
-    color: #7c83ff;
+    color: #f97316;
     font-weight: 600;
 }
 .autocomplete-item .ac-param-label {
-    color: #888;
+    color: #52525b;
     margin-left: 6px;
-    font-size: 0.78rem;
+    font-size: 12px;
 }
 /* Docs subheadings */
 .docs-content h4 {
-    color: #8888cc;
+    color: #a1a1aa;
     margin: 12px 0 6px;
-    font-size: 0.92rem;
+    font-size: 14px;
 }
 `;
 }
@@ -651,6 +877,861 @@ function __GetScript(): string {
 let parameterCounter = 0;
 let actionCounter = 0;
 
+/* ── Display Config State ── */
+var _dcEnabled = true;
+var _dcConfig = { groups: [], parameterDisplay: [], charts: [], styleConfig: {} };
+var _dcDragType = null;
+var _dcDragIndex = null;
+var _dcDragParamKey = null;
+
+var DC_STYLE_DEFAULTS = {
+    cardBackground: '#000000', panelBackground: '#09090b', borderColor: '#18181b',
+    accentColor: '#f97316', accentFill: '#7c2d12', textPrimary: '#f4f4f5',
+    textValue: '#d4d4d8', textLabel: '#52525b', textSecondary: '#a1a1aa',
+    textMuted: '#3f3f46', cardBorderRadius: 0,
+};
+
+function toggleDisplayConfig(enabled) {
+    _dcEnabled = true;
+    dcRenderAll();
+    updatePreview();
+}
+
+function dcUpdateStyle(field, value) {
+    if (!_dcConfig.styleConfig) { _dcConfig.styleConfig = {}; }
+    if (field === 'cardBorderRadius') { value = parseInt(value, 10) || 0; }
+    _dcConfig.styleConfig[field] = value;
+    updatePreview();
+}
+
+function dcResetStyleDefaults() {
+    _dcConfig.styleConfig = {};
+    dcRenderStyleFields();
+    updatePreview();
+}
+
+function dcRenderStyleFields() {
+    var styleConfig = _dcConfig.styleConfig || {};
+    var colorFields = ['cardBackground','panelBackground','borderColor','accentColor','accentFill','textPrimary','textValue','textLabel','textSecondary','textMuted'];
+    colorFields.forEach(function(field) {
+        var input = document.getElementById('dc_' + field);
+        if (input) { input.value = styleConfig[field] || DC_STYLE_DEFAULTS[field]; }
+    });
+    var radiusInput = document.getElementById('dc_cardBorderRadius');
+    if (radiusInput) { radiusInput.value = styleConfig.cardBorderRadius !== undefined ? styleConfig.cardBorderRadius : 0; }
+}
+
+function dcAddGroup() {
+    var nextOrder = _dcConfig.groups.length + (_dcConfig.charts ? _dcConfig.charts.length : 0);
+    _dcConfig.groups.push({ key: 'group_' + _dcConfig.groups.length, label: 'Group ' + _dcConfig.groups.length, sortOrder: nextOrder });
+    dcRenderGroupsAndParams();
+    dcRenderLayoutOrder();
+    updatePreview();
+}
+
+function dcRemoveGroup(groupIndex) {
+    var removedKey = _dcConfig.groups[groupIndex].key;
+    _dcConfig.groups.splice(groupIndex, 1);
+    _dcConfig.parameterDisplay.forEach(function(pd) { if (pd.group === removedKey) { pd.group = ''; } });
+    dcRenderGroupsAndParams();
+    dcRenderLayoutOrder();
+    updatePreview();
+}
+
+function dcUpdateGroup(groupIndex, field, value) {
+    if (_dcConfig.groups[groupIndex]) { _dcConfig.groups[groupIndex][field] = value; }
+    updatePreview();
+}
+
+function dcUpdateParam(paramKey, field, value) {
+    var entry = _dcConfig.parameterDisplay.find(function(pd) { return pd.key === paramKey; });
+    if (!entry) {
+        entry = { key: paramKey, group: '', graphType: 'sparkline', hidden: false, displayOrder: 999 };
+        _dcConfig.parameterDisplay.push(entry);
+    }
+    entry[field] = value;
+    updatePreview();
+}
+
+function dcRenderAll() {
+    dcRenderStyleFields();
+    dcRenderGroupsAndParams();
+    dcRenderCharts();
+    dcRenderLayoutOrder();
+}
+
+/** Lightweight re-render of DC groups if enabled. Safe to call from param add/remove. */
+function dcRefreshIfEnabled() {
+    dcRenderGroupsAndParams();
+    dcRenderCharts();
+}
+
+function dcGetCurrentParamDefs() {
+    var paramDefs = [];
+    var rows = document.getElementById('parametersContainer').children;
+    for (var rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+        var row = rows[rowIndex];
+        var keyInput = row.querySelector('[data-field="key"]');
+        var labelInput = row.querySelector('[data-field="label"]');
+        if (keyInput && keyInput.value) {
+            paramDefs.push({ key: keyInput.value, label: labelInput ? labelInput.value : keyInput.value });
+        }
+    }
+    return paramDefs;
+}
+
+function dcRenderGroupsAndParams() {
+    var container = document.getElementById('dcGroupsContainer');
+    if (!container) return;
+    container.innerHTML = '';
+
+    var paramDefs = dcGetCurrentParamDefs();
+    var paramMap = {};
+    (_dcConfig.parameterDisplay || []).forEach(function(pd) { paramMap[pd.key] = pd; });
+
+    var groupedParams = {};
+    _dcConfig.groups.forEach(function(groupItem) { groupedParams[groupItem.key] = []; });
+
+    paramDefs.forEach(function(pDef) {
+        var pd = paramMap[pDef.key] || { key: pDef.key, group: '', graphType: 'sparkline', hidden: false, displayOrder: 999 };
+        if (pd.group && groupedParams[pd.group]) {
+            groupedParams[pd.group].push({ def: pDef, display: pd });
+        }
+    });
+
+    Object.keys(groupedParams).forEach(function(groupKey) {
+        groupedParams[groupKey].sort(function(itemA, itemB) { return (itemA.display.displayOrder || 999) - (itemB.display.displayOrder || 999); });
+    });
+
+    _dcConfig.groups.forEach(function(group, groupIndex) {
+        var card = document.createElement('div');
+        card.className = 'dc-group-card';
+        card.draggable = true;
+        card.dataset.groupIndex = groupIndex;
+
+        var header = document.createElement('div');
+        header.className = 'dc-group-header';
+        header.innerHTML =
+            '<span class="dc-drag-handle" title="Drag to reorder">\\u2630</span>' +
+            '<input type="text" value="' + dcEscapeAttr(group.key) + '" placeholder="key" style="width:90px;" onchange="dcUpdateGroup(' + groupIndex + ',\\'key\\',this.value); dcRenderGroupsAndParams();" onclick="event.stopPropagation();">' +
+            '<input type="text" value="' + dcEscapeAttr(group.label) + '" placeholder="Label" onchange="dcUpdateGroup(' + groupIndex + ',\\'label\\',this.value); dcRenderGroupsAndParams();" onclick="event.stopPropagation();">' +
+            '<button class="btn-remove" style="position:static;" onclick="event.stopPropagation(); dcRemoveGroup(' + groupIndex + ');">x</button>';
+        card.appendChild(header);
+
+        // Drop zone with param rows
+        var dropZone = document.createElement('div');
+        dropZone.className = 'dc-drop-zone';
+        dropZone.dataset.groupKey = group.key;
+        var groupParams = groupedParams[group.key] || [];
+        if (groupParams.length === 0) {
+            dropZone.innerHTML = '<div class="dc-drop-zone-empty">Drop params here</div>';
+        } else {
+            groupParams.forEach(function(entry) {
+                dropZone.appendChild(dcBuildGroupParamRow(entry.def, entry.display, group.key));
+            });
+        }
+
+        dropZone.addEventListener('dragover', function(ev) { if (_dcDragType !== 'dcparam') return; ev.preventDefault(); dropZone.classList.add('drag-over'); });
+        dropZone.addEventListener('dragleave', function(ev) { if (!dropZone.contains(ev.relatedTarget)) dropZone.classList.remove('drag-over'); });
+        dropZone.addEventListener('drop', function(ev) { ev.preventDefault(); dropZone.classList.remove('drag-over'); if (_dcDragType === 'dcparam' && _dcDragParamKey) dcAssignParamToGroup(_dcDragParamKey, group.key); });
+        card.appendChild(dropZone);
+
+        // Group card DnD for reordering groups
+        card.addEventListener('dragstart', function(ev) { if (ev.target !== card) return; ev.dataTransfer.setData('text/plain', group.key); ev.dataTransfer.effectAllowed = 'move'; _dcDragType = 'dcgroup'; _dcDragIndex = groupIndex; card.classList.add('dragging'); });
+        card.addEventListener('dragend', function() { _dcDragType = null; _dcDragIndex = null; card.classList.remove('dragging'); document.querySelectorAll('.drag-over').forEach(function(el) { el.classList.remove('drag-over'); }); });
+        card.addEventListener('dragover', function(ev) { if (_dcDragType !== 'dcgroup') return; ev.preventDefault(); card.classList.add('drag-over'); });
+        card.addEventListener('dragleave', function(ev) { if (!card.contains(ev.relatedTarget)) card.classList.remove('drag-over'); });
+        card.addEventListener('drop', function(ev) { ev.preventDefault(); ev.stopPropagation(); card.classList.remove('drag-over'); if (_dcDragType === 'dcgroup' && _dcDragIndex !== null) dcSwapGroups(_dcDragIndex, groupIndex); });
+
+        container.appendChild(card);
+    });
+}
+
+function dcAddChart() {
+    if (!_dcConfig.charts) { _dcConfig.charts = []; }
+    var nextOrder = _dcConfig.groups.length + _dcConfig.charts.length;
+    _dcConfig.charts.push({ key: 'chart_' + _dcConfig.charts.length, label: 'Chart ' + _dcConfig.charts.length, chartType: 'combined', parameterKeys: [], chartHeight: 0, sortOrder: nextOrder });
+    dcRenderCharts();
+    dcRenderLayoutOrder();
+    updatePreview();
+}
+
+function dcRemoveChart(chartIndex) {
+    _dcConfig.charts.splice(chartIndex, 1);
+    dcRenderCharts();
+    dcRenderLayoutOrder();
+    updatePreview();
+}
+
+function dcUpdateChart(chartIndex, field, value) {
+    if (_dcConfig.charts && _dcConfig.charts[chartIndex]) { _dcConfig.charts[chartIndex][field] = value; }
+    updatePreview();
+}
+
+function dcRenderCharts() {
+    var container = document.getElementById('dcChartsContainer');
+    if (!container) return;
+    container.innerHTML = '';
+    if (!_dcConfig.charts) { _dcConfig.charts = []; }
+
+    var paramDefs = dcGetCurrentParamDefs();
+    var paramDefMap = {};
+    paramDefs.forEach(function(pDef) { paramDefMap[pDef.key] = pDef; });
+
+    _dcConfig.charts.forEach(function(chart, chartIndex) {
+        var card = document.createElement('div');
+        card.className = 'dc-group-card';
+        card.style.borderColor = '#f9731644';
+
+        var header = document.createElement('div');
+        header.className = 'dc-group-header';
+        header.innerHTML =
+            '<input type="text" value="' + dcEscapeAttr(chart.key) + '" placeholder="key" style="width:90px;" onchange="dcUpdateChart(' + chartIndex + ',\\'key\\',this.value); dcRenderCharts();">' +
+            '<input type="text" value="' + dcEscapeAttr(chart.label || '') + '" placeholder="Label" onchange="dcUpdateChart(' + chartIndex + ',\\'label\\',this.value); dcRenderCharts();">' +
+            '<button class="btn-remove" style="position:static;" onclick="dcRemoveChart(' + chartIndex + ');">x</button>';
+        card.appendChild(header);
+
+        var configRow = document.createElement('div');
+        configRow.style.cssText = 'display:flex;gap:6px;align-items:center;margin-bottom:6px;padding-left:4px;flex-wrap:wrap;';
+        var currentType = chart.chartType || 'combined';
+        var currentHeight = chart.chartHeight || 0;
+        configRow.innerHTML =
+            '<label style="font-size:10px;color:#71717a;text-transform:uppercase;letter-spacing:0.05em;">Type</label>' +
+            '<select style="width:100px;font-size:11px;padding:3px 6px;" onchange="dcUpdateChart(' + chartIndex + ',\\'chartType\\',this.value); dcRenderCharts(); updatePreview();">' +
+            '<option value="combined"' + (currentType === 'combined' ? ' selected' : '') + '>Combined</option>' +
+            '<option value="cumulative"' + (currentType === 'cumulative' ? ' selected' : '') + '>Cumulative</option>' +
+            '<option value="relative"' + (currentType === 'relative' ? ' selected' : '') + '>Relative</option>' +
+            '</select>' +
+            '<label style="font-size:10px;color:#71717a;text-transform:uppercase;letter-spacing:0.05em;margin-left:8px;">Height</label>' +
+            '<input type="number" min="0" step="10" placeholder="auto" value="' + (currentHeight || '') + '" style="width:60px;font-size:11px;padding:3px 6px;" onchange="dcUpdateChart(' + chartIndex + ',\\'chartHeight\\',parseInt(this.value)||0); updatePreview();">' +
+            '<span style="font-size:10px;color:#52525b;">px</span>';
+        card.appendChild(configRow);
+
+        // Drop zone with chart param rows
+        var dropZone = document.createElement('div');
+        dropZone.className = 'dc-drop-zone';
+        var selectedKeys = chart.parameterKeys || [];
+        if (selectedKeys.length === 0) {
+            dropZone.innerHTML = '<div class="dc-drop-zone-empty">Drop params here</div>';
+        } else {
+            selectedKeys.forEach(function(paramKey) {
+                var pDef = paramDefMap[paramKey] || { key: paramKey, label: paramKey };
+                dropZone.appendChild(dcBuildChartParamRow(pDef, chartIndex));
+            });
+        }
+
+        (function(capturedChartIndex) {
+            dropZone.addEventListener('dragover', function(ev) { if (_dcDragType !== 'dcparam') return; ev.preventDefault(); dropZone.classList.add('drag-over'); });
+            dropZone.addEventListener('dragleave', function(ev) { if (!dropZone.contains(ev.relatedTarget)) dropZone.classList.remove('drag-over'); });
+            dropZone.addEventListener('drop', function(ev) { ev.preventDefault(); dropZone.classList.remove('drag-over'); if (_dcDragType === 'dcparam' && _dcDragParamKey) dcAddParamToChart(capturedChartIndex, _dcDragParamKey); });
+        })(chartIndex);
+
+        card.appendChild(dropZone);
+        container.appendChild(card);
+    });
+}
+
+/* ── Helper Functions ── */
+
+/**
+ * Build a param row inside a group drop zone.
+ * Shows Graph type, Hidden toggle, and a remove button.
+ */
+function dcBuildGroupParamRow(paramDef, display, groupKey) {
+    var row = document.createElement('div');
+    row.className = 'dc-param-row';
+    var escapedKey = dcEscapeAttr(paramDef.key);
+    row.innerHTML =
+        '<span class="dc-param-name">' + dcEscapeHtml(paramDef.label || paramDef.key) + '</span>' +
+        '<div class="dc-param-field"><label>Graph</label><select onchange="dcUpdateParam(\\'' + escapedKey + '\\',\\'graphType\\',this.value)">' +
+            '<option value="sparkline"' + (display.graphType === 'sparkline' ? ' selected' : '') + '>Sparkline</option>' +
+            '<option value="bar"' + (display.graphType === 'bar' ? ' selected' : '') + '>Bar</option>' +
+            '<option value="none"' + (display.graphType === 'none' ? ' selected' : '') + '>None</option>' +
+        '</select></div>' +
+        '<div class="dc-param-field"><label>Hide</label><input type="checkbox"' + (display.hidden ? ' checked' : '') + ' onchange="dcUpdateParam(\\'' + escapedKey + '\\',\\'hidden\\',this.checked)"></div>' +
+        '<button class="btn-remove" style="position:static;font-size:10px;" onclick="dcRemoveParamFromGroup(\\'' + escapedKey + '\\')">x</button>';
+    return row;
+}
+
+/**
+ * Build a param row inside a chart drop zone.
+ * Shows the param name and a remove button.
+ */
+function dcBuildChartParamRow(paramDef, chartIndex) {
+    var row = document.createElement('div');
+    row.className = 'dc-param-row';
+    var escapedKey = dcEscapeAttr(paramDef.key);
+    row.innerHTML =
+        '<span class="dc-param-name" style="flex:1;">' + dcEscapeHtml(paramDef.label || paramDef.key) + '</span>' +
+        '<button class="btn-remove" style="position:static;font-size:10px;" onclick="dcRemoveParamFromChart(' + chartIndex + ',\\'' + escapedKey + '\\')">x</button>';
+    return row;
+}
+
+/**
+ * Assign a param to a group (via DnD drop).
+ * A param can only belong to one group. Moves it if already in another.
+ */
+function dcAssignParamToGroup(paramKey, groupKey) {
+    var entry = _dcConfig.parameterDisplay.find(function(pd) { return pd.key === paramKey; });
+    if (!entry) {
+        entry = { key: paramKey, group: '', graphType: 'sparkline', hidden: false, displayOrder: 999 };
+        _dcConfig.parameterDisplay.push(entry);
+    }
+    entry.group = groupKey;
+    var maxOrder = 0;
+    _dcConfig.parameterDisplay.forEach(function(pd) { if (pd.group === groupKey && pd.displayOrder > maxOrder) maxOrder = pd.displayOrder; });
+    entry.displayOrder = maxOrder + 1;
+    dcRenderGroupsAndParams();
+    updatePreview();
+}
+
+/**
+ * Remove a param from its group (unassign).
+ */
+function dcRemoveParamFromGroup(paramKey) {
+    var entry = _dcConfig.parameterDisplay.find(function(pd) { return pd.key === paramKey; });
+    if (entry) { entry.group = ''; }
+    dcRenderGroupsAndParams();
+    updatePreview();
+}
+
+/**
+ * Add a param to a chart (via DnD drop). No-op if already in the chart.
+ */
+function dcAddParamToChart(chartIndex, paramKey) {
+    var chart = _dcConfig.charts[chartIndex];
+    if (!chart) return;
+    if (chart.parameterKeys.indexOf(paramKey) >= 0) return;
+    chart.parameterKeys.push(paramKey);
+    dcRenderCharts();
+    updatePreview();
+}
+
+/**
+ * Remove a param from a chart.
+ */
+function dcRemoveParamFromChart(chartIndex, paramKey) {
+    var chart = _dcConfig.charts[chartIndex];
+    if (!chart) return;
+    var idx = chart.parameterKeys.indexOf(paramKey);
+    if (idx >= 0) { chart.parameterKeys.splice(idx, 1); }
+    dcRenderCharts();
+    updatePreview();
+}
+
+/* ── End Helper Functions ── */
+
+/* ── Layout Order ── */
+var _dcLayoutDragIndex = null;
+
+function dcRenderLayoutOrder() {
+    var container = document.getElementById('dcLayoutOrderContainer');
+    if (!container) return;
+    container.innerHTML = '';
+
+    // Collect all items: groups + charts
+    var items = [];
+    (_dcConfig.groups || []).forEach(function(group, groupIndex) {
+        items.push({ type: 'group', key: group.key, label: group.label || group.key, sortOrder: group.sortOrder || 0, sourceIndex: groupIndex });
+    });
+    (_dcConfig.charts || []).forEach(function(chart, chartIndex) {
+        items.push({ type: 'chart', key: chart.key, label: chart.label || chart.key, sortOrder: chart.sortOrder || 0, sourceIndex: chartIndex });
+    });
+    items.sort(function(itemA, itemB) { return itemA.sortOrder - itemB.sortOrder; });
+
+    items.forEach(function(item, visualIndex) {
+        var row = document.createElement('div');
+        row.draggable = true;
+        row.dataset.layoutIndex = visualIndex;
+        row.style.cssText = 'display:flex;align-items:center;gap:6px;padding:4px 6px;margin-bottom:2px;border-radius:3px;cursor:grab;border:1px solid ' + (item.type === 'chart' ? '#f9731644' : '#3f3f46') + ';background:#18181b;font-size:11px;';
+
+        var typeTag = document.createElement('span');
+        typeTag.style.cssText = 'font-size:9px;text-transform:uppercase;letter-spacing:0.05em;color:' + (item.type === 'chart' ? '#f97316' : '#71717a') + ';width:35px;flex-shrink:0;';
+        typeTag.textContent = item.type === 'chart' ? 'CHART' : 'GROUP';
+        row.appendChild(typeTag);
+
+        var labelSpan = document.createElement('span');
+        labelSpan.style.cssText = 'color:#d4d4d8;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+        labelSpan.textContent = item.label;
+        row.appendChild(labelSpan);
+
+        var orderSpan = document.createElement('span');
+        orderSpan.style.cssText = 'font-size:10px;color:#52525b;';
+        orderSpan.textContent = '#' + item.sortOrder;
+        row.appendChild(orderSpan);
+
+        // DnD
+        (function(capturedVisualIndex) {
+            row.addEventListener('dragstart', function(ev) {
+                ev.dataTransfer.setData('text/plain', String(capturedVisualIndex));
+                ev.dataTransfer.effectAllowed = 'move';
+                _dcLayoutDragIndex = capturedVisualIndex;
+                row.style.opacity = '0.4';
+            });
+            row.addEventListener('dragend', function() {
+                _dcLayoutDragIndex = null;
+                row.style.opacity = '1';
+                document.querySelectorAll('#dcLayoutOrderContainer > div').forEach(function(el) { el.style.borderTop = ''; el.style.borderBottom = ''; });
+            });
+            row.addEventListener('dragover', function(ev) {
+                if (_dcLayoutDragIndex === null) return;
+                ev.preventDefault();
+                ev.dataTransfer.dropEffect = 'move';
+                var rect = row.getBoundingClientRect();
+                var midY = rect.top + rect.height / 2;
+                if (ev.clientY < midY) {
+                    row.style.borderTop = '2px solid #f97316';
+                    row.style.borderBottom = '';
+                } else {
+                    row.style.borderBottom = '2px solid #f97316';
+                    row.style.borderTop = '';
+                }
+            });
+            row.addEventListener('dragleave', function() {
+                row.style.borderTop = '';
+                row.style.borderBottom = '';
+            });
+            row.addEventListener('drop', function(ev) {
+                ev.preventDefault();
+                row.style.borderTop = '';
+                row.style.borderBottom = '';
+                if (_dcLayoutDragIndex === null || _dcLayoutDragIndex === capturedVisualIndex) return;
+                var rect = row.getBoundingClientRect();
+                var midY = rect.top + rect.height / 2;
+                var insertBefore = ev.clientY < midY;
+
+                // Reorder: remove dragged item and insert at new position
+                var draggedItem = items[_dcLayoutDragIndex];
+                var targetPos = insertBefore ? capturedVisualIndex : capturedVisualIndex + 1;
+                if (_dcLayoutDragIndex < targetPos) { targetPos--; }
+                items.splice(_dcLayoutDragIndex, 1);
+                items.splice(targetPos, 0, draggedItem);
+
+                // Reassign sortOrder based on new visual order
+                items.forEach(function(orderedItem, newIndex) {
+                    orderedItem.sortOrder = newIndex;
+                    if (orderedItem.type === 'group') {
+                        _dcConfig.groups[orderedItem.sourceIndex].sortOrder = newIndex;
+                    } else {
+                        _dcConfig.charts[orderedItem.sourceIndex].sortOrder = newIndex;
+                    }
+                });
+                _dcLayoutDragIndex = null;
+                dcRenderLayoutOrder();
+                updatePreview();
+            });
+        })(visualIndex);
+
+        container.appendChild(row);
+    });
+
+    if (items.length === 0) {
+        container.innerHTML = '<span style="font-size:11px;color:#52525b;">Add groups or charts first</span>';
+    }
+}
+
+/* ── End Layout Order ── */
+
+/* ── End Chart Management ── */
+
+function dcSwapGroups(fromIndex, toIndex) {
+    if (fromIndex === toIndex) return;
+    var moved = _dcConfig.groups.splice(fromIndex, 1)[0];
+    _dcConfig.groups.splice(toIndex, 0, moved);
+    _dcConfig.groups.forEach(function(groupItem, idx) { groupItem.sortOrder = idx; });
+    dcRenderGroupsAndParams();
+    updatePreview();
+}
+
+function dcEscapeAttr(text) {
+    return String(text || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;');
+}
+
+function dcEscapeHtml(text) {
+    var div = document.createElement('div');
+    div.textContent = String(text || '');
+    return div.innerHTML;
+}
+
+/* ── End Display Config ── */
+
+/* ── Card Preview ── */
+function renderCardPreview() {
+    var container = document.getElementById('cardPreviewContainer');
+    if (!container) return;
+
+    var templateData = buildJson();
+    var templateName = templateData.name || 'Untitled';
+    var templateDesc = templateData.description || '';
+    var parameters = templateData.parameters || [];
+    var actions = templateData.actions || [];
+    var dc = templateData.displayConfig || null;
+    var sc = (dc && dc.styleConfig) ? dc.styleConfig : {};
+
+    var cardBg = sc.cardBackground || '#000000';
+    var panelBg = sc.panelBackground || '#09090b';
+    var borderClr = sc.borderColor || '#18181b';
+    var accentClr = sc.accentColor || '#f97316';
+    var textPrimary = sc.textPrimary || '#f4f4f5';
+    var textValue = sc.textValue || '#d4d4d8';
+    var textLabel = sc.textLabel || '#52525b';
+    var textSecondary = sc.textSecondary || '#a1a1aa';
+    var textMuted = sc.textMuted || '#3f3f46';
+    var borderRadius = sc.cardBorderRadius || 0;
+
+    // Compute label column width from longest parameter name (~7.5px per uppercase char at 12px bold)
+    var longestLabelLength = parameters.reduce(function(maxLen, param) {
+        var labelText = (param.label || param.key || '').toUpperCase();
+        return labelText.length > maxLen ? labelText.length : maxLen;
+    }, 0);
+    var computedLabelWidth = Math.max(60, Math.min(longestLabelLength * 7.5 + 8, 240));
+
+    var cssVars = '--cm-border:' + borderClr + ';--cm-accent:' + accentClr + ';--cm-text-primary:' + textPrimary + ';--cm-text-value:' + textValue + ';--cm-text-label:' + textLabel + ';--cm-text-secondary:' + textSecondary + ';--cm-text-muted:' + textMuted + ';--card-radius:' + borderRadius + 'px;';
+
+    var html = '<div class="card-mock" style="background:' + cardBg + ';' + cssVars + '">';
+
+    // Accent bar
+    html += '<div class="cm-accent-bar" style="background:' + accentClr + ';"></div>';
+
+    // Header
+    html += '<div class="cm-header" style="background:' + panelBg + ';">';
+    html += '<span class="cm-name">' + escapePreviewHtml(templateName) + '</span>';
+    html += '<span class="cm-type">TEMPLATE</span>';
+    html += '</div>';
+
+    // Description
+    if (templateDesc) {
+        html += '<div style="background:' + panelBg + '30;">';
+        html += '<div class="cm-section-label">INFORMATION</div>';
+        html += '<div class="cm-desc">' + escapePreviewHtml(templateDesc.substring(0, 200)) + '</div>';
+        html += '</div>';
+    }
+
+    // Parameters — grouped or flat
+    var hasGroups = dc && dc.groups && dc.groups.length > 0;
+    var hasCharts = dc && dc.charts && dc.charts.length > 0;
+    if ((hasGroups || hasCharts) && parameters.length > 0) {
+        var paramDisplayMap = {};
+        (dc.parameterDisplay || []).forEach(function(pd) { paramDisplayMap[pd.key] = pd; });
+
+        var sortedGroups = (dc.groups || []).slice().sort(function(groupA, groupB) { return (groupA.sortOrder || 0) - (groupB.sortOrder || 0); });
+
+        var groupedParams = {};
+        sortedGroups.forEach(function(group) { groupedParams[group.key] = []; });
+        var ungroupedParams = [];
+
+        parameters.forEach(function(param) {
+            var pd = paramDisplayMap[param.key];
+            if (pd && pd.hidden) return;
+            var targetGroup = pd && pd.group && groupedParams[pd.group] ? pd.group : '';
+            if (targetGroup) {
+                groupedParams[targetGroup].push(param);
+            } else {
+                ungroupedParams.push(param);
+            }
+        });
+
+        // Sort within groups by displayOrder
+        Object.keys(groupedParams).forEach(function(groupKey) {
+            groupedParams[groupKey].sort(function(paramA, paramB) {
+                var orderA = paramDisplayMap[paramA.key] ? (paramDisplayMap[paramA.key].displayOrder || 999) : 999;
+                var orderB = paramDisplayMap[paramB.key] ? (paramDisplayMap[paramB.key].displayOrder || 999) : 999;
+                return orderA - orderB;
+            });
+        });
+
+        // Build renderable items list: groups + charts, sorted by sortOrder
+        var renderItems = [];
+        sortedGroups.forEach(function(group) {
+            var groupParams = groupedParams[group.key] || [];
+            if (groupParams.length === 0) return;
+            renderItems.push({ sortOrder: group.sortOrder || 0, type: 'group', group: group, params: groupParams });
+        });
+        var dcCharts = (dc.charts || []);
+        dcCharts.forEach(function(chart) {
+            renderItems.push({ sortOrder: chart.sortOrder || 0, type: 'chart', chart: chart });
+        });
+        renderItems.sort(function(itemA, itemB) { return itemA.sortOrder - itemB.sortOrder; });
+
+        renderItems.forEach(function(item) {
+            if (item.type === 'group') {
+                var groupMaxValue = item.params.reduce(function(maxAccum, currentParam) {
+                    var numVal = Math.abs(parseFloat(currentParam.defaultValue) || 0);
+                    return numVal > maxAccum ? numVal : maxAccum;
+                }, 1);
+                html += '<div class="cm-section-label">' + escapePreviewHtml(item.group.label).toUpperCase() + '</div>';
+                item.params.forEach(function(param) {
+                    var paramGraphType = paramDisplayMap[param.key] ? (paramDisplayMap[param.key].graphType || 'sparkline') : 'sparkline';
+                    html += buildMockParamRow(param, textLabel, paramGraphType, accentClr, groupMaxValue, computedLabelWidth);
+                });
+            } else if (item.type === 'chart') {
+                var chart = item.chart;
+                var chartParams = (chart.parameterKeys || []).map(function(chartParamKey) {
+                    return parameters.find(function(parameter) { return parameter.key === chartParamKey; });
+                }).filter(Boolean);
+                if (chartParams.length === 0) return;
+                var chartLabel = chart.label || chart.chartType.toUpperCase();
+                html += '<div class="cm-section-label">' + escapePreviewHtml(chartLabel).toUpperCase() + '</div>';
+                var chartHeight = chart.chartHeight || (40 + chartParams.length * 20);
+                if (chart.chartType === 'combined') {
+                    html += buildCombinedChart(chartParams, accentClr, chartHeight);
+                } else if (chart.chartType === 'cumulative') {
+                    html += buildCumulativeChart(chartParams, accentClr, chartHeight);
+                } else if (chart.chartType === 'relative') {
+                    var relativeMaxValue = chartParams.reduce(function(maxAccum, currentParam) {
+                        var numVal = Math.abs(parseFloat(currentParam.defaultValue) || 0);
+                        return numVal > maxAccum ? numVal : maxAccum;
+                    }, 1);
+                    chartParams.forEach(function(param) {
+                        var displayValue = param.defaultValue !== undefined && param.defaultValue !== '' ? String(param.defaultValue) : '0';
+                        var numericValue = Math.abs(parseFloat(displayValue) || 0);
+                        var fillPercent = Math.min((numericValue / relativeMaxValue) * 100, 100);
+                        html += '<div class="cm-row">' +
+                            '<div class="cm-graph-bg"><div style="position:absolute;bottom:0;left:0;height:100%;width:' + fillPercent.toFixed(1) + '%;background:' + accentClr + ';opacity:0.15;"></div></div>' +
+                            '<span class="cm-row-label" style="width:' + computedLabelWidth + 'px;">' + escapePreviewHtml((param.label || param.key || '').toUpperCase()) + '</span>' +
+                            '<span class="cm-row-value">' + escapePreviewHtml(displayValue) + '</span>' +
+                            '</div>';
+                    });
+                }
+            }
+        });
+
+        if (ungroupedParams.length > 0) {
+            var ungroupedMaxValue = ungroupedParams.reduce(function(maxAccum, currentParam) {
+                var numVal = Math.abs(parseFloat(currentParam.defaultValue) || 0);
+                return numVal > maxAccum ? numVal : maxAccum;
+            }, 1);
+            html += '<div class="cm-section-label">VARIABLES</div>';
+            ungroupedParams.forEach(function(param) {
+                var paramGraphType = paramDisplayMap[param.key] ? (paramDisplayMap[param.key].graphType || 'sparkline') : 'sparkline';
+                html += buildMockParamRow(param, textLabel, paramGraphType, accentClr, ungroupedMaxValue, computedLabelWidth);
+            });
+        }
+    } else if (parameters.length > 0) {
+        var flatMaxValue = parameters.reduce(function(maxAccum, currentParam) {
+            var numVal = Math.abs(parseFloat(currentParam.defaultValue) || 0);
+            return numVal > maxAccum ? numVal : maxAccum;
+        }, 1);
+        html += '<div class="cm-section-label">VARIABLES</div>';
+        parameters.forEach(function(param) {
+            html += buildMockParamRow(param, textLabel, 'sparkline', accentClr, flatMaxValue, computedLabelWidth);
+        });
+    }
+
+    // Actions
+    if (actions.length > 0) {
+        html += '<div class="cm-section-label">ACTIONS</div>';
+        actions.forEach(function(action) {
+            var dotColor = action.enabled !== false ? '#22c55e' : '#ef4444';
+            var triggerLabel = (action.trigger || 'onTurnAdvance').replace(/([A-Z])/g, ' $1').trim();
+            html += '<div class="cm-action-row">';
+            html += '<div class="cm-action-dot" style="background:' + dotColor + ';"></div>';
+            html += '<span class="cm-action-label">' + escapePreviewHtml(action.label || action.key || '') + '</span>';
+            html += '<span class="cm-action-trigger">' + escapePreviewHtml(triggerLabel) + '</span>';
+            html += '</div>';
+        });
+    }
+
+    // Footer
+    html += '<div class="cm-footer" style="background:' + panelBg + ';">Preview — ' + new Date().toLocaleDateString() + '</div>';
+
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+function buildMockParamRow(param, labelColor, graphType, accentColor, groupMaxValue, labelWidth) {
+    var displayValue = param.defaultValue !== undefined && param.defaultValue !== '' ? String(param.defaultValue) : '0';
+    var label = (param.label || param.key || '').toUpperCase();
+    var graphHtml = '';
+
+    if (graphType && graphType !== 'none') {
+        var mockData = generateMockTimeSeries(parseFloat(displayValue) || 0, param.key);
+        if (graphType === 'bar') {
+            graphHtml = '<div class="cm-graph-bg">' + buildBarGraphSvg(mockData, accentColor) + '</div>';
+        } else {
+            graphHtml = '<div class="cm-graph-bg">' + buildSparklineSvg(mockData, accentColor) + '</div>';
+        }
+    }
+
+    var columnWidth = labelWidth || 140;
+    return '<div class="cm-row">' +
+        graphHtml +
+        '<span class="cm-row-label" style="width:' + columnWidth + 'px;">' + escapePreviewHtml(label) + '</span>' +
+        '<span class="cm-row-value">' + escapePreviewHtml(displayValue) + '</span>' +
+        '</div>';
+}
+
+/**
+ * Generate deterministic mock time series data from a base value and key.
+ * Uses a simple seeded pseudo-random walk so the preview is stable per-param.
+ */
+function generateMockTimeSeries(baseValue, seedKey) {
+    var seed = 0;
+    for (var charIndex = 0; charIndex < seedKey.length; charIndex++) {
+        seed = ((seed << 5) - seed + seedKey.charCodeAt(charIndex)) | 0;
+    }
+    var points = [];
+    var current = baseValue || 50;
+    var amplitude = Math.max(Math.abs(current) * 0.3, 5);
+    for (var pointIndex = 0; pointIndex < 12; pointIndex++) {
+        seed = (seed * 16807 + 0) % 2147483647;
+        var noise = ((seed % 1000) / 1000 - 0.5) * amplitude;
+        current = current + noise;
+        points.push(current);
+    }
+    return points;
+}
+
+/**
+ * Build an inline SVG sparkline (polyline) from data points.
+ */
+function buildSparklineSvg(dataPoints, strokeColor) {
+    if (!dataPoints || dataPoints.length < 2) return '';
+    var minVal = Math.min.apply(null, dataPoints);
+    var maxVal = Math.max.apply(null, dataPoints);
+    var range = maxVal - minVal || 1;
+    var points = [];
+    for (var pointIndex = 0; pointIndex < dataPoints.length; pointIndex++) {
+        var xCoord = (pointIndex / (dataPoints.length - 1)) * 100;
+        var yCoord = 100 - ((dataPoints[pointIndex] - minVal) / range) * 100;
+        points.push(xCoord.toFixed(1) + ',' + yCoord.toFixed(1));
+    }
+    return '<svg viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="' + points.join(' ') + '" fill="none" stroke="' + strokeColor + '" stroke-width="3" vector-effect="non-scaling-stroke"/></svg>';
+}
+
+/**
+ * Build an inline SVG bar chart from data points.
+ * Bars are scaled relative to the min/max range within the data.
+ */
+function buildBarGraphSvg(dataPoints, fillColor) {
+    if (!dataPoints || dataPoints.length < 2) return '';
+    var barCount = Math.min(dataPoints.length, 20);
+    var recentData = dataPoints.slice(-barCount);
+    var minVal = Math.min.apply(null, recentData);
+    var maxVal = Math.max.apply(null, recentData);
+    var range = maxVal - minVal || 1;
+    var barWidth = 100 / barCount;
+    var bars = '';
+    for (var barIndex = 0; barIndex < recentData.length; barIndex++) {
+        var normalizedHeight = ((recentData[barIndex] - minVal) / range) * 80;
+        var barX = barIndex * barWidth;
+        var barY = 100 - normalizedHeight;
+        bars += '<rect x="' + barX.toFixed(1) + '%" y="' + barY.toFixed(1) + '%" width="' + (barWidth * 0.7).toFixed(1) + '%" height="' + normalizedHeight.toFixed(1) + '%" fill="' + fillColor + '" rx="1"/>';
+    }
+    return '<svg viewBox="0 0 100 100" preserveAspectRatio="none">' + bars + '</svg>';
+}
+
+/** Color palette for multi-param charts — cycles through distinct hues. */
+var CHART_COLORS = ['#f97316', '#3b82f6', '#22c55e', '#eab308', '#a855f7', '#ec4899', '#06b6d4', '#ef4444'];
+
+/**
+ * Build a combined overlay chart — multiple sparklines on one SVG.
+ * Each parameter gets its own colored line, overlaid in one chart area.
+ */
+function buildCombinedChart(groupParams, accentColor, chartHeight) {
+    if (groupParams.length === 0) return '';
+    var svgContent = '';
+    var legendHtml = '<div class="cm-chart-legend">';
+
+    for (var paramIndex = 0; paramIndex < groupParams.length; paramIndex++) {
+        var param = groupParams[paramIndex];
+        var color = CHART_COLORS[paramIndex % CHART_COLORS.length];
+        var baseValue = parseFloat(param.defaultValue) || 0;
+        var mockData = generateMockTimeSeries(baseValue, param.key);
+        var minVal = Math.min.apply(null, mockData);
+        var maxVal = Math.max.apply(null, mockData);
+        var range = maxVal - minVal || 1;
+        var points = [];
+        for (var pointIdx = 0; pointIdx < mockData.length; pointIdx++) {
+            var xCoord = (pointIdx / (mockData.length - 1)) * 100;
+            var yCoord = 100 - ((mockData[pointIdx] - minVal) / range) * 100;
+            points.push(xCoord.toFixed(1) + ',' + yCoord.toFixed(1));
+        }
+        svgContent += '<polyline points="' + points.join(' ') + '" fill="none" stroke="' + color + '" stroke-width="2" vector-effect="non-scaling-stroke"/>';
+        legendHtml += '<span class="cm-legend-item"><span class="cm-legend-dot" style="background:' + color + ';"></span>' + escapePreviewHtml((param.label || param.key || '').toUpperCase()) + '</span>';
+    }
+
+    legendHtml += '</div>';
+    return '<div class="cm-group-chart">' +
+        '<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="height:' + chartHeight + 'px;">' + svgContent + '</svg>' +
+        legendHtml + '</div>';
+}
+
+/**
+ * Build a cumulative stacked area chart — each parameter stacks on top of the previous.
+ * Areas are filled with transparency so layers are visible.
+ */
+function buildCumulativeChart(groupParams, accentColor, chartHeight) {
+    if (groupParams.length === 0) return '';
+    var dataPerParam = [];
+    var pointCount = 12;
+
+    for (var paramIndex = 0; paramIndex < groupParams.length; paramIndex++) {
+        var baseValue = parseFloat(groupParams[paramIndex].defaultValue) || 0;
+        dataPerParam.push(generateMockTimeSeries(baseValue, groupParams[paramIndex].key));
+    }
+
+    // Compute cumulative sums per point
+    var cumulativeData = [];
+    for (var stackIndex = 0; stackIndex < dataPerParam.length; stackIndex++) {
+        var stackedRow = [];
+        for (var pointIdx = 0; pointIdx < pointCount; pointIdx++) {
+            var previousValue = stackIndex > 0 ? cumulativeData[stackIndex - 1][pointIdx] : 0;
+            stackedRow.push(previousValue + Math.abs(dataPerParam[stackIndex][pointIdx]));
+        }
+        cumulativeData.push(stackedRow);
+    }
+
+    // Find global max for scaling
+    var globalMax = 1;
+    for (var stackIdx = 0; stackIdx < cumulativeData.length; stackIdx++) {
+        for (var ptIdx = 0; ptIdx < pointCount; ptIdx++) {
+            if (cumulativeData[stackIdx][ptIdx] > globalMax) globalMax = cumulativeData[stackIdx][ptIdx];
+        }
+    }
+
+    // Draw areas from top layer to bottom so earlier layers are behind
+    var svgContent = '';
+    var legendHtml = '<div class="cm-chart-legend">';
+
+    for (var layerIndex = cumulativeData.length - 1; layerIndex >= 0; layerIndex--) {
+        var color = CHART_COLORS[layerIndex % CHART_COLORS.length];
+        var areaPoints = '';
+        // Top edge (cumulative values)
+        for (var fwdIdx = 0; fwdIdx < pointCount; fwdIdx++) {
+            var xPos = (fwdIdx / (pointCount - 1)) * 100;
+            var yPos = 100 - (cumulativeData[layerIndex][fwdIdx] / globalMax) * 100;
+            areaPoints += xPos.toFixed(1) + ',' + yPos.toFixed(1) + ' ';
+        }
+        // Bottom edge (previous layer or baseline)
+        for (var revIdx = pointCount - 1; revIdx >= 0; revIdx--) {
+            var xPosRev = (revIdx / (pointCount - 1)) * 100;
+            var yPosRev = layerIndex > 0
+                ? 100 - (cumulativeData[layerIndex - 1][revIdx] / globalMax) * 100
+                : 100;
+            areaPoints += xPosRev.toFixed(1) + ',' + yPosRev.toFixed(1) + ' ';
+        }
+        svgContent += '<polygon points="' + areaPoints.trim() + '" fill="' + color + '" opacity="0.5"/>';
+    }
+
+    for (var legendIdx = 0; legendIdx < groupParams.length; legendIdx++) {
+        var legendColor = CHART_COLORS[legendIdx % CHART_COLORS.length];
+        legendHtml += '<span class="cm-legend-item"><span class="cm-legend-dot" style="background:' + legendColor + ';"></span>' + escapePreviewHtml((groupParams[legendIdx].label || groupParams[legendIdx].key || '').toUpperCase()) + '</span>';
+    }
+
+    legendHtml += '</div>';
+    return '<div class="cm-group-chart">' +
+        '<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="height:' + chartHeight + 'px;">' + svgContent + '</svg>' +
+        legendHtml + '</div>';
+}
+
+function escapePreviewHtml(text) {
+    var div = document.createElement('div');
+    div.textContent = String(text || '');
+    return div.innerHTML;
+}
+/* ── End Card Preview ── */
+
 function addParameter() {
     parameterCounter++;
     const parameterId = 'param_' + parameterCounter;
@@ -659,40 +1740,62 @@ function addParameter() {
     row.className = 'param-row';
     row.id = parameterId;
     row.innerHTML = \`
-        <button class="btn-remove" onclick="removeElement('\${parameterId}')">X</button>
-        <div class="param-grid">
-            <div class="field">
-                <label>Key</label>
-                <input type="text" data-field="key" placeholder="productionRate" oninput="updatePreview()">
-            </div>
-            <div class="field">
-                <label>Label</label>
-                <input type="text" data-field="label" placeholder="Production Rate" oninput="updatePreview()">
-            </div>
-            <div class="field">
-                <label>Type</label>
-                <select data-field="valueType" onchange="updatePreview()">
-                    <option value="number">number</option>
-                    <option value="string">string</option>
-                    <option value="boolean">boolean</option>
-                </select>
-            </div>
-            <div class="field">
-                <label>Default</label>
-                <input type="text" data-field="defaultValue" placeholder="10" oninput="updatePreview()">
-            </div>
-            <div class="field">
-                <label>Category</label>
-                <input type="text" data-field="category" placeholder="production" oninput="updatePreview()">
-            </div>
-            <div class="field full-width">
-                <label>Description</label>
-                <input type="text" data-field="description" placeholder="Units produced per turn." oninput="updatePreview()">
+        <div class="param-key-header" draggable="true" title="Drag to a group or chart in the sidebar">
+            <span class="param-drag-icon">&#x2630;</span>
+            <input type="text" data-field="key" placeholder="productionRate" oninput="updatePreview(); dcRefreshIfEnabled();" onclick="event.stopPropagation();" draggable="false">
+            <button class="btn-remove" onclick="removeElement('\${parameterId}')" draggable="false">X</button>
+        </div>
+        <div class="param-fields">
+            <div class="param-grid">
+                <div class="field">
+                    <label>Label</label>
+                    <input type="text" data-field="label" placeholder="Production Rate" oninput="updatePreview()">
+                </div>
+                <div class="field">
+                    <label>Type</label>
+                    <select data-field="valueType" onchange="updatePreview()">
+                        <option value="number">number</option>
+                        <option value="string">string</option>
+                        <option value="boolean">boolean</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Default</label>
+                    <input type="text" data-field="defaultValue" placeholder="10" oninput="updatePreview()">
+                </div>
+                <div class="field">
+                    <label>Category</label>
+                    <input type="text" data-field="category" placeholder="production" oninput="updatePreview()">
+                </div>
+                <div class="field full-width">
+                    <label>Description</label>
+                    <input type="text" data-field="description" placeholder="Units produced per turn." oninput="updatePreview()">
+                </div>
             </div>
         </div>
     \`;
+
+    var keyHeader = row.querySelector('.param-key-header');
+    keyHeader.addEventListener('dragstart', function(ev) {
+        var keyInput = row.querySelector('[data-field="key"]');
+        var paramKey = keyInput ? keyInput.value.trim() : '';
+        if (!paramKey) { ev.preventDefault(); return; }
+        ev.dataTransfer.setData('text/plain', paramKey);
+        ev.dataTransfer.effectAllowed = 'copy';
+        _dcDragType = 'dcparam';
+        _dcDragParamKey = paramKey;
+        row.classList.add('dragging');
+    });
+    keyHeader.addEventListener('dragend', function() {
+        _dcDragType = null;
+        _dcDragParamKey = null;
+        row.classList.remove('dragging');
+        document.querySelectorAll('.drag-over').forEach(function(el) { el.classList.remove('drag-over'); });
+    });
+
     container.appendChild(row);
     updatePreview();
+    dcRefreshIfEnabled();
 }
 
 function addAction() {
@@ -770,6 +1873,7 @@ function removeExpression(button) {
 function removeElement(elementId) {
     document.getElementById(elementId).remove();
     updatePreview();
+    dcRefreshIfEnabled();
 }
 
 function castDefaultValue(rawValue, valueType) {
@@ -850,6 +1954,15 @@ function buildJson() {
         });
     }
 
+    if (_dcConfig) {
+        var dcOut = {};
+        if (_dcConfig.groups && _dcConfig.groups.length > 0) { dcOut.groups = _dcConfig.groups; }
+        if (_dcConfig.parameterDisplay && _dcConfig.parameterDisplay.length > 0) { dcOut.parameterDisplay = _dcConfig.parameterDisplay; }
+        if (_dcConfig.styleConfig && Object.keys(_dcConfig.styleConfig).length > 0) { dcOut.styleConfig = _dcConfig.styleConfig; }
+        if (_dcConfig.charts && _dcConfig.charts.length > 0) { dcOut.charts = _dcConfig.charts; }
+        if (Object.keys(dcOut).length > 0) { templateObject.displayConfig = dcOut; }
+    }
+
     return templateObject;
 }
 
@@ -895,6 +2008,8 @@ function updatePreview() {
             return '<div class="validation-error">' + error + '</div>';
         }).join('');
     }
+
+    renderCardPreview();
 }
 
 function copyJson() {
@@ -937,6 +2052,18 @@ function loadFromJson(templateObject) {
     document.getElementById('templateName').value = templateObject.name || '';
     document.getElementById('templateDescription').value = templateObject.description || '';
 
+    // Load display config from uploaded JSON into inline editor
+    if (templateObject.displayConfig && typeof templateObject.displayConfig === 'object') {
+        _dcConfig = {
+            groups: templateObject.displayConfig.groups || [],
+            parameterDisplay: templateObject.displayConfig.parameterDisplay || [],
+            charts: templateObject.displayConfig.charts || [],
+            styleConfig: templateObject.displayConfig.styleConfig || {}
+        };
+    } else {
+        _dcConfig = { groups: [], parameterDisplay: [], charts: [], styleConfig: {} };
+    }
+
     document.getElementById('parametersContainer').innerHTML = '';
     parameterCounter = 0;
     if (templateObject.parameters) {
@@ -978,6 +2105,7 @@ function loadFromJson(templateObject) {
         });
     }
 
+    dcRenderAll();
     updatePreview();
 }
 
@@ -1371,5 +2499,6 @@ function validateOnServer() {
 }
 
 updatePreview();
+dcRenderAll();
 `;
 }

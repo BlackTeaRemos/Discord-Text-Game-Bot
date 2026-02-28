@@ -3,6 +3,7 @@ import { UpdateGameTurn } from '../Object/Game/Turn.js';
 import { TurnActionEngine } from './TurnActionEngine.js';
 import { GameObjectRepository } from '../../Repository/GameObject/GameObjectRepository.js';
 import { GameObjectTemplateRepository } from '../../Repository/GameObject/GameObjectTemplateRepository.js';
+import { ParameterSnapshotRepository } from '../../Repository/GameObject/ParameterSnapshotRepository.js';
 import type { IActionExecutionResult } from '../../Domain/GameObject/IActionExecutionResult.js';
 
 /** Module-level log tag. */
@@ -50,6 +51,9 @@ export async function AdvanceTurn(gameUid: string, currentTurn: number): Promise
 
         const actionResults = await turnEngine.Execute(gameUid, `onTurnAdvance`);
 
+        // Capture parameter snapshots for all objects that were processed
+        await __CapturePostTurnSnapshots(actionResults, newTurn);
+
         // Count successes and failures
         const processedObjectUids = new Set<string>();
         const failedObjectUids = new Set<string>();
@@ -81,5 +85,46 @@ export async function AdvanceTurn(gameUid: string, currentTurn: number): Promise
     } catch(error) {
         log.error(`Failed to advance turn for game "${gameUid}": ${String(error)}`, LOG_TAG, `AdvanceTurn`);
         throw error;
+    }
+}
+
+/**
+ * Capture parameter snapshots for all objects that received updates during the turn.
+ * Deduplicates by objectUid (last result wins) and persists as a batch.
+ *
+ * @param actionResults IActionExecutionResult[] Results from turn engine execution.
+ * @param turn number The turn number at which snapshots are taken. @example 4
+ * @returns Promise<void>
+ */
+async function __CapturePostTurnSnapshots(
+    actionResults: IActionExecutionResult[],
+    turn: number,
+): Promise<void> {
+    try {
+        /** Deduplicate: last result per object uid wins (most recent state). */
+        const latestByObject = new Map<string, IActionExecutionResult>();
+        for (const result of actionResults) {
+            if (result.success && result.updatedParameters) {
+                latestByObject.set(result.objectUid, result);
+            }
+        }
+
+        if (latestByObject.size === 0) {
+            return;
+        }
+
+        const snapshotRepository = new ParameterSnapshotRepository();
+        const entries = Array.from(latestByObject.values()).map(result => {
+            return {
+                objectUid: result.objectUid,
+                turn,
+                parameters: result.updatedParameters,
+            };
+        });
+
+        await snapshotRepository.CaptureSnapshotBatch(entries);
+    } catch (error) {
+        // Snapshot failures must not break the turn flow
+        log.error(`Failed to capture post-turn snapshots: ${String(error)}`, LOG_TAG, `__CapturePostTurnSnapshots`);
     }
 }

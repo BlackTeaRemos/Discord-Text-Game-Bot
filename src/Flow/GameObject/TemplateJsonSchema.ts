@@ -31,6 +31,8 @@
 
 import type { ParameterValueType } from '../../Domain/GameObject/IParameterDefinition.js';
 import type { ActionTrigger } from '../../Domain/GameObject/IActionDefinition.js';
+import type { ICardStyleConfig } from '../../Domain/GameObject/ICardStyleConfig.js';
+import type { ParameterGraphType } from '../../Domain/GameObject/IParameterDisplayConfig.js';
 
 /**
  * Root schema for an uploaded template JSON.
@@ -47,6 +49,9 @@ export interface TemplateJsonSchema {
 
     /** Array of action definitions. */
     actions?: TemplateActionSchema[];
+
+    /** Optional card display configuration controlling visual rendering. */
+    displayConfig?: DisplayConfigSchema;
 }
 
 /**
@@ -96,4 +101,55 @@ export interface TemplateActionSchema {
 
     /** Whether the action is active. Defaults to true. @example true */
     enabled?: boolean;
+}
+
+/**
+ * Display group definition within the uploaded JSON.
+ */
+export interface DisplayGroupSchema {
+    /** Group key matching parameter category. @example 'production' */
+    key: string;
+
+    /** Section title displayed on the card. @example 'Production' */
+    label: string;
+
+    /** Optional section header icon URL. @example 'https://example.com/icon.png' */
+    iconUrl?: string;
+
+    /** Vertical ordering (lower = higher). @example 0 */
+    sortOrder: number;
+}
+
+/**
+ * Per-parameter display override within the uploaded JSON.
+ */
+export interface ParameterDisplaySchema {
+    /** Parameter key this config applies to. @example 'productionRate' */
+    key: string;
+
+    /** Display group this parameter belongs to. @example 'production' */
+    group?: string;
+
+    /** Graph visualization type. @example 'sparkline' */
+    graphType: ParameterGraphType;
+
+    /** Whether to exclude from card rendering. @example false */
+    hidden: boolean;
+
+    /** Sort priority within group (lower = higher). @example 0 */
+    displayOrder: number;
+}
+
+/**
+ * Card display configuration within the uploaded JSON.
+ */
+export interface DisplayConfigSchema {
+    /** Optional visual style overrides. */
+    styleConfig?: ICardStyleConfig;
+
+    /** Display group definitions for card sections. */
+    groups: DisplayGroupSchema[];
+
+    /** Per-parameter rendering overrides. */
+    parameterDisplay: ParameterDisplaySchema[];
 }
