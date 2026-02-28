@@ -1,7 +1,5 @@
 /**
  * Describes a single slash command reference the user can invoke on an object
- * @property command string Full slash command syntax
- * @property description string Short explanation of what it does
  *
  * @example { command: '/view object id:{uid}', description: 'View object details' }
  */
@@ -55,11 +53,11 @@ const _GENERIC_ACTIONS: ObjectAction[] = [
 
 /**
  * Resolve available slash command actions for a given object type
- * Substitutes {uid} placeholders with the actual object UID
+ * Substitutes uid placeholders with the actual object UID
  *
  * @param objectType string Type discriminator from ResolveObjectByUid
  * @param objectUid string Actual UID to substitute into command templates
- * @returns ObjectAction[] List of actions with resolved UIDs
+ * @returns ObjectAction array List of actions with resolved UIDs
  *
  * @example
  * const actions = ResolveObjectActions('game', 'game_abc');

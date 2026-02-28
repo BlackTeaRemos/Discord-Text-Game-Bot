@@ -13,34 +13,29 @@ import { MAIN_EVENT_BUS } from './Events/MainEventBus.js';
 import { RegisterDiscordClient } from './Services/DiscordClientRegistry.js';
 
 /**
- * Discord service for managing bot connections and channel operations.
- * Handles Discord client setup, guild management, and category/channel organization.
- * Provides VPI configuration loading from dedicated Discord channels.
- * Emits 'discord:ready', 'discord:error', 'discord:message:raw' events on MAIN_EVENT_BUS.
+ * @brief Service for managing Discord bot connections and channel operations
  * @example
  * const discordService = new DiscordService(client, '123456789', '987654321');
  */
 export class DiscordService {
-    public readonly client: Client; // Discord.js client instance
-    private _category: CategoryChannel | null = null; // The root category channel for all object storage channels
-    private _channels: TextChannel[] = []; // The text channels in the category
-    private _guild: Guild | null = null; // The Discord server (guild) the bot is connected to
+    public readonly client: Client; // DiscordJS client instance
+    private _category: CategoryChannel | null = null; // Root category channel for object storage
+    private _channels: TextChannel[] = []; // Text channels in the category
+    private _guild: Guild | null = null; // Discord guild the bot is connected to
 
     /**
-     * Creates a new DiscordService instance and configures Discord client event handlers.
-     * Sets up comprehensive logging for all Discord events and initializes guild/category discovery.
-     * Registers global Discord client for storage backends and wraps channel send methods for logging.
-     * @param client - The Discord.js client instance (SapphireClient or Client)
-     * @param guildId - Discord server (guild) ID to connect to
-     * @param categoryId - Category channel ID to use as root for object storage
-     * @param discordToken - Discord bot token from configuration
+     * @brief Creates a new DiscordService and configures client event handlers
+     * @param client DiscordJS Client instance
+     * @param guildId Discord server guild ID to connect to
+     * @param categoryId Category channel ID used as root for object storage
+     * @param discordToken Discord bot token from configuration
      * @example
      * const discordService = new DiscordService(client, '123456789012345678', '876543210987654321', 'bot-token');
      */
     constructor(client: Client, guildId: string, categoryId: string, discordToken: string) {
         this.client = client;
         this.client.on(`raw`, (packet: any) => {
-            // packet.t is the event name, packet.d is the data
+            // Raw event name in packet t and data in packet d
             // log.debug(`Raw event ${packet.t}: ${JSON.stringify(packet.d)}`, 'DiscordService');
         });
         // Listen for all error events
@@ -58,7 +53,7 @@ export class DiscordService {
             );
         });
 
-        // Discord.js debug events are silenced to reduce log noise in production
+        // DiscordJS debug events are silenced to reduce log noise in production
 
         this.client.on(`warn`, info => {
             log.warning(`Warning: ${info}`, `DiscordService`);
@@ -66,7 +61,7 @@ export class DiscordService {
 
         this.client.once(Events.ClientReady, async () => {
             try {
-                // Fetch the guild (server) and log it
+                // Fetch the guild and log it
                 const guild = await this.client.guilds.fetch(guildId);
                 this._guild = guild;
                 log.info(`Connected to guild: ${guild.name} (${guild.id})`, `DiscordService`);
@@ -90,7 +85,7 @@ export class DiscordService {
                     return log.info(`Channel: ${ch.name} (${ch.id})`, `DiscordService`);
                 });
 
-                // Check for any cmd- channel, create one if missing
+                // Check for any cmd channel and create one if missing
                 let cmdChannel = this._channels.find(ch => {
                     return ch.name.startsWith(`cmd-`);
                 });
@@ -126,7 +121,7 @@ export class DiscordService {
         });
 
         this.client.on(Events.MessageCreate, msg => {
-            // Emit raw message events for downstream consumers (prompts, editors, diagnostics)
+            // Emit raw message events for downstream consumers
             // Individual listeners are responsible for ignoring irrelevant channels
             MAIN_EVENT_BUS.emit(`discord:message:raw`, msg);
         });
@@ -141,8 +136,8 @@ export class DiscordService {
     }
 
     /**
-     * Returns the Discord.js client instance for direct API access.
-     * @returns The Discord.js client instance
+     * @brief Returns the DiscordJS client instance for direct API access
+     * @returns Client DiscordJS client instance
      * @example
      * const client = discordService.GetClient();
      */
@@ -151,8 +146,7 @@ export class DiscordService {
     }
 
     /**
-     * Returns the Discord guild (server) instance if available.
-     * Will be null until the ClientReady event has been processed.
+     * @brief Returns the Discord guild instance or null before ClientReady
      * @returns Guild instance or null if not yet loaded
      * @example
      * const guild = discordService.GetGuild();
@@ -163,8 +157,7 @@ export class DiscordService {
     }
 
     /**
-     * Returns the root category channel instance if available.
-     * Will be null until the ClientReady event has been processed.
+     * @brief Returns the root category channel or null before ClientReady
      * @returns CategoryChannel instance or null if not yet loaded
      * @example
      * const category = discordService.GetCategory();
@@ -174,8 +167,7 @@ export class DiscordService {
     }
 
     /**
-     * Returns all text channels found in the configured category.
-     * Empty array until the ClientReady event has been processed.
+     * @brief Returns all text channels in the configured category
      * @returns Array of TextChannel instances in the category
      * @example
      * const channels = discordService.GetChannels();

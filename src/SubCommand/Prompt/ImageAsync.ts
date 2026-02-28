@@ -7,12 +7,7 @@ import { TranslateFromContext } from '../../Services/I18nService.js';
 import type { ExecutionContext } from '../../Domain/Command.js';
 
 /**
- * Options controlling awaited image collection from a Discord user.
- * @property interaction ChatInputCommandInteraction Base interaction used for prompting. @example interaction
- * @property prompt string Instruction sent to user. @example "Send an image attachment to use as the game cover."
- * @property timeoutMs number | undefined Optional timeout before aborting (default 2 minutes). @example 120000
- * @property cancelWords string[] | undefined Cancellation keywords (default ['cancel']). @example ['cancel', 'stop']
- * @property maxFileSizeBytes number | undefined Maximum accepted file size in bytes. @example 10485760
+ * Options controlling awaited image collection from a Discord user
  */
 export interface AwaitImageInputOptions {
     interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>;
@@ -22,7 +17,7 @@ export interface AwaitImageInputOptions {
     maxFileSizeBytes?: number;
 }
 
-/** Result from an awaited image prompt. */
+/** Result from an awaited image prompt */
 export interface AwaitImageInputResult {
     url: string;
     objectName: string;
@@ -37,9 +32,9 @@ const UPLOAD_ERROR_KEY = `prompt.image.uploadFailed`;
 const ATTACHMENT_DELETE_DELAY_MS = 5000;
 
 /**
- * Await an image from the commanding user via attachment or direct URL and return an https URL safe for Discord embeds.
- * @param options AwaitImageInputOptions Prompt and validation configuration. @example await AwaitImageInput({ interaction, prompt })
- * @returns Promise<AwaitImageInputResult> Stored image metadata including resulting URL.
+ * Await an image from the commanding user via attachment or direct URL and return an https URL safe for Discord embeds
+ * @param options AwaitImageInputOptions Prompt and validation configuration @example await AwaitImageInput({ interaction, prompt })
+ * @returns AwaitImageInputResult Stored image metadata including resulting URL
  */
 export async function AwaitImageInput(options: AwaitImageInputOptions): Promise<AwaitImageInputResult> {
     const cancelWords = options.cancelWords ?? DEFAULT_CANCEL_WORDS;
@@ -60,7 +55,7 @@ export async function AwaitImageInput(options: AwaitImageInputOptions): Promise<
         try {
             await options.interaction.followUp({ content: message, flags: MessageFlags.Ephemeral });
         } catch {
-            // Ignore follow-up failures; initial prompt already reached the user.
+            // Ignore follow up failures since initial prompt already reached the user
         }
     };
 

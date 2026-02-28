@@ -9,9 +9,9 @@ import { Translate, TranslateFromContext } from '../../../../Services/I18nServic
 const _subcommandName = `set_parent`; // subcommand name
 
 /**
- * Build set_parent subcommand.
- * @param subcommand SlashCommandSubcommandBuilder Subcommand builder. @example BuildOrganizationSetParentSubcommand(builder)
- * @returns SlashCommandSubcommandBuilder Updated subcommand builder. @example const updated = BuildOrganizationSetParentSubcommand(builder)
+ * Build set_parent subcommand
+ * @param subcommand SlashCommandSubcommandBuilder Subcommand builder @example BuildOrganizationSetParentSubcommand(builder)
+ * @returns SlashCommandSubcommandBuilder Updated subcommand builder @example const updated = BuildOrganizationSetParentSubcommand(builder)
  */
 export function BuildOrganizationSetParentSubcommand(
     subcommand: SlashCommandSubcommandBuilder,
@@ -36,9 +36,9 @@ export function BuildOrganizationSetParentSubcommand(
 }
 
 /**
- * Execute set_parent subcommand.
- * @param interaction InteractionExecutionContextCarrier<ChatInputCommandInteraction> Command interaction. @example await ExecuteOrganizationSetParentSubcommand(interaction)
- * @returns Promise<void> Resolves when command completes. @example await ExecuteOrganizationSetParentSubcommand(interaction)
+ * Execute set_parent subcommand
+ * @param interaction InteractionExecutionContextCarrier Command interaction @example await ExecuteOrganizationSetParentSubcommand(interaction)
+ * @returns void Resolves when command completes @example await ExecuteOrganizationSetParentSubcommand(interaction)
  */
 export async function ExecuteOrganizationSetParentSubcommand(
     interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
@@ -63,12 +63,12 @@ export async function ExecuteOrganizationSetParentSubcommand(
             }),
         });
     } finally {
-        // no-op
+        // noop
     }
 }
 
 /**
- * Exported set_parent subcommand module.
+ * Exported set_parent subcommand module
  * @example const subcommand = OrganizationSetParentSubcommand
  */
 export const OrganizationSetParentSubcommand: CommandSubcommand = {

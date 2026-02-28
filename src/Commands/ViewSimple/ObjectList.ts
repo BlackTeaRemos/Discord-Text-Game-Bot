@@ -17,13 +17,9 @@ const MAX_OBJECTS_PER_PAGE = 25;
 const _objectListViewRenderer = new ObjectViewRenderer(`objlist_view`);
 
 /**
- * List game object instances for the current server's game.
- * Supports optional filtering by template name and scopes results to the user's
- * resolved organization context. Renders a paginated embed with object name,
- * template type, organization, and key parameter values.
- *
- * @param interaction InteractionExecutionContextCarrier<ChatInputCommandInteraction> Discord interaction
- * @returns Promise<void> Resolves when the object list is displayed
+ * @brief List game object instances for the current server game
+ * @param interaction InteractionExecutionContextCarrier Discord interaction
+ * @returns void Resolves when the object list is displayed
  * @example /view objects
  * @example /view objects template:Factory
  */

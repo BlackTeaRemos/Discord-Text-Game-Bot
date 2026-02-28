@@ -3,9 +3,7 @@ import type { SatoriElement } from './SatoriElement.js';
 import { ACCENT_COLOR } from './CardTheme.js';
 
 /**
- * Extracted numeric time series for a single parameter key across snapshots.
- * @property key string Parameter key. @example 'health'
- * @property dataPoints number[] Numeric values ordered oldest-first. @example [100, 95, 88, 72]
+ * Extracted numeric time series for a single parameter key across snapshots
  */
 export interface ParameterTimeSeries {
     key: string;
@@ -13,13 +11,13 @@ export interface ParameterTimeSeries {
 }
 
 /**
- * Extract numeric time series from parameter snapshots for a given key.
- * Snapshots are expected newest-first (as returned by GetRecentSnapshots).
- * Output is oldest-first for natural left-to-right sparkline rendering.
+ * Extract numeric time series from parameter snapshots for a given key
+ * Snapshots are expected newest first as returned by GetRecentSnapshots
+ * Output is oldest first for natural left to right sparkline rendering
  *
- * @param snapshots IParameterSnapshot[] Snapshots ordered newest-first.
- * @param parameterKey string The parameter key to extract. @example 'health'
- * @returns number[] Data points ordered oldest-first, empty if key not found or non-numeric.
+ * @param snapshots IParameterSnapshot array Snapshots ordered newest first
+ * @param parameterKey string The parameter key to extract
+ * @returns number array Data points ordered oldest first or empty if key not found
  *
  * @example
  * ExtractTimeSeries(snapshots, 'health') // [100, 95, 88, 72]
@@ -30,7 +28,7 @@ export function ExtractTimeSeries(
 ): number[] {
     const dataPoints: number[] = [];
 
-    /** Iterate in reverse to produce oldest-first ordering. */
+    /** Iterate in reverse to produce oldest first ordering */
     for (let snapshotIndex = snapshots.length - 1; snapshotIndex >= 0; snapshotIndex--) {
         const snapshot = snapshots[snapshotIndex];
         const parameter = snapshot.parameters.find(param => {
@@ -54,11 +52,11 @@ export function ExtractTimeSeries(
 }
 
 /**
- * Build all available time series from snapshots, keyed by parameter name.
- * Only includes keys that have at least 2 numeric data points (minimum for a line).
+ * Build all available time series from snapshots keyed by parameter name
+ * Only includes keys that have at least 2 numeric data points as minimum for a line
  *
- * @param snapshots IParameterSnapshot[] Snapshots ordered newest-first.
- * @returns Map<string, number[]> Map of parameter key to oldest-first data points.
+ * @param snapshots IParameterSnapshot array Snapshots ordered newest first
+ * @returns Map of string to number array Parameter key to oldest first data points
  *
  * @example
  * const seriesMap = BuildAllTimeSeries(snapshots);
@@ -71,7 +69,7 @@ export function BuildAllTimeSeries(
         return new Map();
     }
 
-    /** Collect all unique numeric parameter keys from the most recent snapshot. */
+    /** Collect all unique numeric parameter keys from the most recent snapshot */
     const latestSnapshot = snapshots[0];
     const candidateKeys: string[] = [];
 
@@ -98,15 +96,15 @@ export function BuildAllTimeSeries(
 }
 
 /**
- * Build an inline SVG sparkline element compatible with Satori rendering.
- * Produces an SVG polyline within a 100x100 viewBox, scaled to fit the container.
- * Mirrors the temp POC MicroGraph component logic.
+ * Build an inline SVG sparkline element compatible with Satori rendering
+ * Produces an SVG polyline within a 100x100 viewBox scaled to fit the container
+ * Mirrors the temp POC MicroGraph component logic
  *
- * @param dataPoints number[] Numeric values ordered oldest-first. Minimum 2 points required.
- * @param width number | string SVG container width. @example 80
- * @param height number | string SVG container height. @example 20
- * @param strokeColor string Line stroke color. @example '#e67e22'
- * @returns SatoriElement | null SVG element tree, or null if insufficient data.
+ * @param dataPoints number array Numeric values ordered oldest first with minimum 2 points required
+ * @param width number or string SVG container width
+ * @param height number or string SVG container height
+ * @param strokeColor string Line stroke color
+ * @returns SatoriElement or null SVG element tree or null if insufficient data
  *
  * @example
  * const sparkline = BuildSparklineElement([100, 95, 88, 72], 80, 20);
@@ -125,7 +123,7 @@ export function BuildSparklineElement(
     const maxValue = Math.max(...dataPoints);
     const valueRange = maxValue - minValue || 1;
 
-    /** Build SVG polyline points string in 100x100 viewBox coordinates. */
+    /** Build SVG polyline points string in 100x100 viewBox coordinates */
     const pointSegments: string[] = [];
     for (let pointIndex = 0; pointIndex < dataPoints.length; pointIndex++) {
         const xCoordinate = (pointIndex / (dataPoints.length - 1)) * 100;
@@ -136,8 +134,8 @@ export function BuildSparklineElement(
     const pointsString = pointSegments.join(` `);
 
     /**
-     * Satori accepts SVG elements as plain objects with type 'svg', 'polyline', etc.
-     * Build a minimal SVG with a single polyline stroke.
+     * Satori accepts SVG elements as plain objects with type svg or polyline
+     * Build a minimal SVG with a single polyline stroke
      */
     const polylineElement: SatoriElement = {
         type: `polyline`,

@@ -2,9 +2,9 @@ import { neo4jClient } from '../../../../Setup/Neo4j.js';
 import type { ViewUser } from './ViewUser.js';
 
 /**
- * Retrieve a single user by internal uid.
- * @param uid string Unique identifier to lookup. @example await GetUserByUid('user_123')
- * @returns Promise<ViewUser | null> Matching user when found, otherwise null. @example await GetUserByUid('user_123');
+ * Retrieve a single user by internal uid
+ * @param uid string Unique identifier to lookup @example await GetUserByUid('user_123')
+ * @returns Promise of ViewUser or null Matching user when found otherwise null @example await GetUserByUid('user_123');
  */
 export async function GetUserByUid(uid: string): Promise<ViewUser | null> {
     const session = await neo4jClient.GetSession(`READ`);

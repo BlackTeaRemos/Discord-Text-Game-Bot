@@ -1,15 +1,5 @@
 /**
- * Represents a permanent permission grant bundle stored in the database.
- *
- * Instead of one DB row per token, this model stores a single record per (guildId,userId)
- * with an array of serialized tokens.
- *
- * @property guildId string Discord guild identifier.
- * @property userId string Discord user identifier.
- * @property tokens string[] Serialized permission tokens.
- * @property createdAt string ISO timestamp of when bundle was created.
- * @property updatedAt string ISO timestamp of when bundle was last updated.
- * @property updatedBy string Discord user id who last approved a change.
+ * Represents a permanent permission grant bundle stored in the database as a single record per guild and user
  */
 export interface PermissionGrantBundle {
     guildId: string;
@@ -21,11 +11,7 @@ export interface PermissionGrantBundle {
 }
 
 /**
- * Options for upserting a token into a grant bundle.
- * @property guildId string Discord guild identifier.
- * @property userId string Discord user identifier who receives the grant.
- * @property token string Serialized permission token.
- * @property updatedBy string Discord user id who approved.
+ * Options for upserting a token into a grant bundle
  */
 export interface UpsertPermissionGrantTokenOptions {
     guildId: string;
@@ -35,11 +21,7 @@ export interface UpsertPermissionGrantTokenOptions {
 }
 
 /**
- * Options for revoking a token from a grant bundle.
- * @property guildId string Discord guild identifier.
- * @property userId string Discord user identifier whose token is revoked.
- * @property token string Serialized permission token.
- * @property updatedBy string Discord user id who performed the revoke.
+ * Options for revoking a token from a grant bundle
  */
 export interface RevokePermissionGrantTokenOptions {
     guildId: string;

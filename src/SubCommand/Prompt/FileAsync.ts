@@ -6,12 +6,7 @@ import type { InteractionExecutionContextCarrier } from '../../Common/Type/Inter
 import { TranslateFromContext } from '../../Services/I18nService.js';
 
 /**
- * Options for awaiting file input via Discord messages.
- * @property interaction ChatInputCommandInteraction Interaction used to prompt the user. @example interaction
- * @property prompt string Instructional text for the user. @example 'Upload an image or paste a link.'
- * @property timeoutMs number Optional timeout in milliseconds (default 2 minutes). @example 60000
- * @property cancelWords string[] Optional cancellation keywords (case-insensitive). @example ['cancel']
- * @property validator (attachment: AttachmentBuilder) => boolean | string Optional additional validation logic. @example (att) => att.size < MAX
+ * Options for awaiting file input via Discord messages
  */
 export interface AwaitFileInputOptions {
     interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>;
@@ -21,7 +16,7 @@ export interface AwaitFileInputOptions {
     validator?: (attachment: Attachment) => boolean | string;
 }
 
-/** Default timeout (in milliseconds) applied when options.timeoutMs is not defined. */
+/** Default timeout in milliseconds applied when options timeoutMs is not defined */
 const DEFAULT_TIMEOUT_MS = 2 * 60 * 1000;
 const FILE_TIMEOUT_KEY = `prompt.file.timeout`;
 const FILE_CANCEL_KEY = `prompt.file.cancelled`;
@@ -29,10 +24,10 @@ const FILE_INVALID_KEY = `prompt.file.invalid`;
 const FILE_MISSING_CHANNEL_KEY = `prompt.file.missingChannel`;
 
 /**
- * Await an image attachment or direct image URL from the invoking user.
- * @param options AwaitFileInputOptions Configuration for the prompt and validation. @example await AwaitFileInput({ interaction, prompt: 'Upload an image.' })
- * @returns Promise<{ type: 'url' | 'attachment'; value: string | AttachmentBuilder }>
- * @throws Error When the user cancels, input is invalid, or the timeout elapses.
+ * Await an image attachment or direct image URL from the invoking user
+ * @param options AwaitFileInputOptions Configuration for the prompt and validation
+ * @returns Promise of url or attachment type with string or Attachment value
+ * @throws Error When the user cancels or input is invalid or the timeout elapses
  */
 export async function AwaitFileInput(options: AwaitFileInputOptions): Promise<{
     type: `url` | `attachment`;

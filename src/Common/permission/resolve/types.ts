@@ -1,8 +1,8 @@
 import type { IFlowMember, FlowMemberProvider } from '../../Type/FlowContext.js';
-import type { PermissionToken, PermissionsObject, PermissionDecision, TokenSegmentInput } from '../types.js';
+import type { PermissionToken, PermissionsObject, PermissionDecision, TokenSegmentInput } from '../Types.js';
 
 /**
- * Context available when resolving permission token templates.
+ * Context available when resolving permission token templates
  */
 export interface TokenResolveContext {
     commandName?: string;
@@ -13,7 +13,7 @@ export interface TokenResolveContext {
 }
 
 /**
- * Payload provided to approval flow delegates when permissions require admin confirmation.
+ * Payload provided to approval flow delegates when permissions require admin confirmation
  */
 export interface ResolveApprovalPayload {
     tokens: PermissionToken[];
@@ -21,7 +21,7 @@ export interface ResolveApprovalPayload {
 }
 
 /**
- * Options passed to ensure for evaluating and approving permission tokens.
+ * Options passed to ensure for evaluating and approving permission tokens
  */
 export interface ResolveEnsureOptions {
     context?: TokenResolveContext;
@@ -33,7 +33,7 @@ export interface ResolveEnsureOptions {
 }
 
 /**
- * Detailed outcome returned by ensure containing tokens, reasons and decisions.
+ * Detailed outcome returned by ensure containing tokens and reasons and decisions
  */
 export interface ResolveEnsureDetail {
     tokens: PermissionToken[];
@@ -43,7 +43,7 @@ export interface ResolveEnsureDetail {
 }
 
 /**
- * Result returned by ensure.
+ * Result returned by ensure
  */
 export interface ResolveEnsureResult {
     success: boolean;

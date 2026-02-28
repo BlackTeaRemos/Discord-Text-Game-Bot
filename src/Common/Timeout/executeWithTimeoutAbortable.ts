@@ -1,11 +1,10 @@
 /**
- * Abort-capable timeout helper.
- * Aborts the given operation after `timeoutMs` and throws a `TimeoutError`.
+ * Abortable timeout helper that aborts the given operation after timeoutMs
  *
- * @param operation - Function that receives an AbortSignal and returns a Promise<T>
- * @param timeoutMs - Timeout in milliseconds
- * @param desc - Optional description used in the TimeoutError message
- * @returns Promise<T> - Result of `operation` when it completes in time
+ * @param operation Function Async function receiving an AbortSignal
+ * @param timeoutMs number Timeout in milliseconds
+ * @param desc string Optional description for the TimeoutError message
+ * @returns Promise Result of operation when it completes in time
  */
 import { TimeoutError } from './TimeoutError.js';
 

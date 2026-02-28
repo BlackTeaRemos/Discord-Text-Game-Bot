@@ -1,4 +1,3 @@
-// Template
 export type { IGameObjectTemplate } from './IGameObjectTemplate.js';
 
 // Instance

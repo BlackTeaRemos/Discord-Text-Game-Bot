@@ -8,10 +8,10 @@ export interface SelectPromptValidationOptions {
 }
 
 /**
- * Result from select menu validation.
- * @property status 'ok' | 'cancel' | 'error' Indicates validation outcome. @example 'ok'
- * @property value string | undefined Selected value if ok. @example 'option_1'
- * @property errorMessage string | undefined Error details if validation failed. @example 'Invalid selection'
+ * Result from select menu validation
+ * @property status string Indicates validation outcome @example 'ok'
+ * @property value string Selected value if ok @example 'option_1'
+ * @property errorMessage string Error details if validation failed @example 'Invalid selection'
  */
 export interface SelectPromptValidationResult {
     status: `ok` | `cancel` | `error`;
@@ -20,9 +20,9 @@ export interface SelectPromptValidationResult {
 }
 
 /**
- * Validate select menu input (pure business logic, no Discord API interactions).
- * @param options SelectPromptValidationOptions Configuration for validation. @example ValidateSelectInput({ value: 'opt1', validOptions: ['opt1', 'opt2'] });
- * @returns SelectPromptValidationResult Validation result. @example { status: 'ok', value: 'opt1' }
+ * Validate select menu input with pure business logic and no Discord API interactions
+ * @param options SelectPromptValidationOptions Configuration for validation @example ValidateSelectInput({ value: 'opt1', validOptions: ['opt1', 'opt2'] });
+ * @returns SelectPromptValidationResult Validation result @example { status: 'ok', value: 'opt1' }
  */
 export function ValidateSelectInput(options: SelectPromptValidationOptions): SelectPromptValidationResult {
     const { value, validOptions = [], validator, cancelWords = [] } = options;

@@ -11,10 +11,9 @@ import {
 import { TranslateFromContext } from '../../Services/I18nService.js';
 
 /**
- * Handle /organization view command.
- * Displays organization information including hierarchy and members.
- * @param interaction Discord interaction with view options.
- * @returns Promise<void> Resolves when view completes.
+ * @brief Handle the organization view command
+ * @param interaction InteractionExecutionContextCarrier Discord interaction with view options
+ * @returns void Resolves when view completes
  */
 export async function ExecuteOrganizationView(
     interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,

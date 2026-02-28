@@ -1,8 +1,3 @@
-/**
- * Re-export barrel for ObjectViewTheme subsystem
- * Registry mechanism lives in ObjectViewThemeRegistry
- * Built-in registrations live in ObjectViewThemeDefaults (side-effect import)
- */
 export {
     RegisterObjectViewTheme,
     ResolveObjectViewTheme,
@@ -11,5 +6,5 @@ export {
 
 export type { ObjectViewThemeDefinition } from './ObjectViewThemeRegistry.js';
 
-// Side-effect: register built-in themes on import
+// Side effect import that registers built in themes
 import './ObjectViewThemeDefaults.js';

@@ -10,10 +10,9 @@ import {
 import { TranslateFromContext } from '../../Services/I18nService.js';
 
 /**
- * Handle /organization set_parent command.
- * Changes the parent organization with circular dependency protection.
- * @param interaction Discord interaction with set_parent options.
- * @returns Promise<void> Resolves when parent change completes.
+ * Handle organization set_parent command with circular dependency protection
+ * @param interaction Discord interaction with set_parent options
+ * @returns void
  */
 export async function ExecuteOrganizationSetParent(
     interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,

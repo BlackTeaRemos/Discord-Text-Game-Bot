@@ -6,31 +6,31 @@ import { GameObjectTemplateRepository } from '../../Repository/GameObject/GameOb
 import { ParameterSnapshotRepository } from '../../Repository/GameObject/ParameterSnapshotRepository.js';
 import type { IActionExecutionResult } from '../../Domain/GameObject/IActionExecutionResult.js';
 
-/** Module-level log tag. */
+/** Module level log tag */
 const LOG_TAG = `Flow/GameObject/AdvanceTurn`;
 
 /**
- * Result of a full turn advance operation.
+ * @brief Result of a full turn advance operation
  */
 export interface TurnAdvanceResult {
-    /** The new turn number after advancing. @example 4 */
+    /** The new turn number after advancing @example 4 */
     newTurn: number;
 
-    /** Results from processing object actions. Empty if no objects exist. */
+    /** Results from processing object actions and empty if no objects exist */
     actionResults: IActionExecutionResult[];
 
-    /** Count of objects that had at least one failed action. @example 0 */
+    /** Count of objects that had at least one failed action @example 0 */
     failedObjectCount: number;
 
-    /** Count of objects processed successfully. @example 12 */
+    /** Count of objects processed successfully @example 12 */
     successfulObjectCount: number;
 }
 
 /**
- * Advance the game turn and execute all onTurnAdvance actions.
- * @param gameUid string Game identifier. @example 'game_xyz789'
- * @param currentTurn number The current turn number before advancing. @example 3
- * @returns Promise<TurnAdvanceResult> Complete outcome of the turn advance.
+ * @brief Advances the game turn and executes all onTurnAdvance actions
+ * @param gameUid string Game identifier @example 'game_xyz789'
+ * @param currentTurn number The current turn number before advancing @example 3
+ * @returns TurnAdvanceResult Complete outcome of the turn advance
  * @example
  * const result = await AdvanceTurn('game_xyz', 3);
  * // result.newTurn === 4
@@ -89,19 +89,16 @@ export async function AdvanceTurn(gameUid: string, currentTurn: number): Promise
 }
 
 /**
- * Capture parameter snapshots for all objects that received updates during the turn.
- * Deduplicates by objectUid (last result wins) and persists as a batch.
- *
- * @param actionResults IActionExecutionResult[] Results from turn engine execution.
- * @param turn number The turn number at which snapshots are taken. @example 4
- * @returns Promise<void>
+ * @brief Captures parameter snapshots for all objects that received updates during the turn
+ * @param actionResults IActionExecutionResult array Results from turn engine execution
+ * @param turn number The turn number at which snapshots are taken @example 4
  */
 async function __CapturePostTurnSnapshots(
     actionResults: IActionExecutionResult[],
     turn: number,
 ): Promise<void> {
     try {
-        /** Deduplicate: last result per object uid wins (most recent state). */
+        /** Deduplicates so last result per object uid wins as most recent state */
         const latestByObject = new Map<string, IActionExecutionResult>();
         for (const result of actionResults) {
             if (result.success && result.updatedParameters) {

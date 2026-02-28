@@ -2,9 +2,9 @@ import { UniqueSelectOptions } from './UniqueSelectOptions.js';
 
 /**
  * Builds select menu options from records with uid and label fields
- * @param records Array<{uid: string, label: string}> Records to convert. @example [{uid: 'abc', label: 'My Item'}]
- * @param maxOptions number Maximum options to return. @example 25
- * @returns Array<{label: string, value: string}> Discord-compatible select options
+ * @param records array Records to convert @example [{uid: 'abc', label: 'My Item'}]
+ * @param maxOptions number Maximum options to return @example 25
+ * @returns array Discord compatible select options
  * @example BuildViewSelectOptions([{uid: 'x1', label: 'Game'}], 10) -> [{label: 'Game', value: 'x1'}]
  */
 export function BuildViewSelectOptions(

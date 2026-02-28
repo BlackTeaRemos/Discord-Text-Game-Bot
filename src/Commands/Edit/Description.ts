@@ -1,8 +1,8 @@
 import { MessageFlags } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
-import type { PermissionsObject, PermissionState } from '../../Common/Permission/types.js';
-import { RunDescriptionEditorFlow } from '../../Flow/Object/Description/Editor/index.js';
+import type { PermissionsObject, PermissionState } from '../../Common/Permission/Types.js';
+import { RunDescriptionEditorFlow } from '../../SubCommand/Description/Editor/index.js';
 import { log } from '../../Common/Log.js';
 import { ResolveObjectByUid } from '../../Flow/Object/ResolveByUid.js';
 import {

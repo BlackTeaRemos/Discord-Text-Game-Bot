@@ -1,4 +1,4 @@
-import type { PermissionsObject } from '../../../../Common/Permission/types.js';
+import type { PermissionsObject } from '../../../../Common/Permission/Types.js';
 import type { DescriptionScopeType } from './Types.js';
 import { BuildScopePermissionToken } from './PermissionToken.js';
 

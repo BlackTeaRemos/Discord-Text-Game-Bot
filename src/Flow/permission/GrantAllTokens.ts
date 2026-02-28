@@ -1,14 +1,10 @@
-import { GrantForever } from '../../Common/Permission/store.js';
+import { GrantForever } from '../../Common/Permission/Store.js';
 import { CollectAllTokens } from './CollectAllTokens.js';
 import type { DiscoveredToken } from './CollectAllTokens.js';
 import { log } from '../../Common/Log.js';
 
 /**
- * Result of a bulk grant-all operation.
- *
- * @property grantedCount number How many tokens were newly granted.
- * @property totalTokens number Total unique tokens discovered.
- * @property tokens DiscoveredToken[] Full list of tokens that were granted.
+ * Result of a bulk grant all operation
  */
 export interface GrantAllResult {
     grantedCount: number;
@@ -17,14 +13,11 @@ export interface GrantAllResult {
 }
 
 /**
- * Grant every known command permission token to a user in a guild.
- * Dynamically discovers tokens from the loaded commands map.
- *
- * @param guildId string Guild identifier (example: '123456').
- * @param userId string Target user identifier (example: '789012').
- * @param grantedBy string Admin user who approved the grant (example: '345678').
- * @returns Promise<GrantAllResult> Summary of the grant operation.
- *
+ * Grant every known command permission token to a user in a guild by dynamically discovering tokens
+ * @param guildId string Guild identifier
+ * @param userId string Target user identifier
+ * @param grantedBy string Admin user who approved the grant
+ * @returns Promise_GrantAllResult Summary of the grant operation
  * @example
  * const result = await GrantAllTokens('guild1', 'user1', 'admin1');
  */

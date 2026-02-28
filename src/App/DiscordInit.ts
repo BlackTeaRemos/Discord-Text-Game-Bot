@@ -3,8 +3,7 @@ import type { Client } from 'discord.js';
 import { DiscordService } from '../Discord.js';
 
 /**
- * Initializes the DiscordService and wires app-specific event handling.
- * Accepts a small setter callback to store the found `cmd-` channel id in the caller.
+ * Initializes the DiscordService and wires app specific event handling with an optional setter for the cmd channel id
  */
 export function InitDiscord(options: {
     eventBus: EventEmitter;
@@ -54,7 +53,7 @@ export function InitDiscord(options: {
     });
 
     eventBus.on(`discord:message:raw`, (msg: any) => {
-        // Allow the caller to decide how to ignore messages from the bot itself; just re-emit for now.
+        // Re emit raw messages for the caller to filter
         eventBus.emit(`output`, `[Discord] ${msg.author?.username}: ${msg.content}`);
     });
 

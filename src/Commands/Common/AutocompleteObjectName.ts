@@ -10,13 +10,11 @@ const LOG_TAG = `AutocompleteObjectName`;
 const MAX_SUGGESTIONS = 25;
 
 /**
- * Provide object name autocomplete suggestions for the focused option
- * Resolves the server's game, searches objects by partial name match,
- * and returns name + uid pairs for selection
+ * @brief Provides object name autocomplete suggestions for the focused option by resolving the server game and searching by name
  *
  * @param interaction AutocompleteInteraction Discord autocomplete interaction
- * @param focusedOptionName string Name of the focused option to handle, defaults to 'id'
- * @returns Promise<void> Resolves after responding with suggestions
+ * @param focusedOptionName string Name of the focused option to handle defaulting to id
+ * @returns void Resolves after responding with suggestions
  *
  * @example
  * export async function autocomplete(interaction: AutocompleteInteraction) {
@@ -50,7 +48,7 @@ export async function AutocompleteObjectName(
         const objectRepository = new GameObjectRepository();
         const userInput = focusedOption.value.trim();
 
-        // When input is empty, show recent objects; otherwise search by name
+        // When input is empty show recent objects otherwise search by name
         const matchingObjects = userInput.length > 0
             ? await objectRepository.SearchByName(game.uid, userInput, MAX_SUGGESTIONS)
             : await objectRepository.ListByGame(game.uid);

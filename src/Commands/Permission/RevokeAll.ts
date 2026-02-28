@@ -1,16 +1,13 @@
 import { MessageFlags, EmbedBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
-import { RevokeAllTokens } from '../../Flow/permission/RevokeAllTokens.js';
+import { RevokeAllTokens } from '../../Flow/Permission/RevokeAllTokens.js';
 import { TranslateFromContext } from '../../Services/I18nService.js';
 
 /**
- * Execute the /permit revoke subcommand.
- * Revokes every permanent permission grant from the target user.
- *
- * @param interaction InteractionExecutionContextCarrier<ChatInputCommandInteraction> Discord interaction.
- * @returns Promise<void> Resolves when reply is sent.
- *
+ * @brief Execute the permit revoke subcommand
+ * @param interaction InteractionExecutionContextCarrier Discord interaction
+ * @returns void Resolves when reply is sent
  * @example
  * await ExecuteRevokeAll(interaction);
  */

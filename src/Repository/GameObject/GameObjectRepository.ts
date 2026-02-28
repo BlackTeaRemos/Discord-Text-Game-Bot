@@ -7,30 +7,30 @@ import type { IParameterValue } from '../../Domain/GameObject/IParameterValue.js
 import type { IParameterDefinition } from '../../Domain/GameObject/IParameterDefinition.js';
 import { ParameterSnapshotRepository } from './ParameterSnapshotRepository.js';
 
-/** Neo4j node label for game object instances. */
+/** Neo4j node label for game object instances */
 const INSTANCE_LABEL = `GameObject`;
 
-/** Relationship linking instance to template. */
+/** Relationship linking instance to template */
 const REL_INSTANCE_OF = `INSTANCE_OF`;
 
-/** Relationship linking organization to instance. */
+/** Relationship linking organization to instance */
 const REL_OWNS_OBJECT = `OWNS_OBJECT`;
 
-/** Template label for querying. */
+/** Template label for querying */
 const TEMPLATE_LABEL = `GameObjectTemplate`;
 
 /**
- * Generate a unique instance UID.
- * @returns string Instance uid. @example 'gobj_a1b2c3d4e5'
+ * Generate a unique instance UID
+ * @returns string Instance uid
  */
 function __GenerateInstanceUid(): string {
     return `gobj_${randomUUID().replace(/-/g, ``)}`;
 }
 
 /**
- * Map Neo4j node properties to IGameObject.
- * @param properties Record<string, any> Node properties.
- * @returns IGameObject Mapped instance.
+ * Map Neo4j node properties to IGameObject
+ * @param properties object Node properties
+ * @returns IGameObject Mapped instance
  */
 function __MapNodeToInstance(properties: Record<string, any>): IGameObject {
     return {
@@ -46,14 +46,13 @@ function __MapNodeToInstance(properties: Record<string, any>): IGameObject {
 }
 
 /**
- * Concrete implementation of IGameObjectRepository using Neo4j.
+ * Concrete implementation of IGameObjectRepository using Neo4j
  */
 export class GameObjectRepository implements IGameObjectRepository {
     /**
-     * Create a game object instance from a template.
-     * Copies default parameter values from the template.
-     * @param options Creation parameters.
-     * @returns Promise<IGameObject> Persisted instance.
+     * Create a game object instance from a template copying default parameter values
+     * @param options object Creation parameters
+     * @returns IGameObject Persisted instance
      * @example
      * const obj = await repo.Create({ templateUid: 'tpl_abc', gameUid: 'game_xyz', organizationUid: 'org_123' });
      */
@@ -133,9 +132,9 @@ export class GameObjectRepository implements IGameObjectRepository {
     }
 
     /**
-     * Retrieve a game object by uid.
-     * @param uid string Instance identifier.
-     * @returns Promise<IGameObject | null> Instance or null.
+     * Retrieve a game object by uid
+     * @param uid string Instance identifier
+     * @returns IGameObject or null Instance or null
      */
     public async GetByUid(uid: string): Promise<IGameObject | null> {
         const session = await neo4jClient.GetSession(`READ`);
@@ -157,10 +156,10 @@ export class GameObjectRepository implements IGameObjectRepository {
     }
 
     /**
-     * List game objects for a game, optionally filtered.
-     * @param gameUid string Game identifier.
-     * @param filters Optional filters for organization or template.
-     * @returns Promise<IGameObject[]> Matching instances.
+     * List game objects for a game optionally filtered
+     * @param gameUid string Game identifier
+     * @param filters object Optional filters for organization or template
+     * @returns IGameObject array Matching instances
      */
     public async ListByGame(
         gameUid: string,
@@ -198,14 +197,11 @@ export class GameObjectRepository implements IGameObjectRepository {
     }
 
     /**
-     * Search game objects by name within a game scope
-     * Case-insensitive partial match on object name
-     *
+     * Search game objects by name within a game scope using case insensitive partial match
      * @param gameUid string Game identifier
      * @param searchTerm string Partial name to match
-     * @param limit number Maximum results to return, default 25
-     * @returns Promise<IGameObject[]> Matching instances
-     *
+     * @param limit number Maximum results to return with default 25
+     * @returns IGameObject array Matching instances
      * @example
      * const results = await repo.SearchByName('game_abc', 'fact', 10);
      */
@@ -239,10 +235,10 @@ export class GameObjectRepository implements IGameObjectRepository {
     }
 
     /**
-     * Update parameter values on an instance (merge semantics).
-     * @param uid string Object uid.
-     * @param parameters IParameterValue[] New/updated parameter values.
-     * @returns Promise<IGameObject> Updated instance.
+     * Update parameter values on an instance using merge semantics
+     * @param uid string Object uid
+     * @param parameters IParameterValue array New and updated parameter values
+     * @returns IGameObject Updated instance
      */
     public async UpdateParameters(uid: string, parameters: IParameterValue[]): Promise<IGameObject> {
         const session = await neo4jClient.GetSession(`WRITE`);
@@ -253,7 +249,7 @@ export class GameObjectRepository implements IGameObjectRepository {
                 throw new Error(`Game object "${uid}" not found.`);
             }
 
-            // Merge: incoming values override existing by key
+            // Merge where incoming values override existing by key
             const parameterMap = new Map<string, IParameterValue>();
             for (const existingParameter of current.parameters) {
                 parameterMap.set(existingParameter.key, existingParameter);
@@ -280,7 +276,7 @@ export class GameObjectRepository implements IGameObjectRepository {
 
             const updatedInstance = __MapNodeToInstance(record.get(`obj`).properties);
 
-            // Capture parameter snapshot (fire-and-forget, failure must not break update)
+            // Capture parameter snapshot as fire and forget since failure must not break update
             try {
                 const snapshotRepository = new ParameterSnapshotRepository();
                 await snapshotRepository.CaptureSnapshot(uid, 0, mergedParameters);
@@ -302,9 +298,9 @@ export class GameObjectRepository implements IGameObjectRepository {
     }
 
     /**
-     * Batch update parameters for multiple objects in a single transaction.
-     * @param updates Array of object uid + parameter pairs.
-     * @returns Promise<void>
+     * Batch update parameters for multiple objects in a single transaction
+     * @param updates array Object uid and parameter pairs
+     * @returns void
      */
     public async BatchUpdateParameters(
         updates: Array<{ objectUid: string; parameters: IParameterValue[] }>,
@@ -315,8 +311,8 @@ export class GameObjectRepository implements IGameObjectRepository {
             const now = new Date().toISOString();
 
             for (const update of updates) {
-                // For batch, we do a direct set (not merge with existing).
-                // The caller (turn engine) provides the complete parameter state.
+                // For batch this is a direct set not merge with existing
+                // The caller turn engine provides the complete parameter state
                 const parametersJson = JSON.stringify(update.parameters);
 
                 await transaction.run(
@@ -337,9 +333,9 @@ export class GameObjectRepository implements IGameObjectRepository {
     }
 
     /**
-     * Delete a game object instance.
-     * @param uid string Object uid.
-     * @returns Promise<boolean> True if deleted.
+     * Delete a game object instance
+     * @param uid string Object uid
+     * @returns boolean True if deleted
      */
     public async Delete(uid: string): Promise<boolean> {
         const session = await neo4jClient.GetSession(`WRITE`);

@@ -1,41 +1,5 @@
 /**
- * Expression evaluator for game object actions.
- * Processes mathematical expressions that reference parameter keys as variables.
- *
- * Supported syntax:
- *   targetKey operator expression
- *
- * Operators: =, +=, -=, *=, /=
- *
- * Expression right-hand side supports:
- *   - Numeric literals: 10, 3.5
- *   - Variable references (parameter keys): productionRate, workers
- *   - Cross-object references: @TemplateName.paramKey (reads param from objects of that template)
- *   - Arithmetic: +, -, *, /
- *   - Parentheses for grouping: (a + b) * c
- *   - Comparison operators: >, <, >=, <=, == (return 1 for true, 0 for false)
- *   - Built-in functions: min(a, b), max(a, b), clamp(val, lo, hi), floor(x), ceil(x), abs(x)
- *   - Conditional: if(condition, thenValue, elseValue) -- condition > 0 is true
- *   - Aggregation on cross-object refs: sum(@Template.param), avg(@Template.param), count(@Template.param)
- *
- * @example
- *   const evaluator = new ExpressionEvaluator();
- *   const params = { output: 0, productionRate: 10, rawMaterials: 100 };
- *   evaluator.Evaluate(params, 'output += productionRate');
- *   // params.output === 10
- *   evaluator.Evaluate(params, 'rawMaterials -= productionRate * 2');
- *   // params.rawMaterials === 80
- *   evaluator.Evaluate(params, 'output = max(output, 0)');
- *   evaluator.Evaluate(params, 'output = if(rawMaterials > 0, productionRate, 0)');
- *   // Cross-object: read another template's aggregated value
- *   evaluator.Evaluate(params, 'output += sum(@Mine.oreOutput)', crossObjectState);
- */
-
-/**
- * Cross-object state provider mapping template names to arrays of parameter maps.
- * Each entry represents all objects of a given template in the game.
- * Used for `@TemplateName.paramKey` references and aggregate functions.
- *
+ * @brief Maps template names to arrays of parameter maps for cross object state resolution
  * @example
  * {
  *   'Mine':    [{ oreOutput: 50 }, { oreOutput: 30 }],
@@ -44,52 +8,42 @@
  */
 export type CrossObjectState = Record<string, Array<Record<string, number>>>;
 
-/**
- * Result of a single expression evaluation.
- */
+/** @brief Result of a single expression evaluation */
 export interface ExpressionResult {
-    /** Whether the expression was evaluated without error. @example true */
+    /** Whether the expression was evaluated without error @example true */
     success: boolean;
 
-    /** Error message if evaluation failed. @example 'Unknown variable: missingKey' */
+    /** Error message if evaluation failed @example 'Unknown variable: missingKey' */
     error?: string;
 }
 
-/**
- * Identifies the target of an expression's left-hand side.
- * Either a local parameter key or an inline cross-object reference.
- */
+/** @brief Identifies the target of an expression left hand side as either a local key or inline cross object reference */
 export interface ExpressionTarget {
-    /** Whether this expression targets a remote object. */
+    /** Whether this expression targets a remote object */
     isInlineTarget: boolean;
 
-    /** Local parameter key (when isInlineTarget is false). @example 'output' */
+    /** Local parameter key when isInlineTarget is false @example 'output' */
     localKey?: string;
 
-    /** Target template name (when isInlineTarget is true). @example 'Mine' */
+    /** Target template name when isInlineTarget is true @example 'Mine' */
     templateName?: string;
 
-    /** Target parameter key on the remote template (when isInlineTarget is true). @example 'oreOutput' */
+    /** Target parameter key on the remote template when isInlineTarget is true @example 'oreOutput' */
     remoteKey?: string;
 }
 
-/**
- * Evaluates math expressions against a mutable parameter state map.
- * Designed to be stateless -- call Evaluate repeatedly with the same state object
- * to accumulate changes across multiple expressions.
- */
+/** @brief Stateless evaluator that processes math expressions against a mutable parameter state map */
 export class ExpressionEvaluator {
-    /** Assignment pattern for local target: localKey op= expr */
+    /** Assignment pattern matching local targets */
     private static readonly _LOCAL_ASSIGNMENT_PATTERN = /^([a-zA-Z_]\w*)\s*([\+\-\*\/]?=)\s*(.+)$/;
 
-    /** Assignment pattern for inline cross-object target: @TemplateName.paramKey op= expr */
+    /** Assignment pattern matching inline cross object targets */
     private static readonly _INLINE_TARGET_PATTERN = /^@([a-zA-Z_]\w*)\.([a-zA-Z_]\w*)\s*([\+\-\*\/]?=)\s*(.+)$/;
 
     /**
-     * Parse the target information from an expression without evaluating it.
-     * Used by the turn engine to determine which objects an expression modifies.
-     * @param expression string Expression to parse LHS from. @example '@Mine.oreOutput -= 5'
-     * @returns ExpressionTarget Target descriptor.
+     * @brief Parses target information from an expression without evaluating it
+     * @param expression string Expression to parse the left hand side from @example '@Mine.oreOutput -= 5'
+     * @returns ExpressionTarget Target descriptor
      * @example
      * ParseTarget('@Mine.oreOutput -= 5'); // { isInlineTarget: true, templateName: 'Mine', remoteKey: 'oreOutput' }
      * ParseTarget('output += rate');       // { isInlineTarget: false, localKey: 'output' }
@@ -118,15 +72,12 @@ export class ExpressionEvaluator {
     }
 
     /**
-     * Evaluate a single expression against a mutable parameter map.
-     * Supports both local and inline cross-object targets.
-     * For inline targets (@Template.param op= expr), the targetState argument
-     * is the remote object's state to modify, while state is used for RHS resolution.
-     * @param state Record<string, number> Mutable parameter key-value map for RHS variable resolution.
-     * @param expression string Expression to evaluate. @example 'output += productionRate * 2'
-     * @param crossObjectState CrossObjectState Optional cross-object state for @TemplateName.param references in RHS.
-     * @param targetState Record<string, number> Optional separate state for inline target mutation. If omitted, state is mutated.
-     * @returns ExpressionResult Success/failure with optional error detail.
+     * @brief Evaluates a single expression against a mutable parameter map supporting local and inline cross object targets
+     * @param state Record Mutable parameter map for right hand side variable resolution
+     * @param expression string Expression to evaluate @example 'output += productionRate * 2'
+     * @param crossObjectState CrossObjectState Optional cross object state for template param references
+     * @param targetState Record Optional separate state for inline target mutation defaulting to state if omitted
+     * @returns ExpressionResult Success or failure with optional error detail
      * @example
      * const state = { output: 0, rate: 5 };
      * evaluator.Evaluate(state, 'output += rate * 3'); // state.output === 15
@@ -140,7 +91,7 @@ export class ExpressionEvaluator {
         try {
             const trimmed = expression.trim();
 
-            // Try inline target pattern first: @Template.param op= expr
+            // Try inline target pattern first
             const inlineMatch = ExpressionEvaluator._INLINE_TARGET_PATTERN.exec(trimmed);
             if (inlineMatch) {
                 const remoteKey = inlineMatch[2];
@@ -159,7 +110,7 @@ export class ExpressionEvaluator {
                 return { success: true };
             }
 
-            // Local assignment pattern: localKey op= expr
+            // Local assignment pattern
             const localMatch = ExpressionEvaluator._LOCAL_ASSIGNMENT_PATTERN.exec(trimmed);
             if (!localMatch) {
                 return { success: false, error: `Invalid expression syntax: "${expression}". Expected: target operator expression.` };
@@ -184,11 +135,11 @@ export class ExpressionEvaluator {
     }
 
     /**
-     * Evaluate a batch of expressions sequentially. Stops on first error.
-     * @param state Record<string, number> Mutable parameter map.
-     * @param expressions string[] Ordered expressions.
-     * @param crossObjectState CrossObjectState Optional cross-object state.
-     * @returns ExpressionResult[] One result per expression (may be shorter than input if stopped early).
+     * @brief Evaluates a batch of expressions sequentially stopping on first error
+     * @param state Record Mutable parameter map
+     * @param expressions string array Ordered expressions
+     * @param crossObjectState CrossObjectState Optional cross object state
+     * @returns ExpressionResult array One result per expression which may be shorter than input if stopped early
      * @example
      * evaluator.EvaluateBatch(state, ['output += rate', 'materials -= rate * 2']);
      */
@@ -212,11 +163,10 @@ export class ExpressionEvaluator {
     }
 
     /**
-     * Validate expression syntax without executing. Returns list of errors if any.
-     * Supports both local and inline cross-object target syntax.
-     * @param expression string Expression to validate. @example 'output += rate * 2'
-     * @param knownKeys string[] Known parameter keys for variable resolution.
-     * @returns string[] Array of error messages. Empty means valid.
+     * @brief Validates expression syntax without executing and returns any errors found
+     * @param expression string Expression to validate @example 'output += rate * 2'
+     * @param knownKeys string array Known parameter keys for variable resolution
+     * @returns string array Error messages where empty means valid
      * @example
      * evaluator.ValidateSyntax('output += rate * 2', ['output', 'rate']); // []
      * evaluator.ValidateSyntax('@Mine.oreOutput -= 5', ['output']); // [] (inline target validated separately)
@@ -232,8 +182,7 @@ export class ExpressionEvaluator {
             if (inlineMatch) {
                 const rightHandSide = inlineMatch[4];
 
-                // Inline target key validation is deferred to context-aware validation
-                // since we don't know remote template's keys here
+                // Inline target key validation defers to context aware validation since remote template keys are unknown here
 
                 const tokens = this.__Tokenize(rightHandSide);
                 const dummyState: Record<string, number> = {};
@@ -287,12 +236,11 @@ export class ExpressionEvaluator {
     }
 
     /**
-     * Parse and evaluate the right-hand side expression using a recursive descent parser.
-     * Supports: numeric literals, variable references, cross-object refs, +, -, *, /, parentheses.
-     * @param state Record<string, number> Variable state for lookups.
-     * @param expression string RHS expression string. @example 'productionRate * 2 + 5'
-     * @param crossObjectState CrossObjectState Optional cross-object lookup.
-     * @returns number Computed numeric result.
+     * @brief Parses and evaluates the right hand side expression using a recursive descent parser
+     * @param state Record Variable state for lookups
+     * @param expression string Right hand side expression @example 'productionRate * 2 + 5'
+     * @param crossObjectState CrossObjectState Optional cross object lookup
+     * @returns number Computed numeric result
      */
     private __EvaluateRightHandSide(
         state: Record<string, number>,
@@ -311,11 +259,11 @@ export class ExpressionEvaluator {
     }
 
     /**
-     * Apply an assignment operator to current and computed values.
-     * @param currentValue number Existing value of the target.
-     * @param operator string Assignment operator. @example '+='
-     * @param rightValue number Computed RHS value.
-     * @returns number New value for the target.
+     * @brief Applies an assignment operator to current and computed values
+     * @param currentValue number Existing value of the target
+     * @param operator string Assignment operator @example '+='
+     * @param rightValue number Computed right hand side value
+     * @returns number New value for the target
      */
     private __ApplyOperator(currentValue: number, operator: string, rightValue: number): number {
         switch (operator) {
@@ -338,10 +286,9 @@ export class ExpressionEvaluator {
     }
 
     /**
-     * Tokenize a math expression into an array of tokens.
-     * Handles: identifiers, numbers, operators (+,-,*,/), parens, commas, comparison (>,<,>=,<=,==).
-     * @param expression string Raw expression. @example 'max(rate * 2, 10)'
-     * @returns string[] Token array. @example ['max', '(', 'rate', '*', '2', ',', '10', ')']
+     * @brief Tokenizes a math expression into an array of tokens
+     * @param expression string Raw expression @example 'max(rate * 2, 10)'
+     * @returns string array Token array @example ['max', '(', 'rate', '*', '2', ',', '10', ')']
      */
     private __Tokenize(expression: string): string[] {
         const tokens: string[] = [];
@@ -357,7 +304,7 @@ export class ExpressionEvaluator {
                 continue;
             }
 
-            // Two-character comparison operators: >=, <=, ==
+            // Two character comparison operators
             if (position + 1 < rawExpression.length) {
                 const twoChar = rawExpression.substring(position, position + 2);
                 if (twoChar === `>=` || twoChar === `<=` || twoChar === `==`) {
@@ -367,21 +314,21 @@ export class ExpressionEvaluator {
                 }
             }
 
-            // Single-character comparison operators: >, <
+            // Single character comparison operators
             if (character === `>` || character === `<`) {
                 tokens.push(character);
                 position++;
                 continue;
             }
 
-            // Arithmetic operators, parentheses, comma, at-sign, and dot
+            // Arithmetic operators and grouping characters
             if (`+-*/(),@.`.includes(character)) {
                 tokens.push(character);
                 position++;
                 continue;
             }
 
-            // Numbers (integers and decimals)
+            // Numbers including integers and decimals
             if (/[0-9.]/.test(character)) {
                 let numberToken = ``;
                 while (position < rawExpression.length && /[0-9.]/.test(rawExpression[position])) {
@@ -392,7 +339,7 @@ export class ExpressionEvaluator {
                 continue;
             }
 
-            // Identifiers (variable references and function names)
+            // Identifiers including variable references and function names
             if (/[a-zA-Z_]/.test(character)) {
                 let identifierToken = ``;
                 while (position < rawExpression.length && /[a-zA-Z0-9_]/.test(rawExpression[position])) {
@@ -410,32 +357,19 @@ export class ExpressionEvaluator {
     }
 }
 
-/**
- * Set of built-in function names recognized by the parser.
- */
+/** @brief Set of built in function names recognized by the parser */
 const BUILTIN_FUNCTIONS = new Set([`min`, `max`, `clamp`, `floor`, `ceil`, `abs`, `if`, `sum`, `avg`, `count`]);
 
-/**
- * Recursive descent parser for tokenized math expressions.
- * Grammar:
- *   expression  ->  comparison
- *   comparison  ->  additive (('>' | '<' | '>=' | '<=' | '==') additive)*
- *   additive    ->  term (('+' | '-') term)*
- *   term        ->  factor (('*' | '/') factor)*
- *   factor      ->  NUMBER | IDENTIFIER | FUNCTION_CALL | '(' expression ')' | ('-' factor) | CROSS_REF
- *   FUNCTION_CALL -> IDENTIFIER '(' argList ')'
- *   argList     ->  expression (',' expression)*
- *   CROSS_REF   ->  '@' IDENTIFIER '.' IDENTIFIER
- */
+/** @brief Recursive descent parser for tokenized math expressions */
 class TokenParser {
-    /** Current read position in the token array. */
+    /** Current read position in the token array */
     private _position: number = 0;
 
     /**
-     * Create a token parser.
-     * @param _tokens string[] Tokenized expression.
-     * @param _state Record<string, number> Variable state for identifier resolution.
-     * @param _crossObjectState CrossObjectState Optional cross-object state for @ references.
+     * @brief Creates a token parser
+     * @param _tokens string array Tokenized expression
+     * @param _state Record Variable state for identifier resolution
+     * @param _crossObjectState CrossObjectState Optional cross object state for template references
      */
     constructor(
         private readonly _tokens: string[],
@@ -444,32 +378,32 @@ class TokenParser {
     ) {}
 
     /**
-     * Parse a full expression (entry point). Handles comparison precedence.
-     * @returns number Evaluated result.
+     * @brief Parses a full expression as the entry point handling comparison precedence
+     * @returns number Evaluated result
      */
     public ParseExpression(): number {
         return this.__ParseComparison();
     }
 
     /**
-     * Check if the parser has consumed all tokens.
-     * @returns boolean True if at end.
+     * @brief Checks if the parser has consumed all tokens
+     * @returns boolean True if at end
      */
     public IsAtEnd(): boolean {
         return this._position >= this._tokens.length;
     }
 
     /**
-     * Get the current token for error reporting.
-     * @returns string Current token value.
+     * @brief Gets the current token for error reporting
+     * @returns string Current token value
      */
     public CurrentToken(): string {
         return this._tokens[this._position] ?? `<end>`;
     }
 
     /**
-     * Parse comparison expressions (>, <, >=, <=, ==). Returns 1 for true, 0 for false.
-     * @returns number Evaluated result.
+     * @brief Parses comparison expressions returning 1 for true and 0 for false
+     * @returns number Evaluated result
      */
     private __ParseComparison(): number {
         let result = this.__ParseAdditive();
@@ -508,8 +442,8 @@ class TokenParser {
     }
 
     /**
-     * Parse additive expressions (+ and -).
-     * @returns number Evaluated result.
+     * @brief Parses additive expressions for addition and subtraction
+     * @returns number Evaluated result
      */
     private __ParseAdditive(): number {
         let result = this.__ParseTerm();
@@ -524,8 +458,8 @@ class TokenParser {
     }
 
     /**
-     * Parse a multiplicative term (handles * and /).
-     * @returns number Evaluated result.
+     * @brief Parses a multiplicative term for multiplication and division
+     * @returns number Evaluated result
      */
     private __ParseTerm(): number {
         let result = this.__ParseFactor();
@@ -545,8 +479,8 @@ class TokenParser {
     }
 
     /**
-     * Parse a factor: number, variable, function call, parenthesized expression, unary minus, or cross-object ref.
-     * @returns number Evaluated result.
+     * @brief Parses a factor which is a number variable function call grouped expression unary minus or cross object reference
+     * @returns number Evaluated result
      */
     private __ParseFactor(): number {
         // Unary minus
@@ -554,7 +488,7 @@ class TokenParser {
             return -this.__ParseFactor();
         }
 
-        // Parenthesized sub-expression
+        // Parenthesized subexpression
         if (this.__Match(`(`)) {
             const result = this.ParseExpression();
 
@@ -565,7 +499,7 @@ class TokenParser {
             return result;
         }
 
-        // Cross-object reference: @TemplateName.paramKey
+        // Cross object reference
         if (this.__Match(`@`)) {
             return this.__ParseCrossObjectReference();
         }
@@ -588,11 +522,11 @@ class TokenParser {
             return numericValue;
         }
 
-        // Identifier: could be a function call or a variable reference
+        // Identifier which may be a function call or variable reference
         if (/^[a-zA-Z_]/.test(token)) {
             this._position++;
 
-            // Check if this is a function call (next token is '(')
+            // Check if this is a function call
             if (BUILTIN_FUNCTIONS.has(token) && this.__Peek() === `(`) {
                 return this.__ParseFunctionCall(token);
             }
@@ -609,11 +543,8 @@ class TokenParser {
     }
 
     /**
-     * Parse a cross-object reference after the '@' token has been consumed.
-     * Syntax: @TemplateName.paramKey — returns the value of paramKey from the first matching object.
-     * If multiple objects match the template, returns the value from the first one.
-     * For aggregation, use sum(@Template.param), avg(@Template.param), count(@Template.param).
-     * @returns number Resolved value.
+     * @brief Parses a cross object reference after the at token has been consumed returning the first matching value
+     * @returns number Resolved value
      */
     private __ParseCrossObjectReference(): number {
         const templateName = this._tokens[this._position];
@@ -659,11 +590,10 @@ class TokenParser {
     }
 
     /**
-     * Resolve a cross-object reference @TemplateName.paramKey and return all values.
-     * Used by aggregate functions (sum, avg, count).
-     * @param templateName string Template name from the @ reference.
-     * @param paramKey string Parameter key on the referenced objects.
-     * @returns number[] Array of values from all matching objects.
+     * @brief Resolves a cross object reference and returns all values for aggregate functions
+     * @param templateName string Template name from the at reference
+     * @param paramKey string Parameter key on the referenced objects
+     * @returns number array Values from all matching objects
      */
     private __ResolveCrossObjectValues(templateName: string, paramKey: string): number[] {
         if (!this._crossObjectState) {
@@ -691,17 +621,16 @@ class TokenParser {
     }
 
     /**
-     * Parse a function call. The function name has already been consumed.
-     * Aggregate functions (sum, avg, count) accept @TemplateName.paramKey as argument.
-     * @param functionName string Name of the function being called.
-     * @returns number Function evaluation result.
+     * @brief Parses a function call after the function name has been consumed
+     * @param functionName string Name of the function being called
+     * @returns number Function evaluation result
      */
     private __ParseFunctionCall(functionName: string): number {
         if (!this.__Match(`(`)) {
             throw new Error(`Expected '(' after function name "${functionName}".`);
         }
 
-        // Aggregate functions with cross-object reference argument
+        // Aggregate functions with cross object reference argument
         const aggregateFunctions = new Set([`sum`, `avg`, `count`]);
         if (aggregateFunctions.has(functionName) && this.__Peek() === `@`) {
             return this.__ParseAggregateFunction(functionName);
@@ -709,7 +638,7 @@ class TokenParser {
 
         const argumentValues: number[] = [];
 
-        // Parse comma-separated arguments
+        // Parse comma separated arguments
         if (this.__Peek() !== `)`) {
             argumentValues.push(this.ParseExpression());
 
@@ -726,14 +655,12 @@ class TokenParser {
     }
 
     /**
-     * Parse an aggregate function call with a cross-object reference argument.
-     * Called when we see sum(@...), avg(@...), count(@...).
-     * The opening '(' has already been consumed.
-     * @param functionName string Aggregate function name.
-     * @returns number Aggregated result.
+     * @brief Parses an aggregate function call with a cross object reference argument
+     * @param functionName string Aggregate function name
+     * @returns number Aggregated result
      */
     private __ParseAggregateFunction(functionName: string): number {
-        // Consume '@'
+        // Consume the at token
         if (!this.__Match(`@`)) {
             throw new Error(`Expected '@' in aggregate function "${functionName}".`);
         }
@@ -777,10 +704,10 @@ class TokenParser {
     }
 
     /**
-     * Evaluate a built-in function with the given arguments.
-     * @param functionName string Function name.
-     * @param argumentValues number[] Evaluated argument values.
-     * @returns number Function result.
+     * @brief Evaluates a built in function with the given arguments
+     * @param functionName string Function name
+     * @param argumentValues number array Evaluated argument values
+     * @returns number Function result
      */
     private __EvaluateBuiltinFunction(functionName: string, argumentValues: number[]): number {
         switch (functionName) {
@@ -818,10 +745,10 @@ class TokenParser {
     }
 
     /**
-     * Assert that a function received the expected number of arguments.
-     * @param functionName string Function name for error message.
-     * @param argumentValues number[] Provided arguments.
-     * @param expected number Expected argument count.
+     * @brief Asserts that a function received the expected number of arguments
+     * @param functionName string Function name for error message
+     * @param argumentValues number array Provided arguments
+     * @param expected number Expected argument count
      */
     private __AssertArgumentCount(functionName: string, argumentValues: number[], expected: number): void {
         if (argumentValues.length !== expected) {
@@ -830,17 +757,17 @@ class TokenParser {
     }
 
     /**
-     * Peek at the current token without consuming it.
-     * @returns string | undefined Current token or undefined if at end.
+     * @brief Peeks at the current token without consuming it
+     * @returns string or undefined Current token or undefined if at end
      */
     private __Peek(): string | undefined {
         return this._tokens[this._position];
     }
 
     /**
-     * Match and consume a token if it equals the expected value.
-     * @param expected string Token to match.
-     * @returns boolean True if matched and consumed.
+     * @brief Matches and consumes a token if it equals the expected value
+     * @param expected string Token to match
+     * @returns boolean True if matched and consumed
      */
     private __Match(expected: string): boolean {
         if (this._position < this._tokens.length && this._tokens[this._position] === expected) {
@@ -851,5 +778,5 @@ class TokenParser {
     }
 }
 
-/** Singleton instance for convenience. */
+/** Singleton instance for convenience */
 export const expressionEvaluator = new ExpressionEvaluator();

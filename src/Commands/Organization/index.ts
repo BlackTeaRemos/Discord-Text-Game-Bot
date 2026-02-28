@@ -57,9 +57,9 @@ export const data = (() => {
 export const permissionTokens: TokenSegmentInput[][] = [[`organization`]];
 
 /**
- * Route /organization subcommands to respective handlers.
- * @param interaction Discord interaction instance.
- * @returns Promise<void> Resolves when handler completes.
+ * @brief Route organization subcommands to respective handlers
+ * @param interaction InteractionExecutionContextCarrier Discord interaction instance
+ * @returns void Resolves when handler completes
  */
 export async function execute(
     interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
@@ -108,7 +108,7 @@ export async function execute(
             }),
         });
     } finally {
-        // no-op
+        // no op
     }
 }
 
@@ -116,11 +116,9 @@ export async function execute(
 const _ORGANIZATION_OPTIONS = new Set([`organization`, `parent`]);
 
 /**
- * Handle autocomplete interactions for /organization subcommands
- * Routes by focused option name to the appropriate autocomplete handler
- *
+ * @brief Handle autocomplete interactions for organization subcommands
  * @param interaction AutocompleteInteraction Discord autocomplete interaction
- * @returns Promise<void>
+ * @returns void
  */
 export async function autocomplete(interaction: AutocompleteInteraction): Promise<void> {
     const focusedOption = interaction.options.getFocused(true);

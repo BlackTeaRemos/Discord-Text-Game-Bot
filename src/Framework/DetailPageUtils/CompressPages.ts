@@ -2,9 +2,7 @@ import type { ObjectViewPage } from '../ObjectViewTypes.js';
 import { MAX_PAGE_LENGTH, SECTION_SEPARATOR } from './Constants.js';
 
 /**
- * Group of consecutive pages sharing the same section tag
- * @property section string | undefined Common section identifier
- * @property pages ObjectViewPage[] Pages in this group
+ * @brief Group of consecutive pages sharing the same section tag
  */
 interface SectionGroup {
     section: string | undefined;
@@ -12,12 +10,10 @@ interface SectionGroup {
 }
 
 /**
- * Compress pages within the same section into a single page when content fits
- * Different sections remain on separate pages to support section quick-nav
- * Returns original pages for a section when its combined content exceeds MAX_PAGE_LENGTH
+ * @brief Compress pages within the same section into a single page when content fits
  *
- * @param pages ObjectViewPage[] All section pages to attempt compressing
- * @returns ObjectViewPage[] Compressed pages preserving section boundaries
+ * @param pages ObjectViewPage All section pages to attempt compressing
+ * @returns ObjectViewPage Compressed pages preserving section boundaries
  *
  * @example
  * // Two overview pages merge into one, relationships stay separate
@@ -63,8 +59,7 @@ function __GroupBySection(pages: ObjectViewPage[]): SectionGroup[] {
 }
 
 /**
- * Attempt to merge all pages in a group into a single page
- * Returns null if merged content exceeds MAX_PAGE_LENGTH
+ * @brief Attempt to merge all pages in a group into a single page
  */
 function __MergeGroup(group: SectionGroup): ObjectViewPage | null {
     const sectionTexts: string[] = [];

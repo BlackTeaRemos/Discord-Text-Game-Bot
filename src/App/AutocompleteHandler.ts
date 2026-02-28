@@ -2,24 +2,23 @@ import type { AutocompleteInteraction } from 'discord.js';
 import { log } from '../Common/Log.js';
 import { createExecutionContext } from '../Domain/index.js';
 
-/** Log tag for this module. */
+/** Log tag for this module */
 const LOG_TAG = `AutocompleteHandler`;
 
 /**
- * Factory for Discord autocomplete interaction handler.
- * Loads the matching command module and invokes its `autocomplete` export if present.
+ * Factory for Discord autocomplete interaction handler
  *
- * @param options.loadedCommands Record<string, any> Map of command name to command module.
- * @returns (interaction: AutocompleteInteraction) => Promise<void> Handler function.
+ * @param options object Map of command modules keyed by command name
+ * @returns function Handler function for autocomplete interactions
  * @example const handler = CreateAutocompleteHandler({ loadedCommands }); client.on('interactionCreate', handler);
  */
 export function CreateAutocompleteHandler(options: { loadedCommands: Record<string, any> }) {
     const { loadedCommands } = options;
 
     /**
-     * Handle an autocomplete interaction by delegating to the command module.
-     * @param interaction AutocompleteInteraction Discord autocomplete interaction.
-     * @returns Promise<void>
+     * Handle an autocomplete interaction by delegating to the command module
+     * @param interaction AutocompleteInteraction Discord autocomplete interaction
+     * @returns void
      */
     return async function HandleAutocomplete(interaction: AutocompleteInteraction): Promise<void> {
         const command = loadedCommands[interaction.commandName];

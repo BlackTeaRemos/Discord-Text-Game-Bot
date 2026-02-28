@@ -1,12 +1,12 @@
 /**
  * Generates and resolves custom IDs for menu component interactions
- * Encapsulates the prefix:action:target format convention
+ * Encapsulates the prefix_action_target format convention
  */
 export class MenuCustomIdResolver {
     private readonly _prefix: string;
 
     /**
-     * @param prefix string Custom ID prefix for namespacing. Example: 'menu'
+     * @param prefix string Custom ID prefix for namespacing
      *
      * @example
      * const resolver = new MenuCustomIdResolver('settings_menu');
@@ -18,8 +18,8 @@ export class MenuCustomIdResolver {
     /**
      * Build a custom ID for navigating to a child node
      *
-     * @param childId string Child node identifier. Example: 'audio'
-     * @returns string Formatted custom ID. Example: 'menu:child:audio'
+     * @param childId string Child node identifier
+     * @returns string Formatted custom ID
      */
     public ChildId(childId: string): string {
         return `${this._prefix}:child:${childId}`;
@@ -27,7 +27,7 @@ export class MenuCustomIdResolver {
 
     /**
      * Build the custom ID for the back navigation button
-     * @returns string Custom ID. Example: 'menu:back'
+     * @returns string Custom ID
      */
     public BackId(): string {
         return `${this._prefix}:back`;
@@ -35,7 +35,7 @@ export class MenuCustomIdResolver {
 
     /**
      * Build the custom ID for the root navigation button
-     * @returns string Custom ID. Example: 'menu:root'
+     * @returns string Custom ID
      */
     public RootId(): string {
         return `${this._prefix}:root`;
@@ -43,7 +43,7 @@ export class MenuCustomIdResolver {
 
     /**
      * Build the custom ID for the child select dropdown
-     * @returns string Custom ID. Example: 'menu:select'
+     * @returns string Custom ID
      */
     public SelectId(): string {
         return `${this._prefix}:select`;
@@ -53,8 +53,8 @@ export class MenuCustomIdResolver {
      * Extract the child node ID from a child navigation custom ID
      * Returns null if the custom ID does not match the child pattern
      *
-     * @param customId string Full custom ID from the interaction. Example: 'menu:child:audio'
-     * @returns string | null Extracted child ID or null
+     * @param customId string Full custom ID from the interaction
+     * @returns string or null Extracted child ID or null
      */
     public ExtractChildId(customId: string): string | null {
         const match = customId.match(`${this._prefix}:child:(.+)`);
@@ -65,10 +65,10 @@ export class MenuCustomIdResolver {
     }
 
     /**
-     * Check whether a custom ID belongs to this resolver's namespace
+     * Check whether a custom ID belongs to this resolver namespace
      *
-     * @param customId string Custom ID to test. Example: 'menu:child:audio'
-     * @returns boolean True if the ID starts with this resolver's prefix
+     * @param customId string Custom ID to test
+     * @returns boolean True if the ID starts with this resolver prefix
      */
     public IsRelevant(customId: string): boolean {
         return customId.startsWith(this._prefix);

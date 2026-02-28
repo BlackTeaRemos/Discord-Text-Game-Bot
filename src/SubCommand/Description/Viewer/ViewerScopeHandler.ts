@@ -1,24 +1,24 @@
 import type { Message, StringSelectMenuInteraction } from 'discord.js';
 import { ComponentType, MessageFlags } from 'discord.js';
 import type { DescriptionViewerState, ViewerEditCallback } from './Types.js';
-import { CalculatePageCount } from '../Scope/Types.js';
-import { GetScopedDescription } from '../Scope/GetScopedDescription.js';
+import { CalculatePageCount } from '../../../Flow/Object/Description/Scope/Types.js';
+import { GetScopedDescription } from '../../../Flow/Object/Description/Scope/GetScopedDescription.js';
 import { BuildScopeSelectorComponent, ResolveScopeFromSelection, SCOPE_SELECTOR_CUSTOM_ID } from '../Editor/ScopeSelectorComponent.js';
 import { BuildViewerPreview } from './ViewerPreview.js';
 import { HandleViewerPreviewLoop } from './ViewerNavigationHandler.js';
-import { TranslateFromContext } from '../../../../Services/I18nService.js';
+import { TranslateFromContext } from '../../../Services/I18nService.js';
 
-/** Timeout for component interactions in milliseconds. */
+/** Timeout for component interactions in milliseconds */
 export const VIEWER_INTERACTION_TIMEOUT_MS = 300000;
 
 /**
- * Main interaction loop for the description viewer.
- * Waits for initial scope selection.
- * @param message Message The message with components.
- * @param state DescriptionViewerState Mutable viewer state.
- * @param showEditButton boolean Whether edit button is displayed.
- * @param onEditRequest ViewerEditCallback | undefined Callback for edit button.
- * @returns Promise<DescriptionViewerState> Final state when loop ends.
+ * Main interaction loop for the description viewer
+ * Waits for initial scope selection
+ * @param message Message The message with components
+ * @param state DescriptionViewerState Mutable viewer state
+ * @param showEditButton boolean Whether edit button is displayed
+ * @param onEditRequest ViewerEditCallback or undefined Callback for edit button
+ * @returns Promise of DescriptionViewerState Final state when loop ends
  */
 export async function HandleViewerFlowLoop(
     message: Message,
@@ -50,13 +50,13 @@ export async function HandleViewerFlowLoop(
 }
 
 /**
- * Handle scope selection from the select menu.
- * @param interaction StringSelectMenuInteraction The select interaction.
- * @param message Message The message to update.
- * @param state DescriptionViewerState Mutable viewer state.
- * @param showEditButton boolean Whether edit button is displayed.
- * @param onEditRequest ViewerEditCallback | undefined Callback for edit button.
- * @returns Promise<DescriptionViewerState> Updated state after selection.
+ * Handle scope selection from the select menu
+ * @param interaction StringSelectMenuInteraction The select interaction
+ * @param message Message The message to update
+ * @param state DescriptionViewerState Mutable viewer state
+ * @param showEditButton boolean Whether edit button is displayed
+ * @param onEditRequest ViewerEditCallback or undefined Callback for edit button
+ * @returns Promise of DescriptionViewerState Updated state after selection
  */
 export async function HandleViewerScopeSelection(
     interaction: StringSelectMenuInteraction,
@@ -92,8 +92,8 @@ export async function HandleViewerScopeSelection(
 }
 
 /**
- * Load description content for currently selected scope.
- * @param state DescriptionViewerState State to update with loaded content.
+ * Load description content for currently selected scope
+ * @param state DescriptionViewerState State to update with loaded content
  */
 export async function LoadViewerDescriptionForScope(state: DescriptionViewerState): Promise<void> {
     if (!state.selectedScope) {
@@ -115,8 +115,8 @@ export async function LoadViewerDescriptionForScope(state: DescriptionViewerStat
 }
 
 /**
- * Disable all components on timeout.
- * @param message Message The message to update.
+ * Disable all components on timeout
+ * @param message Message The message to update
  */
 async function __DisableViewerComponents(message: Message): Promise<void> {
     try {

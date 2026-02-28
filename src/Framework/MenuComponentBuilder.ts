@@ -12,7 +12,7 @@ import { MenuCustomIdResolver } from './MenuCustomIdResolver.js';
 
 /**
  * Builds Discord ActionRow components for menu rendering
- * Pure component factory -- no state management or interaction handling
+ * Pure component factory with no state management or interaction handling
  */
 export class MenuComponentBuilder {
     private readonly _config: MenuConfig;
@@ -34,8 +34,8 @@ export class MenuComponentBuilder {
      * Build a button row for the first 3 child nodes of the active node
      * Returns null if the node has no children
      *
-     * @param activeNode MenuNode Current menu node. Example: { id: 'root', children: [...] }
-     * @returns ActionRowBuilder | null Button row or null when no children exist
+     * @param activeNode MenuNode Current menu node
+     * @returns ActionRowBuilder or null Button row or null when no children exist
      */
     public BuildChildButtonRow(
         activeNode: MenuNode,
@@ -58,7 +58,7 @@ export class MenuComponentBuilder {
      * Returns null if the node has 3 or fewer children
      *
      * @param activeNode MenuNode Current menu node
-     * @returns ActionRowBuilder | null Select row or null when not needed
+     * @returns ActionRowBuilder or null Select row or null when not needed
      */
     public BuildChildSelectRow(
         activeNode: MenuNode,
@@ -85,10 +85,10 @@ export class MenuComponentBuilder {
     }
 
     /**
-     * Build the back/root navigation button row
-     * Both buttons are disabled when at root level (empty path)
+     * Build the back and root navigation button row
+     * Both buttons are disabled when at root level with empty path
      *
-     * @param path string[] Current navigation path. Example: ['root', 'settings']
+     * @param path string array Current navigation path
      * @returns ActionRowBuilder Navigation button row
      */
     public BuildNavigationRow(path: string[]): ActionRowBuilder<MessageActionRowComponentBuilder> {
@@ -108,10 +108,10 @@ export class MenuComponentBuilder {
     }
 
     /**
-     * Build the content text with title, breadcrumbs, and node description
+     * Build the content text with title and breadcrumbs and node description
      *
      * @param activeNode MenuNode Current node for description
-     * @param breadcrumbs string[] Breadcrumb labels. Example: ['Menu', 'Settings']
+     * @param breadcrumbs string array Breadcrumb labels
      * @returns string Formatted content string
      */
     public BuildContent(activeNode: MenuNode, breadcrumbs: string[]): string {

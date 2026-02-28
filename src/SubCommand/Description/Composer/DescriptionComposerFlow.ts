@@ -1,5 +1,5 @@
 import type { ChatInputCommandInteraction, ButtonInteraction } from 'discord.js';
-import { PromptText } from '../../../../SubCommand/Prompt/TextAsync.js';
+import { PromptText } from '../../Prompt/TextAsync.js';
 import type { DescriptionComposerOptions, DescriptionComposerResult } from './Types.js';
 
 /** Default timeout for text input collection in milliseconds. */

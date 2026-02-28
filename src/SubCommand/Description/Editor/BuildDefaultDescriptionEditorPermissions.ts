@@ -1,4 +1,4 @@
-import type { PermissionsObject } from '../../../../Common/Permission/index.js';
+import type { PermissionsObject } from '../../../Common/Permission/index.js';
 
 /**
  * Build a default permission map for the scoped description editor.

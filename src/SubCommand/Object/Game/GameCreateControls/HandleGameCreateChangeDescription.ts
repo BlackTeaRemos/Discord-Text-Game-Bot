@@ -1,9 +1,9 @@
 import { MessageFlags } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 import { sanitizeDescriptionText } from '../../../../Flow/Object/Description/BuildDefinition.js';
-import { RunDescriptionComposerFlow } from '../../../../Flow/Object/Description/Composer/DescriptionComposerFlow.js';
-import { RunDescriptionEditorFlow } from '../../../../Flow/Object/Description/Editor/DescriptionEditorFlow.js';
-import { BuildDefaultDescriptionEditorPermissions } from '../../../../Flow/Object/Description/Editor/BuildDefaultDescriptionEditorPermissions.js';
+import { RunDescriptionComposerFlow } from '../../../Description/Composer/DescriptionComposerFlow.js';
+import { RunDescriptionEditorFlow } from '../../../Description/Editor/DescriptionEditorFlow.js';
+import { BuildDefaultDescriptionEditorPermissions } from '../../../Description/Editor/BuildDefaultDescriptionEditorPermissions.js';
 import { GetPriorityScopedDescription } from '../../../../Flow/Object/Description/Scope/GetPriorityScopedDescription.js';
 import type { GameCreateSession } from './GameCreateSessionStore.js';
 import type { GameCreateSessionStore } from './GameCreateSessionStore.js';

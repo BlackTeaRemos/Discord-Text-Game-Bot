@@ -6,14 +6,14 @@ import { CreateInteractionHandler } from './InteractionHandler.js';
 import { CreateAutocompleteHandler } from './AutocompleteHandler.js';
 import { InitializeHandlers } from './Handler/Loader.js';
 import { CreateSafeEventListener } from '../Common/SafeEventListener.js';
-import { LoadGrantsForGuild } from '../Common/Permission/store.js';
+import { LoadGrantsForGuild } from '../Common/Permission/Store.js';
 import { InitI18n } from '../Services/I18nService.js';
 import { executeWithTimeout } from '../Common/Timeout/index.js';
 
 /**
  * Load cached permission grants for all guilds
- * @param client Client Discord client instance example client
- * @returns Promise<void> Resolves after grants are loaded example void
+ * @param client Client Discord client instance
+ * @returns void Resolves after grants are loaded
  * @example await __LoadPermissionGrants(client)
  */
 async function __LoadPermissionGrants(client: Client): Promise<void> {
@@ -38,8 +38,7 @@ async function __LoadPermissionGrants(client: Client): Promise<void> {
 
 
 /**
- * Boot helper: loads config, creates and logs-in a Discord client, and registers application commands.
- * This extracts the large boot logic from the main application class.
+ * Boot helper that loads config and logs in a Discord client and registers application commands
  */
 export async function bootDiscordClient(options: {
     eventBus: EventEmitter;
@@ -128,8 +127,8 @@ export async function bootDiscordClient(options: {
                         eventBus.emit(`output`, `Registration payload: ${JSON.stringify(commandData, null, 2)}`);
                     } catch {}
 
-                    // Register commands per-guild for instant propagation.
-                    // Global commands can take up to 1 hour to propagate across Discord's CDN.
+                    // Register commands per guild for instant propagation
+                    // Global commands can take up to 1 hour to propagate across Discord CDN
                     const guilds = Array.from(client.guilds.cache.values());
                     eventBus.emit(`output`, `Registering ${commandData.length} command(s) to ${guilds.length} guild(s): ${commandData.map(c => {
                         return c.name;

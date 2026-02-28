@@ -16,10 +16,7 @@ let _supportedLocales: string[] = [DEFAULT_LOCALE];
 let _localeRoot = resolve(`./config/locales`);
 
 /**
- * Options for initializing the translation service.
- * @property defaultLocale string Default locale id. Example 'en'
- * @property supportedLocales string[] Supported locale ids. Example ['en','ru']
- * @property localesRoot string Filesystem path to locales root. Example './config/locales'
+ * Options for initializing the translation service
  */
 export interface I18nInitOptions {
     defaultLocale?: string;
@@ -28,9 +25,9 @@ export interface I18nInitOptions {
 }
 
 /**
- * Initialize the translation service using filesystem JSON resources.
+ * Initialize the translation service using filesystem JSON resources
  * @param options I18nInitOptions Initialization options
- * @returns Promise<void> Resolves after initialization
+ * @returns void Resolves after initialization
  */
 export async function InitI18n(options: I18nInitOptions = {}): Promise<void> {
     try {
@@ -61,15 +58,12 @@ export async function InitI18n(options: I18nInitOptions = {}): Promise<void> {
         _translator = null;
         throw error;
     } finally {
-        // no-op
+        // noop
     }
 }
 
 /**
- * Translation input options.
- * @property locale string Optional locale override
- * @property params Record<string, unknown> Optional interpolation params
- * @property defaultValue string Optional fallback text
+ * Translation input options
  */
 export interface TranslateOptions {
     locale?: string;
@@ -78,7 +72,7 @@ export interface TranslateOptions {
 }
 
 /**
- * Translate a string key using the initialized translator.
+ * Translate a string key using the initialized translator
  * @param key string Translation key
  * @param options TranslateOptions Optional settings
  * @returns string Localized text
@@ -95,11 +89,11 @@ export function Translate(key: string, options: TranslateOptions = {}): string {
     // Ensure locale is a string and protect it from being overridden by params
     const resolvedLocale = typeof locale === `string` ? locale : _defaultLocale;
 
-    // Prevent callers accidentally overriding the language ('lng') option by passing a 'lng' param
+    // Prevent callers accidentally overriding the language lng option by passing an lng param
     let translatorParams: any = params;
     if ((params as any).lng !== undefined) {
         log.warning(`I18n: caller provided 'lng' in params; ignoring to prevent runtime errors`, `I18nService`);
-        // create a shallow copy without 'lng'
+        // Shallow copy without lng
         const { lng: _lng, ...rest } = params as any;
         translatorParams = rest;
     }
@@ -116,10 +110,10 @@ export function Translate(key: string, options: TranslateOptions = {}): string {
 }
 
 /**
- * Resolve a locale for a user and optional execution context cache.
+ * Resolve a locale for a user and optional execution context cache
  * @param discordId string Discord user id
  * @param executionContext ExecutionContext Optional cache container
- * @returns Promise<string> Locale id
+ * @returns string Locale id
  */
 export async function ResolveUserLocale(
     discordId: string,
@@ -153,7 +147,7 @@ export async function ResolveUserLocale(
 }
 
 /**
- * Resolve locale from execution context cache when available.
+ * Resolve locale from execution context cache when available
  * @param executionContext ExecutionContext Optional cache container
  * @returns string Locale id
  */
@@ -167,7 +161,7 @@ export function GetCachedLocale(executionContext?: ExecutionContext): string {
 }
 
 /**
- * Translate using execution context cached locale.
+ * Translate using execution context cached locale
  * @param executionContext ExecutionContext Optional cache container
  * @param key string Translation key
  * @param options TranslateOptions Optional settings
@@ -183,9 +177,7 @@ export function TranslateFromContext(
 }
 
 /**
- * Map application locale codes to Discord API locale enum values.
- * Discord requires specific locale codes (e.g. 'en-US', not bare 'en').
- * Unmapped codes pass through as-is (e.g. 'ru' is valid in both systems).
+ * Map application locale codes to Discord API locale enum values with unmapped codes passing through as is
  */
 const DISCORD_LOCALE_MAP: Record<string, string> = {
     en: `en-US`,
@@ -196,10 +188,9 @@ const DISCORD_LOCALE_MAP: Record<string, string> = {
 };
 
 /**
- * Build a localization map for all supported locales for a given translation key.
- * Returns an object keyed by Discord-compatible locale codes with translated strings.
- * @param key string Translation key. @example 'commands.create.description'
- * @returns Record<string, string> Discord locale map. @example { 'en-US': 'Create game', 'ru': 'Создать игру' }
+ * Build a localization map for all supported locales keyed by Discord compatible locale codes
+ * @param key string Translation key @example 'commands.create.description'
+ * @returns Record Discord locale map @example { 'en-US': 'Create game', 'ru': 'Создать игру' }
  */
 export function BuildLocalizations(key: string): Record<string, string> {
     const result: Record<string, string> = {};

@@ -1,23 +1,16 @@
 import { log } from '../../Log.js';
-import { CheckPermission } from '../manager.js';
-import type { PermissionToken, PermissionTokenInput } from '../types.js';
-import type { ResolveEnsureOptions, ResolveEnsureResult } from './types.js';
+import { CheckPermission } from '../Manager.js';
+import type { PermissionTokenInput } from '../Types.js';
+import type { ResolveEnsureOptions, ResolveEnsureResult } from './Types.js';
 import type { IFlowMember } from '../../Type/FlowContext.js';
-import { CollectEnsureTokens } from './collectEnsureTokens.js';
-import { ToInputs } from './toInputs.js';
+import { CollectEnsureTokens } from './CollectEnsureTokens.js';
+import { ToInputs } from './ToInputs.js';
 
 /**
- * Resolves permission templates into tokens, evaluates them against the provided permissions,
- * and handles approval workflows for denied but approvable permissions.
- *
- * This function takes permission templates (strings or arrays), substitutes placeholders using context,
- * checks if the user has permission, and if not, can request approval from administrators.
- * It returns a result indicating success or failure, along with details like tokens and reasons.
- *
- * @param templates - Array of permission templates to resolve and check
- * @param options - Configuration options including context, permissions, member, and approval callbacks
+ * @brief Resolves permission templates into tokens and evaluates them with approval workflows
+ * @param templates Array of permission templates to resolve and check
+ * @param options Configuration options including context and permissions and member and approval callbacks
  * @returns Promise resolving to permission resolution result
- *
  * @example
  * const result = await resolve(['command:{action}'], {
  *   context: { action: 'ban' },
@@ -30,11 +23,11 @@ import { ToInputs } from './toInputs.js';
  * }
  */
 export async function Resolve(
-    templates: Array<string | import('../types.js').TokenSegmentInput[]>,
+    templates: Array<string | import('../Types.js').TokenSegmentInput[]>,
     options: ResolveEnsureOptions = {},
 ): Promise<ResolveEnsureResult> {
     try {
-        const context = (options.context ?? {}) as import('./types.js').TokenResolveContext;
+        const context = (options.context ?? {}) as import('./Types.js').TokenResolveContext;
         const tokens = CollectEnsureTokens(templates, context);
 
         log.debug(

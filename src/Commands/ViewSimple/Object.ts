@@ -17,8 +17,8 @@ const _objectViewRenderer = new ObjectViewRenderer(`object_view`);
 
 /**
  * View description for any object by id
- * @param interaction InteractionExecutionContextCarrier<ChatInputCommandInteraction> Discord interaction
- * @returns Promise<void> Resolves when view is displayed
+ * @param interaction InteractionExecutionContextCarrier Discord interaction
+ * @returns void
  */
 export async function ExecuteViewObject(
     interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
@@ -132,7 +132,7 @@ export async function ExecuteViewObject(
                 viewModel.pages[0].imageUrl = `attachment://card.png`;
             }
         } catch (cardError) {
-            // Card rendering failure is non-fatal, proceed without image
+            // Card rendering failure is non fatal so we proceed without image
             log.warning(`Card rendering failed`, `ViewObject`, cardError instanceof Error ? cardError.message : String(cardError));
         }
 

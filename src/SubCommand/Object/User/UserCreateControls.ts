@@ -13,9 +13,10 @@ const sessionStore = new UserCreateSessionStore();
 const controlService = new UserCreateControlService(sessionStore);
 
 /**
- * Register a new interactive user creation session.
- * @param options Object describing the initiating interaction and Discord message identifiers. @example await RegisterUserCreateSession({ interaction, state, previewMessageId, controlsMessageId })
- * @returns Promise<UserCreateSession> Active session reference persisted in the store. @example const session = await RegisterUserCreateSession(options)
+ * Register a new interactive user creation session
+ * @param options Object describing the initiating interaction and Discord message identifiers
+ * @returns Promise_UserCreateSession Active session reference persisted in the store
+ * @example const session = await RegisterUserCreateSession({ interaction, state, previewMessageId, controlsMessageId })
  */
 export async function RegisterUserCreateSession(options: {
     interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>;
@@ -48,26 +49,29 @@ export async function RegisterUserCreateSession(options: {
 }
 
 /**
- * Process a button interaction emitted from the user creation controls.
- * @param interaction ButtonInteraction Discord button interaction payload. @example const handled = await HandleUserCreateControlInteraction(interaction)
- * @returns Promise<boolean> True when the interaction was handled; otherwise false to allow other handlers. @example if (await HandleUserCreateControlInteraction(interaction)) return
+ * Process a button interaction emitted from the user creation controls
+ * @param interaction ButtonInteraction Discord button interaction payload
+ * @returns Promise_boolean True when the interaction was handled and false otherwise
+ * @example const handled = await HandleUserCreateControlInteraction(interaction)
  */
 export async function HandleUserCreateControlInteraction(interaction: ButtonInteraction): Promise<boolean> {
     return await controlService.handleInteraction(interaction);
 }
 
 /**
- * Retrieve the active session associated with a Discord user identifier.
- * @param userId string Discord user identifier. @example const session = GetUserCreateSessionByUser('123')
- * @returns UserCreateSession | undefined The tracked session, if one exists. @example const existing = GetUserCreateSessionByUser(userId)
+ * Retrieve the active session associated with a Discord user identifier
+ * @param userId string Discord user identifier
+ * @returns UserCreateSession or undefined The tracked session if one exists
+ * @example const session = GetUserCreateSessionByUser('123')
  */
 export function GetUserCreateSessionByUser(userId: string): UserCreateSession | undefined {
     return controlService.getSessionByUser(userId);
 }
 
 /**
- * Clear all tracked user creation sessions. Intended for administrative resets.
- * @returns void Nothing. @example ResetUserCreateSessions()
+ * Clear all tracked user creation sessions for administrative resets
+ * @returns void
+ * @example ResetUserCreateSessions()
  */
 export function ResetUserCreateSessions(): void {
     controlService.resetSessions();

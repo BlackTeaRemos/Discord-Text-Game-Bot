@@ -1,5 +1,5 @@
-import type { PermissionToken, PermissionTokenInput, TokenSegmentInput } from './types.js';
-import { NormalizeSegment } from './normalizeSegment.js';
+import type { PermissionToken, PermissionTokenInput, TokenSegmentInput } from './Types.js';
+import { NormalizeSegment } from './NormalizeSegment.js';
 
 export function NormalizeToken(token: PermissionTokenInput): PermissionToken {
     if (Array.isArray(token)) {

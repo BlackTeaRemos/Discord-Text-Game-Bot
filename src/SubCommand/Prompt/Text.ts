@@ -9,10 +9,10 @@ export interface TextPromptValidationOptions {
 }
 
 /**
- * Result describing the outcome of text prompt validation.
- * @property status 'ok' | 'cancel' | 'error' Validation result state. @example 'ok'
- * @property value string | undefined Sanitized text when validation succeeds. @example 'Validated text'
- * @property errorMessage string | undefined Reason for failure when status is 'error'. @example 'Too short'
+ * Result describing the outcome of text prompt validation
+ * @property status string Validation result state @example 'ok'
+ * @property value string Sanitized text when validation succeeds @example 'Validated text'
+ * @property errorMessage string Reason for failure when status is error @example 'Too short'
  */
 export interface TextPromptValidationResult {
     status: `ok` | `cancel` | `error`;
@@ -20,16 +20,16 @@ export interface TextPromptValidationResult {
     errorMessage?: string;
 }
 
-/** Default error returned when custom validation rejects the submitted text. */
+/** Default error returned when custom validation rejects the submitted text */
 const DEFAULT_VALIDATOR_FAILURE_MESSAGE = Translate(`prompt.text.validatorFailed`);
 
-/** Default error returned when the user submits an empty value. */
+/** Default error returned when the user submits an empty value */
 const DEFAULT_EMPTY_VALUE_MESSAGE = Translate(`prompt.text.emptyValue`);
 
 /**
- * Validate text prompt input prior to resolving asynchronous prompt workflows.
- * @param options TextPromptValidationOptions Validation configuration. @example ValidateTextInput({ value: 'My game' })
- * @returns TextPromptValidationResult Validation status information. @example { status: 'ok', value: 'My game' }
+ * Validate text prompt input prior to resolving asynchronous prompt workflows
+ * @param options TextPromptValidationOptions Validation configuration @example ValidateTextInput({ value: 'My game' })
+ * @returns TextPromptValidationResult Validation status information @example { status: 'ok', value: 'My game' }
  */
 export function ValidateTextInput(options: TextPromptValidationOptions): TextPromptValidationResult {
     const { value, minLength, maxLength, cancelWords = [], validator } = options;

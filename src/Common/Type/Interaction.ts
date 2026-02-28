@@ -8,8 +8,8 @@ let interactionExecutionContextHydrated = false;
 type InteractionPrototype = Record<PropertyKey, unknown>;
 
 /**
- * Describe a Discord.js interaction that carries an execution context instance.
- * @template TInteraction Interaction type to augment with the execution context.
+ * Describe a discord js interaction that carries an execution context instance
+ * @tparam TInteraction Interaction type to augment with the execution context
  */
 export type InteractionExecutionContextCarrier<TInteraction extends DiscordBaseInteraction = DiscordBaseInteraction> =
     TInteraction & {
@@ -17,9 +17,9 @@ export type InteractionExecutionContextCarrier<TInteraction extends DiscordBaseI
     };
 
 /**
- * Add getters and setters for executionContext onto the supplied prototype.
- * @param target InteractionPrototype Prototype storing the execution context accessors. @example ensureExecutionContextAccessor(BaseInteraction.prototype as InteractionPrototype)
- * @returns void Accessors exist for instances created from the prototype. @example ensureExecutionContextAccessor(BaseInteraction.prototype as InteractionPrototype)
+ * Add getters and setters for executionContext onto the supplied prototype
+ * @param target InteractionPrototype Prototype storing the execution context accessors
+ * @returns void Accessors exist for instances created from the prototype
  */
 function ensureExecutionContextAccessor(target: InteractionPrototype): void {
     if (!target || Object.getOwnPropertyDescriptor(target, `executionContext`)) {
@@ -39,9 +39,9 @@ function ensureExecutionContextAccessor(target: InteractionPrototype): void {
 }
 
 /**
- * Walk up the prototype chain ensuring each level exposes executionContext.
- * @param startPrototype InteractionPrototype Initial prototype that requires hydration. @example hydratePrototypeChain(BaseInteraction.prototype as InteractionPrototype)
- * @returns void Every prototype between the interaction and Object exposes executionContext. @example hydratePrototypeChain(BaseInteraction.prototype as InteractionPrototype)
+ * Walk up the prototype chain ensuring each level exposes executionContext
+ * @param startPrototype InteractionPrototype Initial prototype that requires hydration
+ * @returns void Every prototype between the interaction and Object exposes executionContext
  */
 function hydratePrototypeChain(startPrototype: InteractionPrototype): void {
     let current: InteractionPrototype | null = startPrototype;
@@ -52,8 +52,8 @@ function hydratePrototypeChain(startPrototype: InteractionPrototype): void {
 }
 
 /**
- * Hydrate Discord.js interactions so they expose executionContext everywhere in the prototype chain.
- * @returns void Interaction prototypes gain executionContext accessors. @example HydrateInteractionExecutionContext();
+ * Hydrate discord js interactions so they expose executionContext everywhere in the prototype chain
+ * @returns void Interaction prototypes gain executionContext accessors
  */
 export function HydrateInteractionExecutionContext(): void {
     if (interactionExecutionContextHydrated) {

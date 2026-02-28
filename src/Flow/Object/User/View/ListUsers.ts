@@ -2,8 +2,8 @@ import { neo4jClient } from '../../../../Setup/Neo4j.js';
 import type { ViewUser } from './ViewUser.js';
 
 /**
- * Retrieve all users from the database, ordered by name.
- * @returns Promise<ViewUser[]> Ordered collection of user view projections. @example await ListUsers();
+ * Retrieve all users from the database ordered by name
+ * @returns Promise of ViewUser array Ordered collection of user view projections @example await ListUsers();
  */
 export async function ListUsers(): Promise<ViewUser[]> {
     const session = await neo4jClient.GetSession(`READ`);

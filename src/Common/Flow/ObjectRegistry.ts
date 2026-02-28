@@ -20,7 +20,7 @@ export type ObjectTypeKey = `game` | `organization` | `user` | `building` | `tas
 
 export interface ObjectTypeConfig {
     label: string;
-    listQuery: string; // must return uid,label columns
+    listQuery: string; // must return uid and label columns
 }
 
 export const OBJECT_TYPES: Record<ObjectTypeKey, ObjectTypeConfig> = {
@@ -72,9 +72,9 @@ export interface EmbedBuildContext {
 }
 
 /**
- * Generate a compact description field label for a resolved scoped description.
- * @param scopeType string Scope type identifier. @example 'user'
- * @returns string Human label for embeds. @example 'Description (personal)'
+ * @brief Generate a compact description field label for a resolved scoped description
+ * @param scopeType string Scope type identifier
+ * @returns string Human label for embeds
  */
 function __BuildScopedDescriptionLabel(scopeType: string): string {
     switch (scopeType) {
@@ -90,10 +90,9 @@ function __BuildScopedDescriptionLabel(scopeType: string): string {
 }
 
 /**
- * Resolve a description to display using priority user > organization > public.
- * Falls back to legacy object-attached description when no scoped description exists.
- * @param options object Resolution input.
- * @returns Promise<{ label: string; text: string }> Embed field payload.
+ * @brief Resolve a description to display using priority from user to organization to public
+ * @param options object Resolution input
+ * @returns Promise of label and text Embed field payload
  */
 async function __ResolvePriorityDescription(options: {
     objectType: string;

@@ -17,36 +17,33 @@ import type { GuildMember } from 'discord.js';
 import { ExtractFlowMember } from '../Common/Type/FlowContext.js';
 import { ResolveUserLocale } from './I18nService.js';
 
-/** Error thrown when attempting to register a duplicate command id. */
+/** Error thrown when attempting to register a duplicate command id */
 export class DuplicateCommandError extends Error {
     constructor(id: string) {
         super(`Command '${id}' already registered`);
     }
 }
-/** Error thrown when looking up a missing command. */
+/** Error thrown when looking up a missing command */
 export class CommandNotFoundError extends Error {
     constructor(id: string) {
         super(`Command '${id}' not found`);
     }
 }
 
-/** Options controlling CommandRegistry behavior. */
+/** Options controlling CommandRegistry behavior */
 export interface CommandRegistryOptions {
     caseInsensitive?: boolean;
 }
 
-/** Internal storage entry capturing module & load timestamp. */
+/** Internal storage entry capturing module and load timestamp */
 interface RegistryEntry {
     module: CommandModule;
     loadedAt: number;
 }
 
-/**
- * CommandRegistry maintains live set of dynamically loadable command modules.
- * Emits lifecycle events: command.loaded, command.reloaded, command.unloaded (future) via MAIN_EVENT_BUS.
- */
+/** CommandRegistry maintains live set of dynamically loadable command modules and emits lifecycle events via MAIN_EVENT_BUS */
 export class CommandRegistry {
-    private _commands: Map<string, RegistryEntry> = new Map(); // id -> entry
+    private _commands: Map<string, RegistryEntry> = new Map(); // id to entry
     private _caseInsensitive: boolean; // normalization toggle
     private _stats = { loads: 0, reloads: 0, failures: 0 }; // metrics counters
 
@@ -54,18 +51,18 @@ export class CommandRegistry {
         this._caseInsensitive = !!opts.caseInsensitive;
     }
 
-    /** Normalize key based on case-insensitivity option. */
+    /** Normalize key based on case insensitivity option */
     private __norm(id: string): string {
         return this._caseInsensitive ? id.toLowerCase() : id;
     }
 
-    /** Register new command module. Throws on duplicate id unless version differs triggering reload. */
+    /** Register new command module or reload when version differs */
     public Register(mod: CommandModule): void {
         const id = this.__norm(mod.meta.id);
         const existing = this._commands.get(id);
 
         if (existing) {
-            // Reload if the incoming module declares a version AND it differs from the existing version (including existing undefined)
+            // Reload if the incoming module declares a version AND it differs from the existing version including existing undefined
             if (mod.meta.version && existing.module.meta.version !== mod.meta.version) {
                 existing.module.dispose?.();
                 this._commands.set(id, { module: mod, loadedAt: Date.now() });
@@ -73,7 +70,7 @@ export class CommandRegistry {
                 MAIN_EVENT_BUS.Emit(EVENT_NAMES.commandReloaded, { id, version: mod.meta.version });
                 return;
             }
-            // Otherwise it's a hard duplicate
+            // Otherwise it is a hard duplicate
             this._stats.failures++;
             throw new DuplicateCommandError(mod.meta.id);
         }
@@ -82,7 +79,7 @@ export class CommandRegistry {
         MAIN_EVENT_BUS.Emit(EVENT_NAMES.commandLoaded, { id, version: mod.meta.version });
     }
 
-    /** Unregister a command; idempotent. */
+    /** Unregister a command idempotently */
     public Unregister(id: string): void {
         const norm = this.__norm(id);
         const entry = this._commands.get(norm);
@@ -92,10 +89,10 @@ export class CommandRegistry {
         } // silent for idempotency
         entry.module.dispose?.();
         this._commands.delete(norm);
-        // Future: emit command.unloaded event name once defined in EVENT_NAMES
+        // Future emit commandUnloaded event name once defined in EVENT_NAMES
     }
 
-    /** Lookup command module (throws if missing). */
+    /** Lookup command module and throw if missing */
     public Get(id: string): CommandModule {
         const entry = this._commands.get(this.__norm(id));
 
@@ -105,14 +102,14 @@ export class CommandRegistry {
         return entry.module;
     }
 
-    /** Execute command by id with context; returns CommandResult. */
+    /** Execute command by id with context and return CommandResult */
     public async Execute(
         id: string,
         ctx: CommandExecutionContext,
         opts?: {
             permissions?: PermissionsObject; // optional permission map override
             member?: GuildMember | null; // optional guild member to evaluate permissions with
-            skipApproval?: boolean; // when true, do not attempt any interactive approval (programmatic execution)
+            skipApproval?: boolean; // when true do not attempt any interactive approval for programmatic execution
             skipPermissionCheck?: boolean; // allow caller to bypass permission evaluation
             userRoles?: string[]; // optional role ids for evaluation when member is not available
             organizationUid?: string; // organization scope to allow bypass when user belongs
@@ -122,13 +119,13 @@ export class CommandRegistry {
         const mod = this.Get(id);
 
         try {
-            // Ensure a concrete executionContext exists (docs guarantee automatic creation)
+            // Ensure a concrete executionContext exists as docs guarantee automatic creation
             try {
                 if (!ctx.executionContext) {
                     (ctx as any).executionContext = createExecutionContext();
                 }
             } catch {
-                // ignore - defensive in case the ctx shape is unexpected at runtime
+                // ignore defensive guard in case ctx shape is unexpected at runtime
             }
 
             try {
@@ -136,9 +133,9 @@ export class CommandRegistry {
                     await ResolveUserLocale(ctx.userId, ctx.executionContext);
                 }
             } catch {
-                // no-op
+                // noop
             } finally {
-                // no-op
+                // noop
             }
 
             // Respect DM allowance from meta
@@ -146,7 +143,7 @@ export class CommandRegistry {
                 return { ok: false, error: `DM_NOT_ALLOWED`, message: `Command cannot be used in DMs` };
             }
 
-            // Simple role-based check retained for backwards compatibility
+            // Simple role based check retained for backwards compatibility
             if (mod.meta.permissions?.requiredRoles) {
                 const required = mod.meta.permissions.requiredRoles;
                 const providedRoles: string[] | undefined =
@@ -176,7 +173,7 @@ export class CommandRegistry {
                 }
             }
 
-            // Permission token evaluation (skip when caller asks to bypass)
+            // Permission token evaluation skipped when caller asks to bypass
             if (!opts?.skipPermissionCheck) {
                 const cmdAny = mod as any;
                 // TODO restore broad command token fallback
@@ -184,9 +181,7 @@ export class CommandRegistry {
                 let rawTemplates: string | string[] | Function | undefined =
                     cmdAny.permissionTokens;
 
-                // If the module exported a function for templates we cannot reliably execute it
-                // in a programmatic context that is not a Discord interaction. Fall back to
-                // the canonical command token in that case.
+                // If the module exported a function for templates fall back to the canonical command token since it cannot run outside Discord interaction
                 const templates: (string | any[])[] = [];
                 if (typeof rawTemplates === `function`) {
                     // TODO restore broad command token fallback
@@ -198,9 +193,7 @@ export class CommandRegistry {
                     }
                 }
 
-                // Build resolver context from the execution context. Include a getMember helper
-                // so token resolvers can fetch a GuildMember when needed (programmatic callers
-                // may provide `opts.member` or rely on getMember for fetching).
+                // Build resolver context from the execution context including a getMember helper so token resolvers can fetch a GuildMember
                 const resolverCtx = {
                     commandName: mod.meta.id,
                     options: ctx.options,
@@ -211,17 +204,16 @@ export class CommandRegistry {
                         if (opts?.member) {
                             return opts.member;
                         }
-                        // Best-effort: if ctx contains a guildId and the registry has access to a
-                        // guild fetcher it could be used here; leave as null for now when not available.
+                        // Best effort fallback leaves null when no guild fetcher is available
                         return null;
                     },
                 } as const;
 
-                // Resolve templates into concrete tokens (most-specific first)
+                // Resolve templates into concrete tokens with most specific first
                 // TODO restore broad command token fallback
                 const inputs: PermissionTokenInput[] = templates.length ? templates : [];
 
-                // Build a minimal member-like object when none provided so permanent grants can be checked
+                // Build a minimal member substitute when none provided so permanent grants can be checked
                 let member = opts?.member ?? null;
                 if (!member && ctx.guildId && ctx.userId) {
                     member = {
@@ -242,8 +234,7 @@ export class CommandRegistry {
                 }
 
                 if (!bypassPermission) {
-                    // Allow callers to override the permissions map via opts.permissions; otherwise
-                    // use undefined which will make checkPermission consult the default source.
+                    // Allow callers to override the permissions map via opts_permissions or fall back to the default source
                     const flowMember = member ? ExtractFlowMember(member) : null;
 
                     const resolution = await resolve(inputs as any, {
@@ -255,7 +246,7 @@ export class CommandRegistry {
 
                     if (!resolution.success) {
                         if (resolution.detail.requiresApproval && !opts?.skipApproval) {
-                            // Programmatic callers cannot request interactive admin approval here.
+                            // Programmatic callers cannot request interactive admin approval here
                             return {
                                 ok: false,
                                 error: `PERMISSION_REQUIRES_APPROVAL`,
@@ -277,14 +268,14 @@ export class CommandRegistry {
         }
     }
 
-    /** List all registered command metas. */
+    /** List all registered command metas */
     public List(): CommandModuleMeta[] {
         return Array.from(this._commands.values()).map(e => {
             return e.module.meta;
         });
     }
 
-    /** Get stats about command registry activity. */
+    /** Get stats about command registry activity */
     public Stats(): { loads: number; reloads: number; failures: number; registered: number } {
         return { ...this._stats, registered: this._commands.size };
     }

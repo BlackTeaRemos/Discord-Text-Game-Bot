@@ -9,9 +9,9 @@ import { Translate, TranslateFromContext } from '../../../../Services/I18nServic
 const _subcommandName = `create`; // subcommand name
 
 /**
- * Build create subcommand.
- * @param subcommand SlashCommandSubcommandBuilder Subcommand builder. @example BuildOrganizationCreateSubcommand(builder)
- * @returns SlashCommandSubcommandBuilder Updated subcommand builder. @example const updated = BuildOrganizationCreateSubcommand(builder)
+ * Build create subcommand
+ * @param subcommand SlashCommandSubcommandBuilder Subcommand builder @example BuildOrganizationCreateSubcommand(builder)
+ * @returns SlashCommandSubcommandBuilder Updated subcommand builder @example const updated = BuildOrganizationCreateSubcommand(builder)
  */
 export function BuildOrganizationCreateSubcommand(
     subcommand: SlashCommandSubcommandBuilder,
@@ -41,9 +41,9 @@ export function BuildOrganizationCreateSubcommand(
 }
 
 /**
- * Execute create subcommand.
- * @param interaction InteractionExecutionContextCarrier<ChatInputCommandInteraction> Command interaction. @example await ExecuteOrganizationCreateSubcommand(interaction)
- * @returns Promise<void> Resolves when command completes. @example await ExecuteOrganizationCreateSubcommand(interaction)
+ * Execute create subcommand
+ * @param interaction InteractionExecutionContextCarrier Command interaction @example await ExecuteOrganizationCreateSubcommand(interaction)
+ * @returns void Resolves when command completes @example await ExecuteOrganizationCreateSubcommand(interaction)
  */
 export async function ExecuteOrganizationCreateSubcommand(
     interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
@@ -68,12 +68,12 @@ export async function ExecuteOrganizationCreateSubcommand(
             }),
         });
     } finally {
-        // no-op
+        // noop
     }
 }
 
 /**
- * Exported create subcommand module.
+ * Exported create subcommand module
  * @example const subcommand = OrganizationCreateSubcommand
  */
 export const OrganizationCreateSubcommand: CommandSubcommand = {

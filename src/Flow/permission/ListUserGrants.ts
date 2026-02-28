@@ -1,10 +1,7 @@
-import { GetUserGrants } from '../../Common/Permission/store.js';
+import { GetUserGrants } from '../../Common/Permission/Store.js';
 
 /**
- * A single grant entry formatted for display.
- *
- * @property serialized string Raw serialized token (example: 's:view').
- * @property formatted string Human-readable representation (example: 'view').
+ * A single grant entry formatted for display
  */
 export interface GrantEntry {
     serialized: string;
@@ -12,21 +9,17 @@ export interface GrantEntry {
 }
 
 /**
- * Result of listing a user's permanent grants.
- *
- * @property grants GrantEntry[] All discovered grant entries.
+ * Result of listing permanent grants for a user
  */
 export interface ListGrantsResult {
     grants: GrantEntry[];
 }
 
 /**
- * List all permanent permission grants a user holds in a guild.
- *
- * @param guildId string Guild identifier (example: '123456').
- * @param userId string Target user identifier (example: '789012').
- * @returns ListGrantsResult Formatted list of grants.
- *
+ * List all permanent permission grants a user holds in a guild
+ * @param guildId string Guild identifier
+ * @param userId string Target user identifier
+ * @returns ListGrantsResult Formatted list of grants
  * @example
  * const result = ListUserGrants('guild1', 'user1');
  */
@@ -44,11 +37,9 @@ export function ListUserGrants(guildId: string, userId: string): ListGrantsResul
 }
 
 /**
- * Convert a serialized token key back into a human-readable format.
- * Strips type prefixes (s:, n:, b:, u:) and joins with ':'.
- *
- * @param serialized string Serialized token (example: 's:view').
- * @returns string Human-readable format (example: 'view').
+ * Convert a serialized token key back into a human readable format by stripping type prefixes
+ * @param serialized string Serialized token
+ * @returns string Human readable format
  */
 function __FormatSerializedToken(serialized: string): string {
     return serialized

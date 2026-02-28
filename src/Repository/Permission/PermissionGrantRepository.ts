@@ -7,22 +7,22 @@ import type {
 } from './Types.js';
 
 /**
- * Repository for managing permanent permission grants in Neo4j.
+ * Repository for managing permanent permission grants in Neo4j
  */
 export class PermissionGrantRepository {
     private _client: Neo4jClient;
 
     /**
-     * Create a new permission grant repository.
-     * @param client Neo4jClient Database client instance.
+     * Create a new permission grant repository
+     * @param client Neo4jClient Database client instance
      */
     constructor(client: Neo4jClient) {
         this._client = client;
     }
 
     /**
-     * Initialize repository by creating constraints and indexes.
-     * @returns Promise<void> Resolves when initialization complete.
+     * Initialize repository by creating constraints and indexes
+     * @returns Promise of void Resolves when initialization complete
      */
     async Initialize(): Promise<void> {
         const session = await this._client.GetSession();
@@ -38,11 +38,9 @@ export class PermissionGrantRepository {
     }
 
     /**
-     * Upsert a token into a permanent permission grant bundle.
-     *
-     * This stores a single node per (guildId,userId) with a `tokens` array.
-     * @param options UpsertPermissionGrantTokenOptions Token upsert details.
-     * @returns Promise<PermissionGrantBundle> Updated bundle.
+     * Upsert a token into a permanent permission grant bundle keyed by guildId and userId
+     * @param options UpsertPermissionGrantTokenOptions Token upsert details
+     * @returns Promise of PermissionGrantBundle Updated bundle
      */
     async UpsertGrantToken(options: UpsertPermissionGrantTokenOptions): Promise<PermissionGrantBundle> {
         const session = await this._client.GetSession();
@@ -90,11 +88,11 @@ export class PermissionGrantRepository {
     }
 
     /**
-     * Check if a user has a permanent grant for any of the given tokens.
-     * @param guildId string Guild identifier.
-     * @param userId string User identifier.
-     * @param tokens string[] Serialized tokens to check.
-     * @returns Promise<boolean> True if any grant exists.
+     * Check if a user has a permanent grant for any of the given tokens
+     * @param guildId string Guild identifier
+     * @param userId string User identifier
+     * @param tokens string array Serialized tokens to check
+     * @returns Promise of boolean True if any grant exists
      */
     async HasGrant(guildId: string, userId: string, tokens: string[]): Promise<boolean> {
         if (!guildId || !userId || tokens.length === 0) {
@@ -116,9 +114,9 @@ export class PermissionGrantRepository {
     }
 
     /**
-     * Load all grant bundles for a guild.
-     * @param guildId string Guild identifier.
-     * @returns Promise<PermissionGrantBundle[]> All bundles for the guild.
+     * Load all grant bundles for a guild
+     * @param guildId string Guild identifier
+     * @returns Promise of PermissionGrantBundle array All bundles for the guild
      */
     async LoadGrantBundlesForGuild(guildId: string): Promise<PermissionGrantBundle[]> {
         const session = await this._client.GetSession(`READ`);
@@ -148,10 +146,9 @@ export class PermissionGrantRepository {
     }
 
     /**
-     * Revoke a single token from a grant bundle.
-     * When the last token is removed, the bundle node is deleted.
-     * @param options RevokePermissionGrantTokenOptions Revoke details.
-     * @returns Promise<boolean> True when a change occurred.
+     * Revoke a single token from a grant bundle deleting the bundle when the last token is removed
+     * @param options RevokePermissionGrantTokenOptions Revoke details
+     * @returns Promise of boolean True when a change occurred
      */
     async RevokeGrantToken(options: RevokePermissionGrantTokenOptions): Promise<boolean> {
         const session = await this._client.GetSession();

@@ -2,15 +2,14 @@ import { neo4jClient } from '../../Setup/Neo4j.js';
 
 export interface ResolvedObject {
     uid: string; // object unique identifier
-    type: string; // object type (game, task, organization, etc)
+    type: string; // object type such as game task organization
     name: string; // friendly display name
 }
 
 /**
- * Resolve any object by its unique identifier
- * Searches across all nodes with a uid property in the database
+ * Resolve any object by its unique identifier searching across all nodes with a uid property in the database
  * @param uid string Object unique identifier @example 'game_abc123'
- * @returns Promise<ResolvedObject | null> Object info or null if not found
+ * @returns ResolvedObject Object info or null if not found
  */
 export async function ResolveObjectByUid(uid: string): Promise<ResolvedObject | null> {
     const session = await neo4jClient.GetSession(`READ`);
@@ -42,7 +41,7 @@ export async function ResolveObjectByUid(uid: string): Promise<ResolvedObject | 
 
 /**
  * Extract primary object type from Neo4j labels
- * @param labels string[] Node labels from Neo4j
+ * @param labels strings Node labels from Neo4j
  * @returns string Primary object type
  */
 function __ExtractObjectType(labels: string[]): string {

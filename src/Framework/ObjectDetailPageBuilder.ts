@@ -9,14 +9,7 @@ import { CompressPages } from './DetailPageUtils/CompressPages.js';
 import { MAX_PAGE_LENGTH } from './DetailPageUtils/Constants.js';
 
 /**
- * Options for building a detailed multi-page object view
- * @property detail ObjectDetail Full detail payload from FetchObjectDetail
- * @property objectType string Type discriminator for theming
- * @property description string | null Scoped description text
- * @property organizationName string | null Display name of the resolved org scope
- * @property actions ObjectAction[] Available slash commands for this object
- * @property noDescriptionLabel string Fallback text when description is absent
- * @property overviewLabels OverviewLabels Translated label strings for the overview page
+ * @brief Options for building a detailed multi page object view
  */
 export interface BuildDetailPagesOptions {
     detail: ObjectDetail;
@@ -30,16 +23,7 @@ export interface BuildDetailPagesOptions {
 }
 
 /**
- * Translated label strings for the overview page fields
- * @property type string Label for type field
- * @property organization string Label for org field
- * @property createdAt string Label for creation date field
- * @property updatedAt string Label for last updated field
- * @property owner string Label for owner field
- * @property userScope string Fallback when no org is set
- * @property propertiesTitle string Title for properties page
- * @property relationshipsTitle string Title for relationships page
- * @property actionsTitle string Title for actions page
+ * @brief Translated label strings for the overview page fields
  */
 export interface OverviewLabels {
     type: string;
@@ -54,8 +38,7 @@ export interface OverviewLabels {
 }
 
 /**
- * Build a multi-page ObjectViewModel from raw object detail
- * Pages: Overview, Properties (if any), Relationships, Info (pre-last), Actions (last)
+ * @brief Build a multi page ObjectViewModel from raw object detail
  *
  * @param options BuildDetailPagesOptions All data and labels needed
  * @returns ObjectViewModel Ready to pass to ObjectViewRenderer
@@ -86,7 +69,7 @@ export function BuildDetailPages(options: BuildDetailPagesOptions): ObjectViewMo
         }
     }
 
-    // Order: overview > relationships > info (pre-last) > actions (last)
+    // Order is overview then relationships then info then actions
     const allSections = [overviewPage, ...relationshipPages, infoPage, ...actionPages];
     const pages = CompressPages(allSections);
 
@@ -120,8 +103,7 @@ function __BuildOverviewPage(
 }
 
 /**
- * Build the information page with type, organization, timestamps and owner
- * Placed as pre-last page in the final view
+ * @brief Build the information page containing type organization timestamps and owner
  */
 function __BuildInfoPage(
     detail: ObjectDetail,

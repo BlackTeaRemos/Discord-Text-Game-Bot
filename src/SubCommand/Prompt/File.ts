@@ -6,10 +6,7 @@ export interface FilePromptValidationOptions {
 }
 
 /**
- * Result from file or image validation.
- * @property status 'ok' | 'cancel' | 'error' Indicates validation outcome. @example 'ok'
- * @property value any | undefined Validated URL or attachment object if ok. @example { type: 'url', value: 'http://...' }
- * @property errorMessage string | undefined Error details if validation failed. @example 'Invalid file type'
+ * Result from file or image validation
  */
 export interface FilePromptValidationResult {
     status: `ok` | `cancel` | `error`;
@@ -18,9 +15,9 @@ export interface FilePromptValidationResult {
 }
 
 /**
- * Validate file or image input (pure business logic, no Discord API interactions).
- * @param options FilePromptValidationOptions Configuration for validation. @example ValidateFileOrImageInput({ attachment: discordAttachment });
- * @returns FilePromptValidationResult Validation result. @example { status: 'ok', value: { type: 'attachment', value: {...} } }
+ * Validate file or image input with pure business logic and no Discord API interactions
+ * @param options FilePromptValidationOptions Configuration for validation @example ValidateFileOrImageInput({ attachment: discordAttachment });
+ * @returns FilePromptValidationResult Validation result @example { status: 'ok', value: { type: 'attachment', value: {...} } }
  */
 export function ValidateFileOrImageInput(options: FilePromptValidationOptions): FilePromptValidationResult {
     const { content, attachment, validator, cancelWords = [] } = options;

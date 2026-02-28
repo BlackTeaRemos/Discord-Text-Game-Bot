@@ -1,15 +1,14 @@
 import { MessageFlags, EmbedBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
-import { GrantAllTokens } from '../../Flow/permission/GrantAllTokens.js';
+import { GrantAllTokens } from '../../Flow/Permission/GrantAllTokens.js';
 import { TranslateFromContext } from '../../Services/I18nService.js';
 
 /**
- * Execute the /permit all subcommand.
- * Grants every known command permission token to the target user.
+ * Executes the permit all subcommand granting every known token to the target user
  *
- * @param interaction InteractionExecutionContextCarrier<ChatInputCommandInteraction> Discord interaction.
- * @returns Promise<void> Resolves when reply is sent.
+ * @param interaction InteractionExecutionContextCarrier Discord interaction
+ * @returns void Resolves when reply is sent
  *
  * @example
  * await ExecuteGrantAll(interaction);

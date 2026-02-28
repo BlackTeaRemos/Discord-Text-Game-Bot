@@ -2,9 +2,9 @@ import { neo4jClient } from '../../../../Setup/Neo4j.js';
 import type { ViewUser } from './ViewUser.js';
 
 /**
- * Retrieve a single user by discord identifier.
- * @param discordId string Discord user identifier. @example await GetUserByDiscordId('1234567890')
- * @returns Promise<ViewUser | null> Matching user when found, otherwise null. @example await GetUserByDiscordId('1234567890');
+ * Retrieve a single user by discord identifier
+ * @param discordId string Discord user identifier @example await GetUserByDiscordId('1234567890')
+ * @returns Promise of ViewUser or null Matching user when found otherwise null @example await GetUserByDiscordId('1234567890');
  */
 export async function GetUserByDiscordId(discordId: string): Promise<ViewUser | null> {
     const session = await neo4jClient.GetSession(`READ`);

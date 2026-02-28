@@ -1,8 +1,8 @@
 /**
- * Resolve a thumbnail URL suitable for Discord embeds, requiring HTTPS.
- * @param url string | null | undefined Primary candidate URL. @example ResolveEmbedThumbnailUrl('https://example.com/image.png')
- * @param fallback string | null | undefined Secondary URL used when the primary is invalid. @example ResolveEmbedThumbnailUrl('http://insecure', 'https://fallback.com/image.png')
- * @returns string | undefined Sanitized HTTPS URL when available. @example const thumbnailUrl = ResolveEmbedThumbnailUrl(candidate, backup)
+ * @brief Resolve a thumbnail URL suitable for Discord embeds requiring HTTPS
+ * @param url string or null or undefined Primary candidate URL
+ * @param fallback string or null or undefined Secondary URL used when the primary is invalid
+ * @returns string or undefined Sanitized HTTPS URL when available
  */
 export function ResolveEmbedThumbnailUrl(url?: string | null, fallback?: string | null): string | undefined {
     const candidates = [url, fallback];

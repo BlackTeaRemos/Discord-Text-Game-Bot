@@ -6,10 +6,9 @@ import { CreateOrganization } from '../../Flow/Object/Organization/index.js';
 import { TranslateFromContext } from '../../Services/I18nService.js';
 
 /**
- * Handle /organization create command.
- * Creates the organization and opens description editor automatically.
- * @param interaction Discord interaction with create options.
- * @returns Promise<void> Resolves when creation completes.
+ * Handle organization create command
+ * @param interaction Discord interaction with create options
+ * @returns void
  */
 export async function ExecuteOrganizationCreate(
     interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,

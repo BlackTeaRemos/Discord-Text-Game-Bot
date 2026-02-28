@@ -8,7 +8,7 @@ import {
 import type { ChatInputCommandInteraction } from 'discord.js';
 import type { TaskListItem } from '../../Domain/Task.js';
 import { FetchTaskById } from '../../Flow/Task/FetchTaskById.js';
-import { UpdateTaskStatus } from '../../Flow/Task/updateTaskStatus.js';
+import { UpdateTaskStatus } from '../../Flow/Task/UpdateTaskStatus.js';
 import { FetchDescriptionForObject } from '../../Flow/Object/Description/FetchForObject.js';
 import { FetchObjectDetail } from '../../Flow/Object/FetchObjectDetail.js';
 import { ResolveObjectActions } from '../../Flow/Object/ResolveObjectActions.js';
@@ -25,7 +25,7 @@ const VIEW_TASK_FINISH_ID = `view_task_finish`;
 const VIEW_TASK_CANCEL_ID = `view_task_cancel`;
 
 /**
- * Flow state for task detail viewing with multi-page support
+ * @brief Flow state for task detail viewing with multi page support
  */
 interface ViewTaskDetailState {
     task: TaskListItem; // current task item
@@ -33,22 +33,19 @@ interface ViewTaskDetailState {
     organizationName: string; // execution organization label
     organizationUid: string | null; // execution organization uid
     executionContext: ExecutionContext; // interaction execution context
-    detailPages: ObjectViewPage[]; // pre-built detail pages
+    detailPages: ObjectViewPage[]; // pre built detail pages
     detailPageIndex: number; // current detail page index
 }
 
 /**
- * Show task detail with multi-page view and status action buttons
- * Fetches full object detail, builds paginated view, starts interactive flow
- *
+ * @brief Show task detail with multi page view and status action buttons
  * @param interaction ChatInputCommandInteraction Base interaction
  * @param taskId string Task id to display
- * @param allowOverride boolean Whether viewer can override org-scoped visibility
- * @param organizationUid string | null Resolved org UID for scope
+ * @param allowOverride boolean Whether viewer can override org scoped visibility
+ * @param organizationUid string or null Resolved org UID for scope
  * @param organizationName string Resolved org display name
  * @param executionContext ExecutionContext Interaction execution context
- * @returns Promise<void> Resolves when detail flow completes
- *
+ * @returns void Resolves when detail flow completes
  * @example await ShowTaskDetail(interaction, 'task_123', false, 'org_1', 'Main', ctx)
  */
 export async function ShowTaskDetail(
@@ -195,11 +192,9 @@ export async function ShowTaskDetail(
 }
 
 /**
- * Render a single task detail page from pre-built pages
- * Combines pagination buttons with task action buttons (Finish/Cancel)
- *
+ * @brief Render a single task detail page from pre built pages
  * @param state ViewTaskDetailState Current detail state with pages
- * @returns Promise<void> Resolves when reply is updated
+ * @returns void Resolves when reply is updated
  */
 async function __RenderTaskDetail(state: ViewTaskDetailState): Promise<void> {
     const page = state.detailPages[state.detailPageIndex] ?? state.detailPages[0];

@@ -16,12 +16,9 @@ const MAX_TEMPLATES_PER_PAGE = 10;
 const _templateViewRenderer = new ObjectViewRenderer(`template_view`);
 
 /**
- * List all game object templates registered in the current server's game.
- * Resolves the game context from the server, fetches templates, and
- * renders a paginated embed listing name, description, parameter count and action count.
- *
- * @param interaction InteractionExecutionContextCarrier<ChatInputCommandInteraction> Discord interaction
- * @returns Promise<void> Resolves when the template list is displayed
+ * @brief List all game object templates registered in the current server game
+ * @param interaction InteractionExecutionContextCarrier Discord interaction
+ * @returns void Resolves when the template list is displayed
  * @example /view template
  */
 export async function ExecuteViewTemplate(

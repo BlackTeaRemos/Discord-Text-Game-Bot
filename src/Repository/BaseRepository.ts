@@ -1,8 +1,3 @@
-/**
- * Abstract base repository class providing common CRUD operations for Neo4j-backed entities.
- * Defines the ability to instance or save objects from/to the database.
- */
-
 import { Neo4jClient } from './Neo4jClient.js';
 import type {
     Neo4jObjectSchema,
@@ -14,8 +9,7 @@ import type {
 } from '../Types/Repository/index.js';
 
 /**
- * Abstract base repository providing common database operations.
- * Concrete implementations should extend this class and provide schema-specific logic.
+ * @brief Abstract base repository providing common database operations
  */
 export abstract class BaseRepository<T extends Neo4jStorable> {
     protected client: Neo4jClient;
@@ -23,10 +17,10 @@ export abstract class BaseRepository<T extends Neo4jStorable> {
     protected options: Neo4jRepositoryOptions;
 
     /**
-     * Initialize the repository with Neo4j client and schema.
-     * @param client Neo4j client instance
-     * @param schema Schema definition for the entity
-     * @param options Repository options
+     * @brief Initialize the repository with Neo4j client and schema
+     * @param client Neo4jClient instance
+     * @param schema Neo4jObjectSchema definition for the entity
+     * @param options Neo4jRepositoryOptions repository options
      */
     constructor(client: Neo4jClient, schema: Neo4jObjectSchema<T>, options: Neo4jRepositoryOptions = {}) {
         this.client = client;
@@ -41,7 +35,7 @@ export abstract class BaseRepository<T extends Neo4jStorable> {
     }
 
     /**
-     * Initialize the repository (create indexes, constraints, etc.).
+     * @brief Initialize the repository by creating indexes and constraints
      */
     async initialize(): Promise<void> {
         await this.client.Init();
@@ -62,7 +56,7 @@ export abstract class BaseRepository<T extends Neo4jStorable> {
     }
 
     /**
-     * Create an index in Neo4j.
+     * @brief Create an index in Neo4j
      */
     private async createIndex(indexDef: any): Promise<void> {
         const session = await this.client.GetSession(`WRITE`);
@@ -87,7 +81,7 @@ export abstract class BaseRepository<T extends Neo4jStorable> {
     }
 
     /**
-     * Create a constraint in Neo4j.
+     * @brief Create a constraint in Neo4j
      */
     private async createConstraint(constraintDef: any): Promise<void> {
         const session = await this.client.GetSession(`WRITE`);
@@ -122,7 +116,7 @@ export abstract class BaseRepository<T extends Neo4jStorable> {
     }
 
     /**
-     * Convert domain object to Neo4j properties.
+     * @brief Convert domain object to Neo4j properties
      */
     protected domainToNeo4jProperties(domain: Partial<T>): Record<string, any> {
         const properties: Record<string, any> = {};
@@ -142,7 +136,7 @@ export abstract class BaseRepository<T extends Neo4jStorable> {
                 value = mapping.transform.toNeo4j(value);
             }
 
-            // Only include non-undefined values
+            // Only include values that are not undefined
             if (value !== undefined) {
                 properties[neo4jKey] = value;
             }
@@ -152,7 +146,7 @@ export abstract class BaseRepository<T extends Neo4jStorable> {
     }
 
     /**
-     * Convert Neo4j node to domain object.
+     * @brief Convert Neo4j node to domain object
      */
     protected neo4jToDomain(node: Neo4jNode): T {
         const domain: any = {};
@@ -173,7 +167,7 @@ export abstract class BaseRepository<T extends Neo4jStorable> {
     }
 
     /**
-     * Create a new entity in the database.
+     * @brief Create a new entity in the database
      */
     async create(entity: Omit<T, `id` | `createdAt` | `updatedAt` | `version`>): Promise<Neo4jQueryResult<T>> {
         try {
@@ -213,7 +207,7 @@ export abstract class BaseRepository<T extends Neo4jStorable> {
     }
 
     /**
-     * Find an entity by ID.
+     * @brief Find an entity by ID
      */
     async findById(id: string): Promise<Neo4jQueryResult<T | null>> {
         try {
@@ -241,7 +235,7 @@ export abstract class BaseRepository<T extends Neo4jStorable> {
     }
 
     /**
-     * Find entities matching criteria.
+     * @brief Find entities matching criteria
      */
     async find(
         criteria: Partial<T> = {},
@@ -284,7 +278,7 @@ export abstract class BaseRepository<T extends Neo4jStorable> {
     }
 
     /**
-     * Update an existing entity.
+     * @brief Update an existing entity
      */
     async update(id: string, updates: Partial<T>): Promise<Neo4jQueryResult<T>> {
         try {
@@ -337,7 +331,7 @@ export abstract class BaseRepository<T extends Neo4jStorable> {
     }
 
     /**
-     * Delete an entity by ID.
+     * @brief Delete an entity by ID
      */
     async delete(id: string): Promise<Neo4jQueryResult<boolean>> {
         try {
@@ -360,7 +354,7 @@ export abstract class BaseRepository<T extends Neo4jStorable> {
     }
 
     /**
-     * Count entities matching criteria.
+     * @brief Count entities matching criteria
      */
     async count(criteria: Partial<T> = {}): Promise<Neo4jQueryResult<number>> {
         try {
@@ -394,7 +388,7 @@ export abstract class BaseRepository<T extends Neo4jStorable> {
     }
 
     /**
-     * Execute a custom query within a transaction.
+     * @brief Execute a custom query within a transaction
      */
     async executeInTransaction<T>(
         operation: (tx: Neo4jTransactionContext) => Promise<T>,
@@ -438,15 +432,14 @@ export abstract class BaseRepository<T extends Neo4jStorable> {
     }
 
     /**
-     * Generate a unique ID for new entities.
-     * Override this method in concrete implementations for custom ID generation.
+     * @brief Generate a unique ID for new entities
      */
     protected generateId(): string {
         return `${this.schema.primaryLabel.toLowerCase()}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     }
 
     /**
-     * Get the Neo4j labels for this entity type.
+     * @brief Get the Neo4j labels for this entity type
      */
     protected getLabels(): string[] {
         return [this.schema.primaryLabel, ...(this.schema.additionalLabels || [])];

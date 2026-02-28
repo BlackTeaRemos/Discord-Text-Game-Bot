@@ -2,26 +2,21 @@ import { ResolveCommandPermission, type CommandPermissionResult } from './Permis
 import type { IFlowInteractionContext, FlowMemberProvider } from '../../Common/Type/FlowContext.js';
 
 /**
- * Context used when resolving game creation permissions.
- * @property serverId string Identifier of the guild where game is created (example: '123').
+ * Context used when resolving game creation permissions
  */
 export interface GameCreatePermissionContext {
     serverId: string;
 }
 
 /**
- * Result of game creation permission resolution.
- * Extends base result with approval requirement status.
+ * Result of game creation permission resolution extending base result with approval status
  */
 export interface GameCreatePermissionResult extends CommandPermissionResult {
     needsAdminApproval: boolean;
 }
 
 /**
- * Options for resolving game creation permissions.
- * @property context IFlowInteractionContext Extracted interaction data.
- * @property gameContext GameCreatePermissionContext Server context for creation.
- * @property memberProvider FlowMemberProvider | undefined Callback to lazily fetch member.
+ * Options for resolving game creation permissions
  */
 export interface ResolveGameCreatePermissionsOptions {
     context: IFlowInteractionContext;
@@ -30,10 +25,9 @@ export interface ResolveGameCreatePermissionsOptions {
 }
 
 /**
- * Resolve permissions for game creation without performing UI actions.
- * Command layer handles user responses and admin approval UI when needsAdminApproval is true.
- * @param options ResolveGameCreatePermissionsOptions Configuration for resolution.
- * @returns Promise<GameCreatePermissionResult> Outcome indicating whether access is granted or approval needed.
+ * Resolve permissions for game creation without performing UI actions
+ * @param options ResolveGameCreatePermissionsOptions Configuration for resolution
+ * @returns Promise_GameCreatePermissionResult Outcome indicating whether access is granted or approval needed
  * @example
  * const outcome = await ResolveGameCreatePermissions({
  *     context: ExtractFlowContext(interaction),

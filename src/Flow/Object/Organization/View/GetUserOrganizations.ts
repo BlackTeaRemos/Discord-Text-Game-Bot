@@ -1,5 +1,5 @@
 /**
- * Retrieve organizations a user belongs to.
+ * Retrieve organizations a user belongs to
  */
 
 import { neo4jClient } from '../../../../Setup/Neo4j.js';
@@ -7,9 +7,9 @@ import type { OrganizationView } from '../../../../Repository/Organization/Organ
 import { GetOrganizationHierarchy } from './GetOrganizationHierarchy.js';
 
 /**
- * Get all organizations a user belongs to, including inherited access from hierarchy.
- * @param discordId User's Discord identifier. @example '123456789012345678'
- * @returns Promise<OrganizationView[]> List of organizations user has access to.
+ * Get all organizations a user belongs to including inherited access from hierarchy
+ * @param discordId Users Discord identifier @example '123456789012345678'
+ * @returns Promise of OrganizationView array List of organizations user has access to
  * @example
  * const organizations = await GetUserOrganizations('123456789');
  */

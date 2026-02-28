@@ -5,27 +5,29 @@ import type { IParameterSnapshot } from '../../Domain/GameObject/IParameterSnaps
 import type { IParameterSnapshotRepository } from '../../Domain/GameObject/IParameterSnapshotRepository.js';
 import type { IParameterValue } from '../../Domain/GameObject/IParameterValue.js';
 
-/** Neo4j node label for snapshot records. */
+// ParameterSnapshotRepository.ts  Neo4j backed repository for parameter snapshots
+
+/** Neo4j node label for snapshot records */
 const SNAPSHOT_LABEL = `ParameterSnapshot`;
 
-/** Relationship linking snapshot to the source object. */
+/** Relationship linking snapshot to the source object */
 const REL_SNAPSHOT_OF = `SNAPSHOT_OF`;
 
-/** Module-level log tag. */
+/** Module level log tag */
 const LOG_TAG = `Repository/GameObject/ParameterSnapshotRepository`;
 
 /**
- * Generate a unique snapshot UID.
- * @returns string Snapshot uid. @example 'snap_a1b2c3d4e5'
+ * @brief Generate a unique snapshot UID
+ * @returns string Snapshot uid @example 'snap_a1b2c3d4e5'
  */
 function __GenerateSnapshotUid(): string {
     return `snap_${randomUUID().replace(/-/g, ``)}`;
 }
 
 /**
- * Map Neo4j node properties to IParameterSnapshot.
- * @param properties Record<string, any> Neo4j node properties.
- * @returns IParameterSnapshot Mapped snapshot domain object.
+ * @brief Map Neo4j node properties to IParameterSnapshot
+ * @param properties Record_string_any Neo4j node properties
+ * @returns IParameterSnapshot Mapped snapshot domain object
  */
 function __MapNodeToSnapshot(properties: Record<string, any>): IParameterSnapshot {
     return {
@@ -38,16 +40,15 @@ function __MapNodeToSnapshot(properties: Record<string, any>): IParameterSnapsho
 }
 
 /**
- * Concrete Neo4j implementation of IParameterSnapshotRepository.
- * Stores ParameterSnapshot nodes linked to GameObject nodes via [:SNAPSHOT_OF].
+ * @brief Concrete Neo4j implementation of IParameterSnapshotRepository storing ParameterSnapshot nodes linked to GameObjects via SNAPSHOT_OF
  */
 export class ParameterSnapshotRepository implements IParameterSnapshotRepository {
     /**
-     * Capture a single snapshot for an object.
-     * @param objectUid string Object identifier. @example 'gobj_abc123'
-     * @param turn number Current game turn. @example 5
-     * @param parameters IParameterValue[] Full parameter state.
-     * @returns Promise<IParameterSnapshot> Persisted snapshot.
+     * @brief Capture a single snapshot for an object
+     * @param objectUid string Object identifier @example 'gobj_abc123'
+     * @param turn number Current game turn @example 5
+     * @param parameters IParameterValue_array Full parameter state
+     * @returns Promise_IParameterSnapshot Persisted snapshot
      */
     public async CaptureSnapshot(
         objectUid: string,
@@ -96,9 +97,9 @@ export class ParameterSnapshotRepository implements IParameterSnapshotRepository
     }
 
     /**
-     * Capture snapshots for multiple objects in a single transaction.
-     * @param entries Array of object-uid + turn + parameters triples.
-     * @returns Promise<void>
+     * @brief Capture snapshots for multiple objects in a single transaction
+     * @param entries Array of objectUid and turn and parameters triples
+     * @returns Promise_void
      */
     public async CaptureSnapshotBatch(
         entries: Array<{ objectUid: string; turn: number; parameters: IParameterValue[] }>,
@@ -150,10 +151,10 @@ export class ParameterSnapshotRepository implements IParameterSnapshotRepository
     }
 
     /**
-     * Retrieve recent snapshots for an object, ordered newest-first.
-     * @param objectUid string Object identifier.
-     * @param limit number Maximum snapshots to return. Default 20.
-     * @returns Promise<IParameterSnapshot[]> Recent snapshots.
+     * @brief Retrieve recent snapshots for an object ordered newest first
+     * @param objectUid string Object identifier
+     * @param limit number Maximum snapshots to return defaulting to 20
+     * @returns Promise_IParameterSnapshot_array Recent snapshots
      */
     public async GetRecentSnapshots(objectUid: string, limit: number = 20): Promise<IParameterSnapshot[]> {
         const session = await neo4jClient.GetSession(`READ`);
@@ -178,11 +179,11 @@ export class ParameterSnapshotRepository implements IParameterSnapshotRepository
     }
 
     /**
-     * Retrieve snapshots within a turn range.
-     * @param objectUid string Object identifier.
-     * @param fromTurn number Start turn inclusive.
-     * @param toTurn number End turn inclusive.
-     * @returns Promise<IParameterSnapshot[]> Snapshots ordered by turn ascending.
+     * @brief Retrieve snapshots within a turn range
+     * @param objectUid string Object identifier
+     * @param fromTurn number Start turn inclusive
+     * @param toTurn number End turn inclusive
+     * @returns Promise_IParameterSnapshot_array Snapshots ordered by turn ascending
      */
     public async GetSnapshotsByTurnRange(
         objectUid: string,
@@ -209,9 +210,9 @@ export class ParameterSnapshotRepository implements IParameterSnapshotRepository
     }
 
     /**
-     * Delete all snapshots for a given object.
-     * @param objectUid string Object identifier.
-     * @returns Promise<number> Count of deleted snapshots.
+     * @brief Delete all snapshots for a given object
+     * @param objectUid string Object identifier
+     * @returns Promise_number Count of deleted snapshots
      */
     public async DeleteAllForObject(objectUid: string): Promise<number> {
         const session = await neo4jClient.GetSession(`WRITE`);

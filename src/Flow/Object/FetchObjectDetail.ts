@@ -3,44 +3,30 @@ import { ParameterSnapshotRepository } from '../../Repository/GameObject/Paramet
 import type { IParameterSnapshot } from '../../Domain/GameObject/IParameterSnapshot.js';
 
 /**
- * Represents a relationship from the object to another node
- * @property relationshipType string Neo4j relationship label
- * @property direction string Whether outgoing or incoming
- * @property targetUid string UID of the related node
- * @property targetName string Display name of the related node
- * @property targetLabels string[] Neo4j labels of the related node
- *
+ * @brief Represents a relationship from the object to another node
  * @example { relationshipType: 'BELONGS_TO', direction: 'outgoing', targetUid: 'org_1', targetName: 'Admins', targetLabels: ['Organization'] }
  */
 export interface ObjectRelationship {
-    relationshipType: string;
-    direction: string;
-    targetUid: string;
-    targetName: string;
-    targetLabels: string[];
+    relationshipType: string; // Neo4j relationship label
+    direction: string; // whether outgoing or incoming
+    targetUid: string; // UID of the related node
+    targetName: string; // display name of the related node
+    targetLabels: string[]; // Neo4j labels of the related node
 }
 
 /**
- * Full detail payload for any graph object
- * @property uid string Unique object identifier
- * @property labels string[] All Neo4j labels on the node
- * @property properties Record<string, unknown> All node properties excluding internal
- * @property parameters Record<string, string> Key-value parameters via HAS_PARAMETER
- * @property relationships ObjectRelationship[] All direct relationships
- * @property createdAt number | null Creation timestamp ms or null
- * @property updatedAt number | null Last update timestamp ms or null
- *
+ * @brief Full detail payload for any graph object
  * @example const detail = await FetchObjectDetail('game_abc'); detail.properties.name // 'Galaxy League'
  */
 export interface ObjectDetail {
-    uid: string;
-    labels: string[];
-    properties: Record<string, unknown>;
-    parameters: Record<string, string>;
-    relationships: ObjectRelationship[];
-    createdAt: number | null;
-    updatedAt: number | null;
-    /** Historical parameter snapshots, newest-first. Empty when history not requested. */
+    uid: string; // unique object identifier
+    labels: string[]; // all Neo4j labels on the node
+    properties: Record<string, unknown>; // all node properties excluding internal
+    parameters: Record<string, string>; // key value parameters via HAS_PARAMETER
+    relationships: ObjectRelationship[]; // all direct relationships
+    createdAt: number | null; // creation timestamp ms or null
+    updatedAt: number | null; // last update timestamp ms or null
+    /** Historical parameter snapshots ordered newest first and empty when history not requested */
     parameterHistory: IParameterSnapshot[];
 }
 
@@ -51,12 +37,9 @@ const _INTERNAL_PROPERTIES = new Set([
 ]);
 
 /**
- * Fetch complete detail for any object node by UID
- * Returns all properties, parameters, and relationships in a single query
- *
+ * @brief Fetches complete detail for any object node by UID including all properties parameters and relationships
  * @param uid string Object unique identifier
- * @returns Promise<ObjectDetail | null> Full detail or null if not found
- *
+ * @returns ObjectDetail or null Full detail or null if not found
  * @example
  * const detail = await FetchObjectDetail('game_abc123');
  * // detail.properties -> { name: '...', image: '...' }

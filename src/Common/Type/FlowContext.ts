@@ -1,12 +1,5 @@
 /**
- * Abstract interfaces for Flow modules to operate without Discord.js dependencies.
- * Commands translate Discord interactions into these plain data structures before invoking Flow logic.
- */
-
-/**
- * Represents a command option from an interaction.
- * @property name string Option name (example: 'serverId').
- * @property value unknown Option value (example: '123456789').
+ * @brief Represents a command option from an interaction
  */
 export interface ICommandOption {
     name: string;
@@ -14,9 +7,7 @@ export interface ICommandOption {
 }
 
 /**
- * Character context for interaction resolution.
- * @property characterUid string | null Active character identifier or null if no character assumed. @example 'char_abc123'
- * @property organizationUid string | null Organization the character belongs to or null. @example 'org_xyz789'
+ * @brief Character context for interaction resolution
  */
 export interface ICharacterContext {
     characterUid: string | null;
@@ -24,14 +15,7 @@ export interface ICharacterContext {
 }
 
 /**
- * Abstract representation of an interaction context for Flow modules.
- * Commands extract these properties from ChatInputCommandInteraction before calling Flow functions.
- * @property commandName string Name of the executed command (example: 'view').
- * @property guildId string | undefined Guild identifier when in a server context (example: '123456789012345678').
- * @property userId string User who triggered the interaction (example: '987654321098765432').
- * @property options ReadonlyArray<ICommandOption> Command options provided by user (example: [{ name: 'type', value: 'game' }]).
- * @property isAdministrator boolean Whether user has Administrator permission (example: true).
- * @property character ICharacterContext | null Character context when user has assumed a character. @example { characterUid: 'char_123', organizationUid: 'org_456' }
+ * @brief Abstract representation of an interaction context for Flow modules
  */
 export interface IFlowInteractionContext {
     commandName: string;
@@ -43,11 +27,7 @@ export interface IFlowInteractionContext {
 }
 
 /**
- * Abstract representation of a guild member for permission checks.
- * Commands extract relevant properties from GuildMember before calling Flow functions.
- * @property id string Member identifier (example: '987654321098765432').
- * @property guildId string | undefined Guild the member belongs to (example: '123456789012345678').
- * @property roles ReadonlyArray<string> Role identifiers the member has (example: ['123', '456']).
+ * @brief Abstract representation of a guild member for permission checks
  */
 export interface IFlowMember {
     id: string;
@@ -56,16 +36,15 @@ export interface IFlowMember {
 }
 
 /**
- * Callback to lazily fetch a member when needed for permission checks.
- * @returns Promise<IFlowMember | null> Resolved member or null if unavailable.
+ * @brief Callback to lazily fetch a member when needed for permission checks
+ * @returns Promise IFlowMember or null Resolved member or null if unavailable
  */
 export type FlowMemberProvider = () => Promise<IFlowMember | null>;
 
 /**
- * Extract IFlowInteractionContext from a Discord ChatInputCommandInteraction.
- * This function lives at the boundary layer; Commands import it, Flow modules do not.
- * @param interaction object Discord interaction with required properties.
- * @returns IFlowInteractionContext Plain data object for Flow consumption.
+ * @brief Extract IFlowInteractionContext from a Discord ChatInputCommandInteraction
+ * @param interaction object Discord interaction with required properties
+ * @returns IFlowInteractionContext Plain data object for Flow consumption
  * @example
  * const context = ExtractFlowContext(interaction);
  * const result = await ResolveCommandPermission({ context, ... });
@@ -93,10 +72,9 @@ export function ExtractFlowContext(interaction: {
 }
 
 /**
- * Extract IFlowMember from a Discord GuildMember.
- * This function lives at the boundary layer; Commands import it, Flow modules do not.
- * @param member object Discord GuildMember with required properties.
- * @returns IFlowMember Plain data object for Flow consumption.
+ * @brief Extract IFlowMember from a Discord GuildMember
+ * @param member object Discord GuildMember with required properties
+ * @returns IFlowMember Plain data object for Flow consumption
  * @example
  * const flowMember = ExtractFlowMember(guildMember);
  * const result = await CheckPermission({ member: flowMember, ... });

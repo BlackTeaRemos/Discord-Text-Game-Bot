@@ -7,24 +7,17 @@ import { CheckCircularDependency } from './Hierarchy/index.js';
 import { AddCreatorAsOrganizationMember } from './Membership.js';
 
 /**
- * Options for creating a new organization.
- * @property name Canonical organization name used in permission tokens.
- * @property friendlyName Human readable label for display.
- * @property parentUid Optional parent organization UID for hierarchy.
- * @property createdByDiscordId Discord ID of the user creating the organization.
+ * @brief Options for creating a new organization
  */
 export interface OrganizationCreateOptions {
-    name: string;
-    friendlyName?: string;
-    parentUid?: UID | null;
-    createdByDiscordId: string;
+    name: string; // canonical organization name used in permission tokens
+    friendlyName?: string; // human readable label for display
+    parentUid?: UID | null; // optional parent organization UID for hierarchy
+    createdByDiscordId: string; // Discord ID of the user creating the organization
 }
 
 /**
- * Result of organization creation operation.
- * @property success Whether the operation completed successfully.
- * @property organization Created organization data when successful.
- * @property error Error message when failed.
+ * @brief Result of organization creation operation
  */
 export interface OrganizationCreateResult {
     success: boolean;
@@ -33,9 +26,9 @@ export interface OrganizationCreateResult {
 }
 
 /**
- * Generate a unique organization UID with prefix.
- * @param prefix UID prefix string. @example 'org'
- * @returns Generated UID string. @example 'org_a1b2c3d4e5f6'
+ * @brief Generates a unique organization UID with prefix
+ * @param prefix string UID prefix @example 'org'
+ * @returns string Generated UID @example 'org_a1b2c3d4e5f6'
  */
 export function GenerateOrganizationUid(prefix: string = `org`): string {
     const uniquePart = randomUUID().replace(/-/g, ``);
@@ -43,10 +36,9 @@ export function GenerateOrganizationUid(prefix: string = `org`): string {
 }
 
 /**
- * Create a new organization in the database.
- * Validates parent relationship does not create circular dependency.
- * @param options OrganizationCreateOptions Creation parameters.
- * @returns Promise<OrganizationCreateResult> Operation result with created organization.
+ * @brief Creates a new organization in the database validating parent relationship has no circular dependency
+ * @param options OrganizationCreateOptions Creation parameters
+ * @returns OrganizationCreateResult Operation result with created organization
  * @example
  * const result = await CreateOrganization({
  *   name: '3rd_division',
@@ -161,9 +153,9 @@ export async function CreateOrganization(options: OrganizationCreateOptions): Pr
 }
 
 /**
- * Build hierarchy chain from root to specified organization.
- * @param organizationUid Target organization UID.
- * @returns Promise<UID[]> Ordered list from root to target.
+ * @brief Builds hierarchy chain from root to specified organization
+ * @param organizationUid UID Target organization UID
+ * @returns UID array Ordered list from root to target
  */
 async function __BuildHierarchyChain(organizationUid: UID): Promise<UID[]> {
     const session = await neo4jClient.GetSession(`READ`);

@@ -5,10 +5,10 @@ import { log } from '../../Common/Log.js';
 import { Translate } from '../../Services/I18nService.js';
 
 /**
- * Process an image attachment or URL provided while updating the game preview.
- * @param ctx GameCreateStepContext Flow state context. @example await ProcessImageInput(ctx, message)
- * @param message Message Incoming Discord message from the user.
- * @returns Promise<boolean> True when the image update succeeds.
+ * Process an image attachment or URL provided while updating the game preview
+ * @param ctx GameCreateStepContext Flow state context @example await ProcessImageInput(ctx, message)
+ * @param message Message Incoming Discord message from the user
+ * @returns boolean True when the image update succeeds
  */
 export async function ProcessImageInput(ctx: GameCreateStepContext, message: Message): Promise<boolean> {
     const content = message.content?.trim();

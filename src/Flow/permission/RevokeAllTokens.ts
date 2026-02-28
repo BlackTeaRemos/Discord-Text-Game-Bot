@@ -1,4 +1,4 @@
-import { RevokeAllGrants } from '../../Common/Permission/store.js';
+import { RevokeAllGrants } from '../../Common/Permission/Store.js';
 import { log } from '../../Common/Log.js';
 
 /**

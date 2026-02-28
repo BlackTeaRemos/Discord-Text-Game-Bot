@@ -29,7 +29,7 @@ export async function ExpireUserCreateSession(
     if (message) {
         try {
             await session.baseInteraction.followUp({ content: message, flags: MessageFlags.Ephemeral });
-        } catch (error) {
+        } catch(error) {
             log.error(
                 `Failed to send user create expiration notice for user ${session.userId}: ${String(error)}`,
                 UserCreateFlowConstants.logSource,
@@ -51,7 +51,7 @@ async function __DeleteSessionMessage(session: UserCreateSession, messageId: str
     }
     try {
         await session.baseInteraction.webhook.deleteMessage(messageId);
-    } catch (error) {
+    } catch(error) {
         log.warning(
             `Failed to delete ${label} message for user ${session.userId}: ${error instanceof Error ? error.message : String(error)}`,
             UserCreateFlowConstants.logSource,

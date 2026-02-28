@@ -2,8 +2,6 @@ import type { ObjectViewPage } from './ObjectViewTypes.js';
 
 /**
  * A resolved section anchor mapping section name to its first page index
- * @property section string Section identifier, e.g "overview", "properties"
- * @property pageIndex number Zero-based index of the first page in this section
  */
 export interface SectionAnchor {
     section: string;
@@ -11,12 +9,10 @@ export interface SectionAnchor {
 }
 
 /**
- * Extract unique section anchors from pages in order of first appearance
- * Only includes pages that have a section tag defined
- * Returns empty array when fewer than two unique sections exist (no nav needed)
+ * Extract unique section anchors from pages in order of first appearance returning empty when fewer than two exist
  *
- * @param pages ObjectViewPage[] All pages to scan for section tags
- * @returns SectionAnchor[] Ordered list of unique sections and their start indices
+ * @param pages ObjectViewPage array All pages to scan for section tags
+ * @returns SectionAnchor array Ordered list of unique sections and their start indices
  *
  * @example
  * const anchors = ResolveSectionAnchors(model.pages);

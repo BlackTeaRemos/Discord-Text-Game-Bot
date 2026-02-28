@@ -1,6 +1,6 @@
 import { SlashCommandBuilder, MessageFlags } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
-import type { TokenSegmentInput } from '../../Common/Permission/types.js';
+import type { TokenSegmentInput } from '../../Common/Permission/Types.js';
 import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
 import { ExecuteGrantAll } from './GrantAll.js';
 import { ExecuteListGrants } from './ListGrants.js';
@@ -51,10 +51,10 @@ export const data = new SlashCommandBuilder()
 export const permissionTokens: TokenSegmentInput[][] = [[`permit`]];
 
 /**
- * Route /permit subcommands to respective handlers.
+ * Route permit subcommands to respective handlers
  *
- * @param interaction InteractionExecutionContextCarrier<ChatInputCommandInteraction> Discord interaction.
- * @returns Promise<void> Resolves when handler completes.
+ * @param interaction InteractionExecutionContextCarrier Discord interaction
+ * @returns void
  */
 export async function execute(
     interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,

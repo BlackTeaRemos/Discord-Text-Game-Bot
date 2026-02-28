@@ -1,11 +1,11 @@
 import { log } from '../../Log.js';
-import { FormatPermissionToken } from '../formatPermissionToken.js';
-import { NormalizeToken } from '../normalizeToken.js';
-import type { PermissionToken, TokenSegmentInput } from '../types.js';
-import type { TokenResolveContext } from './types.js';
+import { FormatPermissionToken } from '../FormatPermissionToken.js';
+import { NormalizeToken } from '../NormalizeToken.js';
+import type { PermissionToken, TokenSegmentInput } from '../Types.js';
+import type { TokenResolveContext } from './Types.js';
 
 /**
- * Replace placeholders like `{name}` using values from context.
+ * Replace named placeholders in a value string using context values
  */
 function SubstitutePlaceholders(value: string, context: TokenResolveContext): string {
     return value.replace(/\{([^}]+)\}/g, (_m, name) => {
@@ -30,7 +30,7 @@ function SubstitutePlaceholders(value: string, context: TokenResolveContext): st
 }
 
 /**
- * Convert a template (string or array) into ordered tokens from most-specific to least-specific.
+ * Convert a template string or array into ordered tokens from most specific to least specific
  */
 export function ResolveTokens(
     template: string | TokenSegmentInput[],

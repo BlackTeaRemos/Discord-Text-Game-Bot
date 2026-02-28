@@ -1,6 +1,6 @@
 import { log, LogLevel } from './Common/Log.js';
 /**
- * Entry point for the application. Sets up and starts the main app logic, including initialization of services and event listeners.
+ * App.ts  Entry point that sets up and starts the main application logic including services and event listeners
  */
 import { EventEmitter } from 'events';
 import { MAIN_EVENT_BUS } from './Events/MainEventBus.js';
@@ -20,53 +20,51 @@ import { flowManager } from './Common/Flow/Manager.js';
 import { bootDiscordClient } from './App/Boot.js';
 import { InitDiscord } from './App/DiscordInit.js';
 
-// Supported log levels with numeric severity (lower is more verbose)
+// Supported log levels with numeric severity where lower is more verbose
 const LOG_LEVELS = { debug: 0, info: 1, warn: 2, error: 3 } as const;
 
 // Keys for log levels
 type LogLevelKey = keyof typeof LOG_LEVELS;
 
 /**
- * Application entry point for Discord Bot.
+ * @brief Application entry point for Discord Bot
  */
 export class DiscordApp {
     /**
-     * Reference to DiscordService instance for sending messages, etc. [// DiscordService instance]
+     * @brief Reference to DiscordService instance for sending messages
      */
     private _discordService: DiscordService | null = null;
 
     /**
-     * Stores the id of the -cmd channel after discord:ready
-     * @type {string | null} [// id of the -cmd channel]
+     * @brief Stores the id of the cmd channel after discord ready
      */
     private _cmdChannelId: string | null = null;
 
     /**
-     * Event bus for communication between UI and backend.
-     * @type {EventEmitter} [// Node.js event emitter for app-wide events]
+     * @brief Event bus for communication between UI and backend
      */
     public eventBus: EventEmitter;
 
-    /** Service for loading and validating app config [// ConfigService instance] */
+    /** @brief Service for loading and validating app config */
     private _configService: ConfigService;
-    /** Discord.js client instance */
+    /** @brief DiscordJS client instance */
     private _client: Client | null = null;
 
-    /** Sessions per guild, keyed by guild ID [// Map of sessions] */
+    /** @brief Sessions per guild keyed by guild ID */
     private _sessions: Map<string, Session<any>> = new Map();
 
     /**
-     * Numeric severity for current logging level [// 0=debug,1=info,2=warn,3=error]
+     * @brief Numeric severity for current logging level
      */
     private _logLevel: number = LOG_LEVELS.info;
 
     /**
-     * Indicates if the app is running [// boolean flag for main loop]
+     * @brief Indicates if the app is running
      */
     private _running: boolean = false;
 
     /**
-     * Initializes the application, sets up event bus and starts IO loop.
+     * @brief Initializes the application and sets up event bus
      */
     public constructor(eventBus: EventEmitter = MAIN_EVENT_BUS) {
         this.eventBus = eventBus;
@@ -77,21 +75,14 @@ export class DiscordApp {
 
         void this.__boot();
 
-        /**
-         * Stores the id of the -cmd channel after discord:ready
-         * @type {string | null} [// id of the -cmd channel]
-         */
+        // Stores the id of the cmd channel after discord ready
         this._cmdChannelId = null;
     }
 
     /**
-     * Boots the application: loads config, creates/logs in Discord.js client, then continues startup.
-     * Ensures container.client is set before any DiscordService is created.
-     * Wipes all application commands at startup using Sapphire's API (because why would you want to keep them?).
+     * @brief Boots the application by loading config and creating the DiscordJS client
      * @private
      * @returns void
-     * @example
-     * // Called automatically on app start
      */
     private async __boot(): Promise<void> {
         try {
@@ -106,7 +97,7 @@ export class DiscordApp {
 
             this._client = client;
 
-            // Initialize the higher-level DiscordService and wire additional listeners
+            // Initialize the higher level DiscordService and wire additional listeners
             const discord = InitDiscord({
                 eventBus: this.eventBus,
                 client: client,
@@ -129,8 +120,8 @@ export class DiscordApp {
     }
 
     /**
-     * Initializes Discord integration and log level after SapphireClient is ready and config is loaded.
-     * @param config any - Loaded config object
+     * @brief Initializes Discord integration and log level after config is loaded
+     * @param config any Loaded config object
      * @private
      */
     private __initConfigAndDiscord(config: any): void {
@@ -149,7 +140,7 @@ export class DiscordApp {
             this.__initDiscord(cfg);
         });
 
-        // If config already loaded, fire manually
+        // If config already loaded then fire manually
         this.__initDiscord(config);
     }
 
@@ -162,7 +153,7 @@ export class DiscordApp {
             return;
         }
 
-        // If the DiscordService has already been created (e.g. during boot), skip creating a new one.
+        // If the DiscordService has already been created during boot skip creating a new one
         if (this._discordService) {
             this.eventBus.emit(`output`, `[TRACE] DiscordService already initialized.`);
             return;
@@ -183,7 +174,7 @@ export class DiscordApp {
     }
 
     /**
-     * Sets up core event handlers for IO and system events.
+     * @brief Sets up core event handlers for IO and system events
      * @private
      */
     private __setupEventHandlers(): void {
@@ -197,27 +188,27 @@ export class DiscordApp {
     }
 
     /**
-     * Handles input from the UI or console.
-     * @param input string - The input string from the user, e.g. a command
+     * @brief Handles input from the UI or console
+     * @param input string The input string from the user
      */
     private __handleInput(input: string): void {
-        // For now, just echo the input. Replace with actual command handling.
+        // For now just echo the input
         this.eventBus.emit(`output`, `Echo: ${input}`);
     }
 
     /**
-     * Starts the main IO loop, reading from stdin and emitting events.
+     * @brief Starts the main IO loop reading from stdin and emitting events
      * @returns void
      */
     public async Start(): Promise<void> {
         this._running = true;
 
         /**
-         * Handles output events by logging to Sapphire logger if available, otherwise console.log.
-         * @param msg string - The message to log
+         * @brief Handles output events by logging if available otherwise falling back to console
+         * @param msg string The message to log
          */
         this.eventBus.on(`output`, (msg: string) => {
-            // Only log info-level messages if current level allows
+            // Only log info level messages if current level allows
             if (this._logLevel <= LOG_LEVELS.info) {
                 try {
                     log.info(msg, `App`);
@@ -239,8 +230,8 @@ export class DiscordApp {
     }
 
     /**
-     * Async generator to read lines from stdin.
-     * @returns AsyncGenerator<string, void, unknown>
+     * @brief Async generator to read lines from stdin
+     * @returns AsyncGenerator of string lines
      * @example
      * for await (const line of this.__readLines()) { ... }
      */
@@ -258,9 +249,9 @@ export class DiscordApp {
     }
 
     /**
-     * Wipes all application commands for global and guild scopes.
-     * @param client Client - Discord.js client instance
-     * @param config any - Loaded config containing discordGuildId
+     * @brief Wipes all application commands for global and guild scopes
+     * @param client Client DiscordJS client instance
+     * @param config any Loaded config containing discordGuildId
      * @private
      */
     private async __wipeAllApplicationCommands(client: Client, config: any): Promise<void> {

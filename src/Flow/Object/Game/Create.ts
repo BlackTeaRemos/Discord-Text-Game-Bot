@@ -5,9 +5,9 @@ import { GameCreateFlowConstants, type GameCreateFlowState } from './CreateState
 import type { GameCreateStepContext } from './CreateTypes.js';
 
 /**
- * Build the initial state backing the game creation flow.
- * @param options Object Seed containing Discord server identifier and optional defaults.
- * @returns GameCreateFlowState Initialized state used by the flow.
+ * @brief Builds the initial state backing the game creation flow
+ * @param options Object Seed containing Discord server identifier and optional defaults
+ * @returns GameCreateFlowState Initialized state used by the flow
  */
 export function createGameCreateState(options: {
     serverId: string;
@@ -33,9 +33,9 @@ export function createGameCreateState(options: {
 }
 
 /**
- * Build the initial state when updating an existing game.
- * @param options Object containing persisted game data and customization scope.
- * @returns GameCreateFlowState Initialized state prepared for update interactions.
+ * @brief Builds the initial state when updating an existing game
+ * @param options Object containing persisted game data and customization scope
+ * @returns GameCreateFlowState Initialized state prepared for update interactions
  */
 export function createGameUpdateState(options: {
     serverId: string;
@@ -65,10 +65,9 @@ export function createGameUpdateState(options: {
 }
 
 /**
- * Configure the interactive game creation flow using the supplied builder.
- * Command layer remains responsible for Discord rendering.
- * @param options Object containing the flow builder reference and optional memory seed.
- * @returns FlowBuilder<GameCreateFlowState> Builder reference for chaining or start invocation.
+ * @brief Configures the interactive game creation flow using the supplied builder
+ * @param options Object containing the flow builder reference and optional memory seed
+ * @returns FlowBuilder of GameCreateFlowState Builder reference for chaining or start invocation
  */
 export function StartGameCreateFlow(options: {
     builder: FlowBuilder<GameCreateFlowState>;

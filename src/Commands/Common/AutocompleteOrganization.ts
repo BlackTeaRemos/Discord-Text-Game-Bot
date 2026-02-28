@@ -9,13 +9,11 @@ const LOG_TAG = `AutocompleteOrganization`;
 const MAX_SUGGESTIONS = 25;
 
 /**
- * Provide organization autocomplete suggestions for the focused option
- * Fetches organizations the user belongs to and filters by partial name match
- * Returns organization name as display with uid as value
+ * Provide organization autocomplete suggestions filtered by partial name match
  *
  * @param interaction AutocompleteInteraction Discord autocomplete interaction
- * @param focusedOptionName string Name of the focused option to handle, defaults to 'organization'
- * @returns Promise<void> Resolves after responding with suggestions
+ * @param focusedOptionName string Name of the focused option defaulting to organization
+ * @returns void
  *
  * @example
  * export async function autocomplete(interaction: AutocompleteInteraction) {

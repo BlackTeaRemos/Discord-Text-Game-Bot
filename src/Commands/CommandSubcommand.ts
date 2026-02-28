@@ -5,41 +5,35 @@ import { ExecuteFilesAndCollectExports, DepthMode } from '../Execution/Direct/Ex
 import { log } from '../Common/Log.js';
 
 /**
- * Command builder type accepted by subcommand appenders.
+ * @brief Command builder type accepted by subcommand appenders
  * @example const builder: CommandBuilder = new SlashCommandBuilder()
  */
 export type CommandBuilder = SlashCommandBuilder | SlashCommandSubcommandsOnlyBuilder;
 
 /**
- * Command subcommand contract.
- * @property subcommandName string Subcommand name used in the slash command. @example 'create'
- * @property AppendToCommand (command: SlashCommandBuilder) => SlashCommandBuilder Builder append hook. @example AppendCreateSubcommand(command)
- * @property Execute (interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>) => Promise<void> Execution hook. @example await ExecuteCreateSubcommand(interaction)
+ * @brief Command subcommand contract defining name and execution hooks
  */
 export interface CommandSubcommand {
-    subcommandName: string;
-    groupName?: string;
-    groupDescription?: string;
-    BuildSubcommand: (subcommand: SlashCommandSubcommandBuilder) => SlashCommandSubcommandBuilder;
-    Execute: (interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>) => Promise<void>;
+    subcommandName: string; // slash command subcommand identifier
+    groupName?: string; // optional group this subcommand belongs to
+    groupDescription?: string; // optional description for the group
+    BuildSubcommand: (subcommand: SlashCommandSubcommandBuilder) => SlashCommandSubcommandBuilder; // builder hook for subcommand options
+    Execute: (interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>) => Promise<void>; // async execution handler
 }
 
 /**
- * Index of command subcommands by grouping.
- * @property grouped Map<string, Map<string, CommandSubcommand>> Grouped subcommands by group name.
- * @property ungrouped Map<string, CommandSubcommand> Ungrouped subcommands by name.
- * @property groupDescriptions Map<string, string> Optional descriptions for groups.
+ * @brief Index of command subcommands organized by grouping
  */
 export interface CommandSubcommandIndex {
-    grouped: Map<string, Map<string, CommandSubcommand>>;
-    ungrouped: Map<string, CommandSubcommand>;
-    groupDescriptions: Map<string, string>;
+    grouped: Map<string, Map<string, CommandSubcommand>>; // grouped subcommands by group name
+    ungrouped: Map<string, CommandSubcommand>; // ungrouped subcommands by name
+    groupDescriptions: Map<string, string>; // optional descriptions for groups
 }
 
 /**
- * Load command subcommand modules by folder.
- * @param rootPath string Directory path to scan. @example await LoadCommandSubcommands('.../Subcommands')
- * @returns Promise<CommandSubcommand[]> Loaded subcommand modules. @example const subs = await LoadCommandSubcommands(path)
+ * @brief Load command subcommand modules by scanning a folder
+ * @param rootPath string Directory path to scan
+ * @returns CommandSubcommand array Loaded subcommand modules
  */
 export async function LoadCommandSubcommands(rootPath: string): Promise<CommandSubcommand[]> {
     try {
@@ -55,19 +49,19 @@ export async function LoadCommandSubcommands(rootPath: string): Promise<CommandS
         log.error(`Failed to load command subcommands`, message, `CommandSubcommandLoader`);
         return [];
     } finally {
-        // no-op
+        // noop
     }
 }
 
 /**
- * Build a subcommand name to module lookup table.
- * @param subcommands CommandSubcommand[] Subcommand modules. @example const map = BuildCommandSubcommandMap(subs)
- * @returns Map<string, CommandSubcommand> Lookup by subcommand name. @example const map = BuildCommandSubcommandMap(subs)
+ * @brief Build a subcommand name to module lookup table
+ * @param subcommands CommandSubcommand array Subcommand modules to index
+ * @returns CommandSubcommandIndex Lookup structure indexed by subcommand name
  */
 export function BuildCommandSubcommandIndex(
     subcommands: CommandSubcommand[],
 ): CommandSubcommandIndex {
-    const grouped = new Map<string, Map<string, CommandSubcommand>>(); // group -> subcommands
+    const grouped = new Map<string, Map<string, CommandSubcommand>>(); // group to subcommands map
     const ungrouped = new Map<string, CommandSubcommand>(); // ungrouped subcommands
     const groupDescriptions = new Map<string, string>(); // group descriptions
 
@@ -97,9 +91,9 @@ export function BuildCommandSubcommandIndex(
 }
 
 /**
- * Collect command subcommands from dynamically loaded modules.
- * @param modules any[] Module exports to scan. @example const subs = __CollectCommandSubcommands(modules)
- * @returns CommandSubcommand[] Collected subcommand modules. @example const subs = __CollectCommandSubcommands(modules)
+ * @brief Collect command subcommands from dynamically loaded modules
+ * @param modules any array Module exports to scan
+ * @returns CommandSubcommand array Collected subcommand modules
  */
 function __CollectCommandSubcommands(modules: any[]): CommandSubcommand[] {
     const subcommands: CommandSubcommand[] = []; // resolved subcommand modules
@@ -117,9 +111,9 @@ function __CollectCommandSubcommands(modules: any[]): CommandSubcommand[] {
 }
 
 /**
- * Check whether a module export matches CommandSubcommand shape.
- * @param value unknown Value to validate. @example const ok = __IsCommandSubcommand(candidate)
- * @returns boolean True when value matches the contract. @example const ok = __IsCommandSubcommand(candidate)
+ * @brief Check whether a module export matches CommandSubcommand shape
+ * @param value unknown Value to validate
+ * @returns boolean True when value matches the contract
  */
 function __IsCommandSubcommand(value: unknown): value is CommandSubcommand {
     const candidate = value as CommandSubcommand | null;

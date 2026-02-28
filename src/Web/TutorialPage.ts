@@ -1,6 +1,6 @@
 /**
- * Build the full HTML document string for the tutorial page.
- * @returns string Complete HTML document.
+ * @brief Builds the full HTML document string for the tutorial page
+ * @returns string Complete HTML document
  * @example
  * const html = BuildTutorialPageHtml();
  * response.end(html);
@@ -46,8 +46,8 @@ ${__GetScript()}
 }
 
 /**
- * CSS styles for the tutorial page layout.
- * @returns string CSS block.
+ * @brief CSS styles for the tutorial page layout
+ * @returns string CSS block
  */
 function __GetStyles(): string {
     return `
@@ -119,8 +119,8 @@ td { background: #1e1e2e; }
 }
 
 /**
- * Client-side JavaScript for sidebar scroll-tracking.
- * @returns string JavaScript block.
+ * @brief Client side JavaScript for sidebar scroll tracking
+ * @returns string JavaScript block
  */
 function __GetScript(): string {
     return `
@@ -162,9 +162,8 @@ function __GetScript(): string {
 }
 
 /**
- * Section 1: Getting Started.
- * Covers game creation, organizations, user scope basics.
- * @returns string HTML for the Getting Started section.
+ * @brief Getting Started section covering game creation and organizations and user scope
+ * @returns string HTML for the Getting Started section
  */
 function __GetGettingStartedSection(): string {
     return `
@@ -203,9 +202,8 @@ function __GetGettingStartedSection(): string {
 }
 
 /**
- * Section 2: Templates.
- * Covers JSON schema, parameters, actions, the web editor, uploading.
- * @returns string HTML for the Templates section.
+ * @brief Templates section covering JSON schema and parameters and actions and uploading
+ * @returns string HTML for the Templates section
  */
 function __GetTemplatesSection(): string {
     return `
@@ -315,9 +313,8 @@ function __GetTemplatesSection(): string {
 }
 
 /**
- * Section 3: Objects.
- * Covers instantiation, parameter values, viewing, listing.
- * @returns string HTML for the Objects section.
+ * @brief Objects section covering instantiation and parameter values and viewing
+ * @returns string HTML for the Objects section
  */
 function __GetObjectsSection(): string {
     return `
@@ -352,9 +349,8 @@ Turn 2: rawMaterials = 80
 }
 
 /**
- * Section 4: Expression Language.
- * Covers math ops, builtins, cross-refs, inline targeting, aggregates.
- * @returns string HTML for the Expression Language section.
+ * @brief Expression Language section covering math ops and builtins and cross references and targeting
+ * @returns string HTML for the Expression Language section
  */
 function __GetExpressionsSection(): string {
     return `
@@ -439,9 +435,8 @@ rawMaterials -= productionRate * 2          // local: consume own materials
 }
 
 /**
- * Section 5: Turn Engine.
- * Covers turn advancement, action execution order, priorities.
- * @returns string HTML for the Turn Engine section.
+ * @brief Turn Engine section covering turn advancement and action execution order and priorities
+ * @returns string HTML for the Turn Engine section
  */
 function __GetTurnEngineSection(): string {
     return `
@@ -499,9 +494,8 @@ Result (Turn 6):
 }
 
 /**
- * Section 6: Tasks & Descriptions.
- * Covers task workflow, scoped descriptions system.
- * @returns string HTML for the Tasks & Descriptions section.
+ * @brief Tasks and Descriptions section covering task workflow and scoped descriptions
+ * @returns string HTML for the Tasks and Descriptions section
  */
 function __GetTasksDescriptionsSection(): string {
     return `

@@ -1,11 +1,6 @@
 import type { Interaction, Message } from 'discord.js';
 import type { FlowStep, StepContext } from './Types.js';
 
-// Flow event identifier builder utilities. Event identifiers are arrays used by ComplexEventEmitter
-// ['flow', userId, 'step', stepIndex, 'prompt' | 'interaction' | 'message']
-// ['flow', userId, 'advance']
-// ['flow', userId, 'cancel']
-
 export type FlowEventId = (string | number | boolean | undefined)[];
 
 export const FLOW_NAMESPACE = `flow` as const;
@@ -51,7 +46,7 @@ export const anyStepMessageId: FlowEventId = [FLOW_NAMESPACE, undefined, `step`,
 export const anyAdvanceId: FlowEventId = [FLOW_NAMESPACE, undefined, `advance`];
 export const anyCancelId: FlowEventId = [FLOW_NAMESPACE, undefined, `cancel`];
 
-// Payloads carried through the event bus. These are runtime-validated by usage; typings here are for developer guidance.
+// Payloads carried through the event bus with typings for developer guidance
 
 export interface FlowPromptPayload<State> {
     userId: string;

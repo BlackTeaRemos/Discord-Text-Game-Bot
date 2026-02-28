@@ -21,23 +21,22 @@ const TUTORIAL_NEXT_ID = `tutorial_next`; // next page button
 const COLLECTOR_TIMEOUT = 300_000; // 5 minutes
 
 /**
- * Represents a single page in the tutorial embed sequence.
+ * @brief Represents a single page in the tutorial embed sequence
  */
 interface ITutorialPage {
-    /** Page title displayed as embed title. @example 'Getting Started' */
+    /** Page title displayed as embed title @example 'Getting Started' */
     title: string;
 
-    /** Embed description content (markdown-safe). @example 'MPG System is a game management bot...' */
+    /** Embed description content in markdown safe format @example 'MPG System is a game management bot...' */
     content: string;
 
-    /** Accent color for the embed sidebar. @example 0x89b4fa */
+    /** Accent color for the embed sidebar @example 0x89b4fa */
     color: number;
 }
 
 /**
- * Build the ordered array of tutorial pages.
- * Each page maps to one of the six tutorial sections.
- * @returns ITutorialPage[] All tutorial pages in display order.
+ * @brief Builds the ordered array of tutorial pages where each page maps to one of the six tutorial sections
+ * @returns ITutorialPage array All tutorial pages in display order
  */
 function __BuildTutorialPages(): ITutorialPage[] {
     return [
@@ -202,11 +201,10 @@ export const data = new SlashCommandBuilder()
 export const permissionTokens: TokenSegmentInput[][] = [[`view`]];
 
 /**
- * Execute the /tutorial command.
- * Shows paginated tutorial embeds with navigation buttons and a link to the web version.
+ * @brief Executes the tutorial command showing paginated embeds with navigation buttons and a web version link
  *
- * @param interaction InteractionExecutionContextCarrier<ChatInputCommandInteraction> Discord interaction
- * @returns Promise<void> Resolves when the tutorial display flow completes or times out
+ * @param interaction InteractionExecutionContextCarrier of ChatInputCommandInteraction Discord interaction
+ * @returns void Resolves when the tutorial display flow completes or times out
  * @example /tutorial
  * @example /tutorial topic: templates
  */

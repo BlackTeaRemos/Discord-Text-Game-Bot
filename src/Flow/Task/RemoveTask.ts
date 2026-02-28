@@ -1,5 +1,5 @@
 import type { Neo4jClient } from '../../Repository/Neo4jClient.js';
-import { TASK_LABEL, REL_BELONGS_TO } from './taskConstants.js';
+import { TASK_LABEL, REL_BELONGS_TO } from './TaskConstants.js';
 import type { RemoveTaskInput } from './TaskFlowTypes.js';
 
 /**

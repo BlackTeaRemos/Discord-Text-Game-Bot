@@ -3,18 +3,17 @@ import { ListGamesForServer } from '../../Flow/Object/Game/ListGamesForServer.js
 import { GameObjectTemplateRepository } from '../../Repository/GameObject/GameObjectTemplateRepository.js';
 import { log } from '../../Common/Log.js';
 
-/** Log tag for this module. */
+/** Log tag for this module */
 const LOG_TAG = `AutocompleteTemplateName`;
 
-/** Maximum number of autocomplete suggestions returned to Discord. */
+/** Maximum number of autocomplete suggestions returned to Discord */
 const MAX_SUGGESTIONS = 25; // discord API limit
 
 /**
- * Provide template name autocomplete suggestions for the focused option.
- * Resolves the server's game, fetches all templates, and filters by the user's partial input.
+ * @brief Provides template name autocomplete suggestions for the focused option by resolving the server game and filtering templates
  *
- * @param interaction AutocompleteInteraction Discord autocomplete interaction.
- * @returns Promise<void> Resolves after responding with suggestions.
+ * @param interaction AutocompleteInteraction Discord autocomplete interaction
+ * @returns void Resolves after responding with suggestions
  * @example export { AutocompleteTemplateName as autocomplete } from './AutocompleteTemplateName.js';
  */
 export async function AutocompleteTemplateName(interaction: AutocompleteInteraction): Promise<void> {

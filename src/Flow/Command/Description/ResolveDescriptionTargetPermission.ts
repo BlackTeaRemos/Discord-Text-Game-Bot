@@ -5,9 +5,7 @@ import { GetOrganizationWithMembers } from '../../Object/Organization/View/index
 import { GetUserByUid } from '../../Object/User/View.js';
 
 /**
- * Target context for resolving description permissions.
- * @property type string Target object type key (example: 'organization').
- * @property id string Target object uid (example: 'org_123').
+ * Target context for resolving description permissions
  */
 export interface DescriptionTargetPermissionContext {
     type: string;
@@ -17,11 +15,10 @@ export interface DescriptionTargetPermissionContext {
 export type DescriptionTargetPermissionResult = CommandPermissionResult;
 
 /**
- * Build contextual permission overrides for editing descriptions.
- * Auto-allows editing when the target matches the character's organization or is the current user.
- * @param context IFlowInteractionContext Request context.
- * @param target DescriptionTargetPermissionContext Target being edited.
- * @returns Promise<PermissionsObject | undefined> Overrides permitting the operation.
+ * Build contextual permission overrides for editing descriptions
+ * @param context IFlowInteractionContext Request context
+ * @param target DescriptionTargetPermissionContext Target being edited
+ * @returns Promise_PermissionsObject or undefined Overrides permitting the operation
  */
 async function __BuildDescriptionTargetPermissionOverrides(
     context: IFlowInteractionContext,
@@ -64,11 +61,9 @@ async function __BuildDescriptionTargetPermissionOverrides(
 }
 
 /**
- * Resolve whether a user can edit descriptions for a given target object.
- * The token template used is: description:target:{type}:{id}:edit
- *
- * @param options object Resolver options.
- * @returns Promise<DescriptionTargetPermissionResult> Permission result.
+ * Resolve whether a user can edit descriptions for a given target object
+ * @param options object Resolver options
+ * @returns Promise_DescriptionTargetPermissionResult Permission result
  */
 export async function ResolveDescriptionTargetPermission(options: {
     context: IFlowInteractionContext;

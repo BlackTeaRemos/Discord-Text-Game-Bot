@@ -30,9 +30,9 @@ export function BuildOrganizationUnassignSubcommand(
 }
 
 /**
- * Execute unassign subcommand -- removes an object from an organization
- * @param interaction InteractionExecutionContextCarrier<ChatInputCommandInteraction> Discord interaction
- * @returns Promise<void>
+ * Execute unassign subcommand to remove an object from an organization
+ * @param interaction InteractionExecutionContextCarrier Discord interaction
+ * @returns void
  */
 export async function ExecuteOrganizationUnassignSubcommand(
     interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
@@ -93,7 +93,7 @@ export async function ExecuteOrganizationUnassignSubcommand(
             }),
         });
     } finally {
-        // no-op
+        // no op
     }
 }
 

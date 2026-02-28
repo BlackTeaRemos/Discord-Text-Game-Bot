@@ -1,8 +1,5 @@
 /**
  * Visual theme applied when rendering an object embed
- * @property color number Embed sidebar color as integer. Example: 0x5865F2
- * @property accentEmoji string Emoji prepended to embed title. Example: '🎮'
- * @property thumbnailUrl string | undefined Default thumbnail when object has none. Example: 'https://cdn.example.com/game.png'
  */
 export interface ObjectViewThemeDefinition {
     color: number;
@@ -10,20 +7,20 @@ export interface ObjectViewThemeDefinition {
     thumbnailUrl?: string;
 }
 
-/** Default fallback theme used when no type-specific theme is registered */
+/** Default fallback theme used when no type specific theme is registered */
 const _DEFAULT_THEME: ObjectViewThemeDefinition = {
     color: 0x5865F2,
     accentEmoji: `📄`,
 };
 
-/** Internal registry of type -> theme mappings */
+/** Internal registry of type to theme mappings */
 const _themeRegistry = new Map<string, ObjectViewThemeDefinition>();
 
 /**
  * Register a visual theme for a specific object type
  *
- * @param objectType string Object type discriminator. Example: 'game'
- * @param theme ObjectViewThemeDefinition Visual theme definition. Example: { color: 0x3498DB, accentEmoji: '🎮' }
+ * @param objectType string Object type discriminator
+ * @param theme ObjectViewThemeDefinition Visual theme definition
  * @returns void Theme is stored in the registry
  *
  * @example
@@ -35,17 +32,17 @@ export function RegisterObjectViewTheme(objectType: string, theme: ObjectViewThe
 
 /**
  * Retrieve the visual theme for a given object type
- * Falls back to default when no type-specific theme is registered
+ * Falls back to default when no type specific theme is registered
  *
- * @param objectType string Object type discriminator. Example: 'game'
- * @returns ObjectViewThemeDefinition Resolved theme definition. Example: { color: 0x3498DB, accentEmoji: '🎮' }
+ * @param objectType string Object type discriminator
+ * @returns ObjectViewThemeDefinition Resolved theme definition
  */
 export function ResolveObjectViewTheme(objectType: string): ObjectViewThemeDefinition {
     return _themeRegistry.get(objectType) ?? _DEFAULT_THEME;
 }
 
 /**
- * Clear all registered themes -- primarily for testing
+ * Clear all registered themes used primarily for testing
  * @returns void Registry is empty
  */
 export function ClearObjectViewThemes(): void {

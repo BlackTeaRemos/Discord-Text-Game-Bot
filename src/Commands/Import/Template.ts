@@ -15,10 +15,9 @@ import type { ITemplateDisplayConfig } from '../../Domain/GameObject/ITemplateDi
 const LOG_TAG = `Commands/Import/Template`;
 
 /**
- * Execute the /import template subcommand
- * Downloads the attached JSON file, validates it, and creates or merges a template for the server's game
- * @param interaction InteractionExecutionContextCarrier<ChatInputCommandInteraction> Discord interaction
- * @returns Promise<void>
+ * @brief Execute the import template subcommand
+ * @param interaction InteractionExecutionContextCarrier Discord interaction
+ * @returns void
  */
 export async function ExecuteImportTemplate(
     interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
@@ -101,17 +100,17 @@ export async function ExecuteImportTemplate(
         // Cast displayConfig from JSON schema to domain type
         const displayConfig: ITemplateDisplayConfig | undefined = templateSchema.displayConfig
             ? {
-                  styleConfig: templateSchema.displayConfig.styleConfig,
-                  groups: templateSchema.displayConfig.groups,
-                  parameterDisplay: templateSchema.displayConfig.parameterDisplay,
-              }
+                styleConfig: templateSchema.displayConfig.styleConfig,
+                groups: templateSchema.displayConfig.groups,
+                parameterDisplay: templateSchema.displayConfig.parameterDisplay,
+            }
             : undefined;
 
         // Check if a template with the same name already exists
         const existingTemplate = await templateRepository.FindByName(game.uid, templateSchema.name);
 
         if (existingTemplate) {
-            // Merge flow: analyze diff
+            // Merge flow analyze diff
             const analysis = await AnalyzeMerge(
                 existingTemplate,
                 templateSchema.parameters,
@@ -188,7 +187,7 @@ export async function ExecuteImportTemplate(
                     });
                 }
             } else {
-                // Non-destructive merge -- execute directly
+                // Non destructive merge execute directly
                 const mergeResult = await ExecuteMerge(
                     existingTemplate,
                     templateSchema.parameters,
@@ -213,7 +212,7 @@ export async function ExecuteImportTemplate(
             return;
         }
 
-        // New template: create fresh
+        // New template create fresh
         const created = await templateRepository.Create({
             gameUid: game.uid,
             name: templateSchema.name,
@@ -236,7 +235,7 @@ export async function ExecuteImportTemplate(
 }
 
 /**
- * Build a human-readable summary of merge diff changes
+ * @brief Build a human readable summary of merge diff changes
  * @param analysis IMergeAnalysisResult Diff analysis
  * @returns string Formatted diff summary for Discord message
  */

@@ -1,4 +1,4 @@
-import type { PermissionsObject } from '../../../../Common/Permission/types.js';
+import type { PermissionsObject } from '../../../Common/Permission/Types.js';
 
 /**
  * Options for the description composer flow.

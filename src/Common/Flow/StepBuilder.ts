@@ -3,7 +3,7 @@ import type { FlowBuilder } from './Builder.js';
 import type { Interaction, Message } from 'discord.js';
 
 /**
- * Helper to build individual flow steps.
+ * @brief Helper to build individual flow steps
  * @example
  * builder.step('confirm').prompt(async ctx => {...}).onInteraction(async (ctx, i) => true).next();
  */
@@ -20,9 +20,9 @@ export class StepBuilder<State> {
     }
 
     /**
-     * Define the prompt handler for this step.
-     * @param fn FlowStep<State>['prompt'] Asynchronous prompt callback executed when the step activates. Example async ctx => {...}.
-     * @returns this Allows fluent chaining to configure additional handlers. Example step.prompt(handler).
+     * @brief Define the prompt handler for this step
+     * @param fn prompt callback function Asynchronous callback executed when the step activates
+     * @returns this Allows fluent chaining to configure additional handlers
      */
     public prompt(fn: FlowStep<State>[`prompt`]): this {
         this.step.prompt = fn;
@@ -30,9 +30,9 @@ export class StepBuilder<State> {
     }
 
     /**
-     * Define the interaction handler for this step.
-     * @param fn (ctx, interaction) => Promise<boolean> Handler invoked for matching component interactions. Example async (ctx, interaction) => true.
-     * @returns this Enables chaining for further configuration. Example step.onInteraction(handler).
+     * @brief Define the interaction handler for this step
+     * @param fn interaction handler function Handler invoked for matching component interactions
+     * @returns this Enables chaining for further configuration
      */
     public onInteraction(
         fn: (
@@ -45,9 +45,9 @@ export class StepBuilder<State> {
     }
 
     /**
-     * Define the message handler for this step.
-     * @param fn (ctx, message) => Promise<boolean> Handler invoked when a message arrives. Example async (ctx, message) => true.
-     * @returns this Enables fluent chaining. Example step.onMessage(handler).
+     * @brief Define the message handler for this step
+     * @param fn message handler function Handler invoked when a message arrives
+     * @returns this Enables fluent chaining
      */
     public onMessage(
         fn: (ctx: Parameters<NonNullable<FlowStep<State>[`handleMessage`]>>[0], message: Message) => Promise<boolean>,
@@ -57,8 +57,8 @@ export class StepBuilder<State> {
     }
 
     /**
-     * Finalize this step and return to the parent builder.
-     * @returns FlowBuilder<State> Reference to the owning builder for further configuration. Example step.next().
+     * @brief Finalize this step and return to the parent builder
+     * @returns FlowBuilder State Reference to the owning builder for further configuration
      */
     public next(): FlowBuilder<State> {
         this.builder.internalAddStep(this.step as FlowStep<State>);

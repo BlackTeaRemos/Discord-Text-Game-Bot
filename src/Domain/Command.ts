@@ -1,11 +1,6 @@
-/**
- * Command Module interfaces for the VPI system.
- * These interfaces define structures for dynamic command loading and execution.
- */
-
-/** Lightweight metadata describing a dynamically loadable command module. */
+/** Lightweight metadata describing a dynamically loadable command module */
 export interface CommandModuleMeta {
-    id: string; // unique command identifier (slash name)
+    id: string; // unique command identifier used as slash name
     description: string; // human description
     version?: string; // optional semantic version for reload diffing
     permissions?: {
@@ -15,7 +10,7 @@ export interface CommandModuleMeta {
     tags?: string[]; // module categorization tags
 }
 
-/** Execution context for avoiding recomputation and sharing state across command execution flow. */
+/** Execution context for avoiding recomputation and sharing state across command execution flow */
 export interface ExecutionContext {
     /** Correlation ID for tracing requests */
     correlationId: string;
@@ -33,18 +28,18 @@ export interface ExecutionContext {
     set(key: string, value: any): void;
     /** Clear all cached values */
     clear(): void;
-    /** Get cache statistics for debugging/monitoring (optional implementation) */
+    /** Get cache statistics for debugging and monitoring optionally */
     getStats?(): { size: number; keys: string[]; createdAt: Date; correlationId: string };
 }
 
-/** Arguments passed to a command execute handler (abstracted from discord.js specifics for testability). */
+/** Arguments passed to a command execute handler abstracted from Discord specifics for testability */
 export interface CommandExecutionContext {
     guildId: string; // guild scope
     userId: string; // invoking user
     channelId: string; // channel invoking
-    options: Record<string, any>; // parsed options/arguments
-    // Responder supports a minimal subset of Discord.js reply/followUp/editReply options.
-    // Prefer using flags (e.g., MessageFlags.Ephemeral) for privacy instead of ephemeral: true when possible.
+    options: Record<string, any>; // parsed options and arguments
+    // Responder supports a minimal subset of Discord reply and followUp and editReply options
+    // Prefer flags like MessageFlags Ephemeral for privacy instead of ephemeral true when possible
     reply: (
         message: string | { content?: string; ephemeral?: boolean; flags?: number; embeds?: any[]; components?: any[] },
     ) => Promise<any>; // responder
@@ -52,15 +47,15 @@ export interface CommandExecutionContext {
     executionContext: ExecutionContext;
 }
 
-/** Result contract for an executed command. */
+/** Result contract for an executed command */
 export interface CommandResult {
     ok: boolean; // success flag
     message?: string; // user facing summary
     data?: any; // structured payload
-    error?: string; // error code/message
+    error?: string; // error code or message
 }
 
-/** Dynamic command module interface loaded from file system for hot reload. */
+/** Dynamic command module interface loaded from file system for hot reload */
 export interface CommandModule {
     meta: CommandModuleMeta; // descriptive metadata
     register?: (registry: { slash: (def: { name: string; description: string }) => void }) => void; // optional registration hook

@@ -6,14 +6,7 @@ import type { InteractionExecutionContextCarrier } from '../../Common/Type/Inter
 import { TranslateFromContext } from '../../Services/I18nService.js';
 
 /**
- * Configuration for awaiting user-provided text input via Discord messages.
- * @property interaction ChatInputCommandInteraction Base interaction used to communicate with the user.
- * @property prompt string Instructional text explaining what the user should send.
- * @property timeoutMs number Optional timeout before aborting (default 2 minutes).
- * @property minLength number Optional minimum character count.
- * @property maxLength number Optional maximum character count.
- * @property cancelWords string[] Optional cancellation keywords (case-insensitive).
- * @property validator (value: string) => boolean | string Optional custom validation hook.
+ * Configuration for awaiting user provided text input via Discord messages
  */
 export interface AwaitTextInputOptions {
     interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>;
@@ -29,17 +22,17 @@ const TIMEOUT_ERROR_KEY = `prompt.text.timeout`;
 const CANCELLATION_ERROR_KEY = `prompt.text.cancelled`;
 const GENERIC_VALIDATION_KEY = `prompt.text.genericValidation`;
 
-/** Default timeout (in milliseconds) applied when options.timeoutMs is not defined. */
+/** Default timeout in milliseconds applied when options timeoutMs is not defined */
 const DEFAULT_TIMEOUT_MS = 2 * 60 * 1000;
 
 /**
- * Prompt a user for textual input and wait for their response within the active channel.
- * Sends the instruction using an ephemeral reply/follow-up and listens for the author's next
- * message until the value satisfies validation rules, is cancelled, or times out.
+ * Prompt a user for textual input and wait for their response within the active channel
+ * Sends the instruction using an ephemeral reply or followup and listens for the next
+ * message until the value satisfies validation rules or is cancelled or times out
  *
- * @param options AwaitTextInputOptions Prompt configuration and validation metadata.
- * @returns Promise<string> Resolved with the validated user input.
- * @throws Error When the channel is unavailable, the user cancels, or the timeout elapses.
+ * @param options AwaitTextInputOptions Prompt configuration and validation metadata
+ * @returns Promise of string Resolved with the validated user input
+ * @throws Error When the channel is unavailable or the user cancels or the timeout elapses
  */
 export async function PromptText(options: AwaitTextInputOptions): Promise<string> {
     const {

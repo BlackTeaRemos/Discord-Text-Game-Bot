@@ -2,9 +2,9 @@ import { neo4jClient } from '../../../Setup/Neo4j.js';
 import { Game } from './CreateRecord.js';
 
 /**
- * Retrieve a Game node by UID along with its server reference.
+ * Retrieve a Game node by UID along with its server reference
  * @param uid string Game UID @example const game = await GetGame('game_123');
- * @returns Promise<Game | null> Game properties or null if not found.
+ * @returns Game Game properties or null if not found
  */
 export async function GetGame(uid: string): Promise<Game | null> {
     const session = await neo4jClient.GetSession(`READ`);

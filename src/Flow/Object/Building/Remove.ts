@@ -1,9 +1,9 @@
 import { neo4jClient } from '../../../Setup/Neo4j.js';
 
 /**
- * Retrieve the organization UID that owns a factory.
- * @param uid string Factory UID (example: 'factory_123').
- * @returns Promise<string | null> Organization UID or null if not found (example: 'org_abc').
+ * Retrieve the organization UID that owns a factory
+ * @param uid string Factory UID
+ * @returns Promise of string or null Organization UID or null if not found
  * @example
  * const orgUid = await getFactoryOrganizationUid('factory_123');
  */
@@ -23,9 +23,9 @@ export async function GetFactoryOrganizationUid(uid: string): Promise<string | n
 }
 
 /**
- * Remove a Factory node by UID along with its relationships.
+ * Remove a Factory node by UID along with its relationships
  * @param uid Factory UID
- * @returns true if deleted, false if not found
+ * @returns true if deleted or false if not found
  */
 export async function RemoveFactory(uid: string): Promise<boolean> {
     const session = await neo4jClient.GetSession(`WRITE`);
@@ -36,7 +36,7 @@ export async function RemoveFactory(uid: string): Promise<boolean> {
             OPTIONAL MATCH (o)-[r:HAS_FACTORY]->(f)
             DELETE r, f`;
         const result = await session.run(query, { uid });
-        // result.summary.counters.updates().nodesDeleted etc.
+        // Reads nodesDeleted from result summary
         const deletedCount = result.summary.counters.updates().nodesDeleted;
         return deletedCount > 0;
     } finally {

@@ -2,18 +2,18 @@ import { ActionRowBuilder, StringSelectMenuBuilder } from 'discord.js';
 import { ListGamesForServer, type ServerGameListItem } from '../../Flow/Object/Game/ListGamesForServer.js';
 
 /**
- * States returned when preparing a game selection prompt.
+ * States returned when preparing a game selection prompt
  */
 export type GamePromptStatus = `empty` | `auto` | `prompt`;
 
 /**
- * Options accepted when building a game selection prompt.
- * @property serverId string Discord guild id requesting selection. @example '123456789012345678'
- * @property customId string Custom id attached to the select menu. @example 'select_game'
- * @property placeholder string | undefined Placeholder shown on the select. @example 'Select game'
- * @property promptMessage string | undefined Message displayed when prompting the user. @example 'Choose game to continue.'
- * @property emptyMessage string | undefined Message returned when server has no games. @example 'No games available.'
- * @property limit number | undefined Maximum number of games to surface (1-25). @example 10
+ * Options accepted when building a game selection prompt
+ * @property serverId string Discord guild id requesting selection @example '123456789012345678'
+ * @property customId string Custom id attached to the select menu @example 'select_game'
+ * @property placeholder string Placeholder shown on the select @example 'Select game'
+ * @property promptMessage string Message displayed when prompting the user @example 'Choose game to continue.'
+ * @property emptyMessage string Message returned when server has no games @example 'No games available.'
+ * @property limit number Maximum number of games to surface from 1 to 25 @example 10
  */
 export interface GamePromptOptions {
     serverId: string;
@@ -25,12 +25,12 @@ export interface GamePromptOptions {
 }
 
 /**
- * Result describing how the caller should proceed after preparing the prompt.
- * @property status GamePromptStatus Indicates whether to prompt, auto-select, or abort.
- * @property games ServerGameListItem[] Raw list of games.
- * @property components ActionRowBuilder<StringSelectMenuBuilder>[] | undefined Select menu rows returned when prompting.
- * @property message string | undefined Suggested message to display.
- * @property game ServerGameListItem | undefined Auto-selected game.
+ * Result describing how the caller should proceed after preparing the prompt
+ * @property status GamePromptStatus Indicates whether to prompt auto select or abort
+ * @property games ServerGameListItemArray Raw list of games
+ * @property components ActionRowBuilderArray Select menu rows returned when prompting
+ * @property message string Suggested message to display
+ * @property game ServerGameListItem Auto selected game
  */
 export interface GamePromptResult {
     status: GamePromptStatus;
@@ -41,9 +41,9 @@ export interface GamePromptResult {
 }
 
 /**
- * Prepare a game selection prompt, handling empty and auto-select cases.
- * @param options GamePromptOptions Configuration describing the prompt.
- * @returns Promise<GamePromptResult> Prompt result instructing caller whether to prompt or auto-select.
+ * Prepare a game selection prompt handling empty and auto select cases
+ * @param options GamePromptOptions Configuration describing the prompt
+ * @returns GamePromptResult Prompt result instructing caller whether to prompt or auto select
  */
 export async function PrepareGamePrompt(options: GamePromptOptions): Promise<GamePromptResult> {
     const games = await ListGamesForServer(options.serverId);

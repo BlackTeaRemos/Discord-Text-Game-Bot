@@ -9,17 +9,18 @@ import {
     MessageFlags,
 } from 'discord.js';
 import { GrantForever, type PermissionDecision, type PermissionToken } from '../../Common/Permission/index.js';
-import { FormatPermissionToken } from '../../Common/Permission/formatPermissionToken.js';
+import { FormatPermissionToken } from '../../Common/Permission/FormatPermissionToken.js';
 import { PermissionApprovalError } from '../../Common/Errors.js';
 import { log } from '../../Common/Log.js';
 import { TranslateFromContext } from '../../Services/I18nService.js';
 
 /**
- * Requests administrator approval for a set of permission tokens tied to an interaction.
- * @param interaction ChatInputCommandInteraction Interaction needing approval (example: /start).
- * @param options { tokens: PermissionToken[]; reason?: string } Tokens requiring approval and optional reason (example: { tokens, reason: 'onboarding' }).
- * @param timeoutMs number Milliseconds to wait for a response (example: 300000).
- * @returns Promise<PermissionDecision> Decision outcome from admin interaction (example: approve_once).
+ * Requests administrator approval for a set of permission tokens tied to an interaction
+ * @param interaction ChatInputCommandInteraction Interaction needing approval
+ * @param options object Tokens requiring approval and optional reason
+ * @param timeoutMs number Milliseconds to wait for a response
+ * @returns Promise of PermissionDecision Decision outcome from admin interaction
+ *
  * @example
  * const decision = await RequestPermissionFromAdmin(interaction, { tokens });
  */
@@ -59,14 +60,14 @@ export async function RequestPermissionFromAdmin(
     }
 
     // Attempt to find admins from the cached member list first to avoid
-    // a full guild.members.fetch() which can take 1-30s on large guilds.
+    // a full member list fetch which can take 1 to 30 seconds on large guilds
     const cachedMembers = guild.members.cache;
     const admins = cachedMembers.filter(memberEntry => {
         return !memberEntry.user.bot && memberEntry.permissions.has(PermissionsBitField.Flags.Administrator);
     });
 
-    // If no admins found in cache, fetch the guild owner specifically (~200ms)
-    // instead of fetching the entire member list.
+    // If no admins found in cache fetch the guild owner specifically around 200ms
+    // instead of fetching the entire member list
     const ownerId = guild.ownerId;
     if (admins.size === 0 && ownerId) {
         try {
@@ -82,7 +83,7 @@ export async function RequestPermissionFromAdmin(
         }
     }
 
-    // Last resort: fetch all members only if we still have no admins
+    // Last resort fetch all members only if we still have no admins
     if (admins.size === 0) {
         try {
             const fetchedMembers = await guild.members.fetch();
@@ -207,7 +208,7 @@ export async function RequestPermissionFromAdmin(
             return `approve_once`;
         }
         if (id === `perm_approve_forever`) {
-            // Grant all requested tokens, not just the first one
+            // Grant all requested tokens not just the first one
             for (const token of options.tokens) {
                 await GrantForever(guild.id, interaction.user.id, token, collected.user.id);
             }

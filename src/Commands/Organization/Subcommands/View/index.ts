@@ -9,9 +9,9 @@ import { Translate, TranslateFromContext } from '../../../../Services/I18nServic
 const _subcommandName = `view`; // subcommand name
 
 /**
- * Build view subcommand.
- * @param subcommand SlashCommandSubcommandBuilder Subcommand builder. @example BuildOrganizationViewSubcommand(builder)
- * @returns SlashCommandSubcommandBuilder Updated subcommand builder. @example const updated = BuildOrganizationViewSubcommand(builder)
+ * Build view subcommand
+ * @param subcommand SlashCommandSubcommandBuilder Subcommand builder @example BuildOrganizationViewSubcommand(builder)
+ * @returns SlashCommandSubcommandBuilder Updated subcommand builder @example const updated = BuildOrganizationViewSubcommand(builder)
  */
 export function BuildOrganizationViewSubcommand(
     subcommand: SlashCommandSubcommandBuilder,
@@ -29,9 +29,9 @@ export function BuildOrganizationViewSubcommand(
 }
 
 /**
- * Execute view subcommand.
- * @param interaction InteractionExecutionContextCarrier<ChatInputCommandInteraction> Command interaction. @example await ExecuteOrganizationViewSubcommand(interaction)
- * @returns Promise<void> Resolves when command completes. @example await ExecuteOrganizationViewSubcommand(interaction)
+ * Execute view subcommand
+ * @param interaction InteractionExecutionContextCarrier Command interaction @example await ExecuteOrganizationViewSubcommand(interaction)
+ * @returns void Resolves when command completes @example await ExecuteOrganizationViewSubcommand(interaction)
  */
 export async function ExecuteOrganizationViewSubcommand(
     interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
@@ -52,12 +52,12 @@ export async function ExecuteOrganizationViewSubcommand(
             content: TranslateFromContext(interaction.executionContext, `commands.organization.view.errors.failed`, { params: { message } }),
         });
     } finally {
-        // no-op
+        // noop
     }
 }
 
 /**
- * Exported view subcommand module.
+ * Exported view subcommand module
  * @example const subcommand = OrganizationViewSubcommand
  */
 export const OrganizationViewSubcommand: CommandSubcommand = {

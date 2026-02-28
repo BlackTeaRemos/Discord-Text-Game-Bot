@@ -11,47 +11,45 @@ import { ValidateDisplayConfig } from '../Flow/GameObject/ValidateDisplayConfig.
 import type { ITemplateDisplayConfig } from '../Domain/GameObject/ITemplateDisplayConfig.js';
 import { RenderCardPreview } from '../Flow/GameObject/RenderCardPreview.js';
 
-/** Default port for the template editor web server. */
+/** Default port for the template editor web server */
 const DEFAULT_PORT = 3500;
 
-/** Log tag for web server messages. */
+/** Log tag for web server messages */
 const LOG_TAG = `Web/TemplateEditorServer`;
 
 /**
- * Configuration for the template editor HTTP server.
- * @property port number Port to listen on. @example 3500
+ * @brief Configuration for the template editor HTTP server
  */
 export interface ITemplateEditorServerConfig {
-    /** Port number for the HTTP server. @example 3500 */
+    /** Port number for the HTTP server @example 3500 */
     port: number;
 }
 
 /**
- * HTTP server that serves the template editor page.
- * Manages its own lifecycle (start/stop) independently from the Discord bot.
+ * @brief HTTP server that serves the template editor page and manages its own lifecycle
  */
 export class TemplateEditorServer {
-    /** Cached HTML content for the editor page. */
+    /** Cached HTML content for the editor page */
     private _cachedHtml: string;
 
-    /** Cached HTML content for the tutorial page. */
+    /** Cached HTML content for the tutorial page */
     private _cachedTutorialHtml: string;
 
-    /** Node HTTP server instance. */
+    /** Node HTTP server instance */
     private _server: Server | null = null;
 
-    /** Port number this server listens on. */
+    /** Port number this server listens on */
     private _port: number;
 
-    /** Expression evaluator for syntax validation on the API. */
+    /** Expression evaluator for syntax validation on the API */
     private readonly _expressionEvaluator: ExpressionEvaluator;
 
-    /** Template repository for API queries. */
+    /** Template repository for API queries */
     private readonly _templateRepository: GameObjectTemplateRepository;
 
     /**
-     * Create a new TemplateEditorServer.
-     * @param config ITemplateEditorServerConfig Server configuration.
+     * @brief Create a new TemplateEditorServer
+     * @param config ITemplateEditorServerConfig Server configuration
      * @example
      * const server = new TemplateEditorServer({ port: 3500 });
      * await server.Start();
@@ -65,8 +63,8 @@ export class TemplateEditorServer {
     }
 
     /**
-     * Start listening for HTTP requests.
-     * @returns Promise<void> Resolves when the server is bound and listening.
+     * @brief Start listening for HTTP requests
+     * @returns Promise<void> Resolves when the server is bound and listening
      * @example
      * await server.Start();
      */
@@ -89,8 +87,8 @@ export class TemplateEditorServer {
     }
 
     /**
-     * Stop the HTTP server gracefully.
-     * @returns Promise<void> Resolves after the server closes.
+     * @brief Stop the HTTP server gracefully
+     * @returns Promise<void> Resolves after the server closes
      * @example
      * await server.Stop();
      */
@@ -109,9 +107,9 @@ export class TemplateEditorServer {
     }
 
     /**
-     * Route incoming HTTP requests to appropriate handlers.
-     * @param request IncomingMessage Incoming HTTP request.
-     * @param response ServerResponse HTTP response to write to.
+     * @brief Route incoming HTTP requests to appropriate handlers
+     * @param request IncomingMessage Incoming HTTP request
+     * @param response ServerResponse HTTP response to write to
      */
     private __HandleRequest(request: IncomingMessage, response: ServerResponse): void {
         const rawUrl = request.url ?? `/`;
@@ -186,8 +184,8 @@ export class TemplateEditorServer {
     }
 
     /**
-     * Serve the editor HTML page.
-     * @param response ServerResponse HTTP response.
+     * @brief Serve the editor HTML page
+     * @param response ServerResponse HTTP response
      */
     private __ServeEditorPage(response: ServerResponse): void {
         response.writeHead(200, {
@@ -198,8 +196,8 @@ export class TemplateEditorServer {
     }
 
     /**
-     * Serve the tutorial / documentation HTML page.
-     * @param response ServerResponse HTTP response.
+     * @brief Serve the tutorial and documentation HTML page
+     * @param response ServerResponse HTTP response
      */
     private __ServeTutorialPage(response: ServerResponse): void {
         response.writeHead(200, {
@@ -210,8 +208,8 @@ export class TemplateEditorServer {
     }
 
     /**
-     * Serve a health check response.
-     * @param response ServerResponse HTTP response.
+     * @brief Serve a health check response
+     * @param response ServerResponse HTTP response
      */
     private __ServeHealth(response: ServerResponse): void {
         response.writeHead(200, { 'Content-Type': `application/json` });
@@ -219,10 +217,9 @@ export class TemplateEditorServer {
     }
 
     /**
-     * Handle POST /api/validate -- validates a template JSON and its expressions.
-     * Response body includes structural validation and per-expression syntax analysis.
-     * @param request IncomingMessage Incoming POST request with JSON body.
-     * @param response ServerResponse HTTP response to write validation results.
+     * @brief Handle POST api validate to validate a template JSON and its expressions
+     * @param request IncomingMessage Incoming POST request with JSON body
+     * @param response ServerResponse HTTP response to write validation results
      */
     private __HandleValidateApi(request: IncomingMessage, response: ServerResponse): void {
         let requestBody = ``;
@@ -259,13 +256,12 @@ export class TemplateEditorServer {
     }
 
     /**
-     * Validate a template JSON structurally and check expression syntax.
-     * Returns combined results from ValidateTemplateJson plus per-expression syntax checks.
-     * @param input unknown Raw parsed JSON template.
-     * @returns IValidateApiResponse Combined validation result.
+     * @brief Validate a template JSON structurally and check expression syntax
+     * @param input unknown Raw parsed JSON template
+     * @returns IValidateApiResponse Combined validation result
      */
     private __ValidateTemplateWithExpressions(input: unknown): IValidateApiResponse {
-        // Step 1: structural validation
+        // Step 1 structural validation
         const structuralResult = ValidateTemplateJson(input);
 
         if (!structuralResult.valid) {
@@ -276,7 +272,7 @@ export class TemplateEditorServer {
             };
         }
 
-        // Step 2: expression syntax validation
+        // Step 2 expression syntax validation
         const template = input as Record<string, unknown>;
         const parameters = template.parameters as Array<{ key: string; valueType: string }>;
         const numericKeys = parameters
@@ -321,10 +317,9 @@ export class TemplateEditorServer {
     }
 
     /**
-     * Handle GET /api/templates?gameUid=xxx -- list all templates for a game.
-     * Returns template names with their parameter keys and types for autocomplete.
-     * @param response ServerResponse HTTP response.
-     * @param gameUid string | null Game identifier from query string.
+     * @brief Handle GET api templates to list all templates for a game
+     * @param response ServerResponse HTTP response
+     * @param gameUid string or null Game identifier from query string
      */
     private async __HandleListTemplates(response: ServerResponse, gameUid: string | null): Promise<void> {
         if (!gameUid) {
@@ -336,7 +331,7 @@ export class TemplateEditorServer {
         try {
             const templates = await this._templateRepository.ListByGame(gameUid);
 
-            /** Simplified template info for the editor. */
+            /** Simplified template info for the editor */
             const templateSummaries = templates.map(template => {
                 return {
                     uid: template.uid,
@@ -370,11 +365,9 @@ export class TemplateEditorServer {
     }
 
     /**
-     * Handle POST /api/validate-context -- validate a template with knowledge of other templates.
-     * Checks expression cross-object references against actual template names and parameter keys.
-     * Request body: { gameUid: string, template: TemplateJsonSchema }
-     * @param request IncomingMessage Incoming POST request.
-     * @param response ServerResponse HTTP response.
+     * @brief Handle POST api validate context to validate a template with knowledge of other templates
+     * @param request IncomingMessage Incoming POST request
+     * @param response ServerResponse HTTP response
      */
     private __HandleContextAwareValidation(request: IncomingMessage, response: ServerResponse): void {
         let requestBody = ``;
@@ -400,7 +393,7 @@ export class TemplateEditorServer {
                     return;
                 }
 
-                // First do basic structural + expression validation
+                // First do basic structural and expression validation
                 const basicResult = this.__ValidateTemplateWithExpressions(template);
 
                 if (!basicResult.valid && basicResult.structuralErrors.length > 0) {
@@ -409,10 +402,10 @@ export class TemplateEditorServer {
                     return;
                 }
 
-                // Fetch existing templates for cross-reference validation
+                // Fetch existing templates for cross reference validation
                 const existingTemplates = await this._templateRepository.ListByGame(gameUid);
 
-                // Build a map of template name -> parameter keys
+                // Build a map of template name to parameter keys
                 const knownTemplateParams = new Map<string, Set<string>>();
                 for (const existingTemplate of existingTemplates) {
                     const paramKeys = new Set<string>();
@@ -435,10 +428,10 @@ export class TemplateEditorServer {
                 }
                 knownTemplateParams.set(currentName, currentParamKeys);
 
-                // Validate cross-object references in expressions (both RHS reads and LHS inline targets)
+                // Validate cross object references in expressions for both RHS reads and LHS inline targets
                 const crossRefErrors: ICrossReferenceError[] = [];
                 const crossRefPattern = /@([a-zA-Z_]\w*)\.([a-zA-Z_]\w*)/g;
-                /** Pattern for inline target LHS: @Template.param op= expr */
+                /** Regex pattern for detecting inline assignment targets */
                 const inlineTargetPattern = /^@([a-zA-Z_]\w*)\.([a-zA-Z_]\w*)\s*[\+\-\*\/]?=/;
 
                 if (Array.isArray(template.actions)) {
@@ -474,11 +467,11 @@ export class TemplateEditorServer {
                                 }
                             }
 
-                            // Check RHS cross-object references (@Template.param reads)
+                            // Check RHS cross object references for template param reads
                             let crossRefMatch: RegExpExecArray | null;
                             crossRefPattern.lastIndex = 0;
 
-                            // For inline-targeted expressions, skip the LHS part when scanning RHS refs
+                            // For inline targeted expressions skip the LHS part when scanning RHS refs
                             const rhsStartIndex = inlineMatch ? (inlineMatch[0].length) : 0;
                             const rhsText = expression.substring(rhsStartIndex);
 
@@ -538,10 +531,9 @@ export class TemplateEditorServer {
     }
 
     /**
-     * Handle GET /api/display-config?templateUid=xxx -- fetch display config for a template.
-     * Returns the template's display configuration or a default scaffold if none exists.
-     * @param response ServerResponse HTTP response.
-     * @param templateUid string | null Template identifier from query string.
+     * @brief Handle GET api display config to fetch display config for a template
+     * @param response ServerResponse HTTP response
+     * @param templateUid string or null Template identifier from query string
      */
     private async __HandleGetDisplayConfig(response: ServerResponse, templateUid: string | null): Promise<void> {
         if (!templateUid) {
@@ -567,7 +559,7 @@ export class TemplateEditorServer {
                 parameters: template.parameters,
                 config: displayConfig,
             }));
-        } catch (fetchError) {
+        } catch(fetchError) {
             const message = fetchError instanceof Error ? fetchError.message : String(fetchError);
             log.error(`Failed to get display config: ${message}`, LOG_TAG, `__HandleGetDisplayConfig`);
             response.writeHead(500, { 'Content-Type': `application/json` });
@@ -576,10 +568,9 @@ export class TemplateEditorServer {
     }
 
     /**
-     * Handle PUT /api/display-config -- save display config for a template.
-     * Request body: { templateUid: string, config: ITemplateDisplayConfig }
-     * @param request IncomingMessage Incoming PUT request.
-     * @param response ServerResponse HTTP response.
+     * @brief Handle PUT api display config to save display config for a template
+     * @param request IncomingMessage Incoming PUT request
+     * @param response ServerResponse HTTP response
      */
     private __HandlePutDisplayConfig(request: IncomingMessage, response: ServerResponse): void {
         let requestBody = ``;
@@ -593,7 +584,7 @@ export class TemplateEditorServer {
             }
         });
 
-        request.on(`end`, async () => {
+        request.on(`end`, async() => {
             try {
                 const parsed = JSON.parse(requestBody);
                 const templateUid = parsed.templateUid as string | undefined;
@@ -616,7 +607,7 @@ export class TemplateEditorServer {
 
                 response.writeHead(200, { 'Content-Type': `application/json` });
                 response.end(JSON.stringify({ success: true }));
-            } catch (saveError) {
+            } catch(saveError) {
                 const message = saveError instanceof Error ? saveError.message : String(saveError);
                 log.error(`Failed to save display config: ${message}`, LOG_TAG, `__HandlePutDisplayConfig`);
                 response.writeHead(500, { 'Content-Type': `application/json` });
@@ -632,11 +623,9 @@ export class TemplateEditorServer {
     }
 
     /**
-     * Handle POST /api/card-preview -- render a card preview and return PNG.
-     * Request body: { templateUid: string, config?: ITemplateDisplayConfig }
-     * Returns image/png on success.
-     * @param request IncomingMessage Incoming POST request.
-     * @param response ServerResponse HTTP response with PNG body.
+     * @brief Handle POST api card preview to render a card preview and return PNG
+     * @param request IncomingMessage Incoming POST request
+     * @param response ServerResponse HTTP response with PNG body
      */
     private __HandleCardPreview(request: IncomingMessage, response: ServerResponse): void {
         let requestBody = ``;
@@ -650,7 +639,7 @@ export class TemplateEditorServer {
             }
         });
 
-        request.on(`end`, async () => {
+        request.on(`end`, async() => {
             try {
                 const parsed = JSON.parse(requestBody);
                 const templateUid = parsed.templateUid as string | undefined;
@@ -675,7 +664,7 @@ export class TemplateEditorServer {
                     'Cache-Control': `no-cache`,
                 });
                 response.end(pngBuffer);
-            } catch (renderError) {
+            } catch(renderError) {
                 const message = renderError instanceof Error ? renderError.message : String(renderError);
                 log.error(`Card preview render error: ${message}`, LOG_TAG, `__HandleCardPreview`);
                 response.writeHead(500, { 'Content-Type': `application/json` });
@@ -691,8 +680,8 @@ export class TemplateEditorServer {
     }
 
     /**
-     * Serve the display configuration page.
-     * @param response ServerResponse HTTP response.
+     * @brief Serve the display configuration page
+     * @param response ServerResponse HTTP response
      */
     private __ServeDisplayConfigPage(response: ServerResponse): void {
         response.writeHead(200, {
@@ -704,12 +693,9 @@ export class TemplateEditorServer {
 }
 
 /**
- * Build a default display configuration from a template's parameter definitions.
- * Creates one group per unique category (or a single "General" group for uncategorized parameters),
- * and sets all parameters to sparkline graphs, visible, ordered by definition position.
- *
- * @param template IGameObjectTemplate Template to generate default config from.
- * @returns ITemplateDisplayConfig Default configuration.
+ * @brief Build a default display configuration from template parameter definitions
+ * @param template object Template containing parameter definitions with optional categories
+ * @returns ITemplateDisplayConfig Default configuration
  */
 function __BuildDefaultDisplayConfig(template: { parameters: Array<{ key: string; category?: string }> }): ITemplateDisplayConfig {
     const categorySet = new Set<string>();
@@ -741,61 +727,61 @@ function __BuildDefaultDisplayConfig(template: { parameters: Array<{ key: string
 }
 
 /**
- * Response shape for the /api/validate endpoint.
+ * @brief Response shape for the api validate endpoint
  */
 interface IValidateApiResponse {
-    /** Whether the template is fully valid (structure + expressions). @example true */
+    /** Whether the template is fully valid including structure and expressions @example true */
     valid: boolean;
 
-    /** Structural validation errors from schema checks. */
+    /** Structural validation errors from schema checks */
     structuralErrors: string[];
 
-    /** Per-expression syntax validation errors. */
+    /** Per expression syntax validation errors */
     expressionErrors: IExpressionValidationError[];
 }
 
 /**
- * Individual expression validation error detail.
+ * @brief Individual expression validation error detail
  */
 interface IExpressionValidationError {
-    /** Key of the action containing the expression. @example 'produceGoods' */
+    /** Key of the action containing the expression @example 'produceGoods' */
     actionKey: string;
 
-    /** Zero-based index of the expression within the action. @example 0 */
+    /** Zero based index of the expression within the action @example 0 */
     expressionIndex: number;
 
-    /** The expression text that failed. @example 'output += ???' */
+    /** The expression text that failed @example 'output += ???' */
     expression: string;
 
-    /** Error messages for this expression. */
+    /** Error messages for this expression */
     errors: string[];
 }
 
 /**
- * Cross-reference validation error for context-aware validation.
+ * @brief Cross reference validation error for context aware validation
  */
 interface ICrossReferenceError {
-    /** Action key where the reference appears. @example 'produceGoods' */
+    /** Action key where the reference appears @example 'produceGoods' */
     actionKey: string;
 
-    /** Expression index (-1 for action-level target). @example 0 */
+    /** Expression index where negative 1 means action level target @example 0 */
     expressionIndex: number;
 
-    /** The cross-reference string. @example '@Mine.oreOutput' */
+    /** The cross reference string @example '@Mine.oreOutput' */
     reference: string;
 
-    /** Error detail. @example 'Unknown template "Mine".' */
+    /** Error detail @example 'Unknown template "Mine".' */
     error: string;
 }
 
 /**
- * Extended response for context-aware validation.
+ * @brief Extended response for context aware validation
  */
 interface IContextValidateApiResponse extends IValidateApiResponse {
-    /** Cross-reference errors against known templates. */
+    /** Cross reference errors against known templates */
     crossReferenceErrors: ICrossReferenceError[];
 
-    /** Available templates and their numeric parameters for autocomplete. */
+    /** Available templates and their numeric parameters for autocomplete */
     availableTemplates: Array<{
         name: string;
         numericParameters: string[];
@@ -803,8 +789,8 @@ interface IContextValidateApiResponse extends IValidateApiResponse {
 }
 
 /**
- * Resolve the template editor port from environment or use default.
- * @returns number Port number.
+ * @brief Resolve the template editor port from environment or use default
+ * @returns number Port number
  * @example
  * const port = ResolveEditorPort(); // 3500
  */

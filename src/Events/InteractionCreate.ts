@@ -7,9 +7,9 @@ import { HandleOrganizationSelectControlInteraction } from '../SubCommand/Object
 import { ObjectViewRenderer } from '../Framework/ObjectViewRenderer.js';
 
 /**
- * Handles the 'interactionCreate' event from Discord by delegating processing to the shared flow manager.
- * @param interaction Interaction Discord interaction instance received from the gateway. Example ButtonInteraction.
- * @returns Promise<void> Resolves after the flow manager finishes handling the interaction. Example await onInteractionCreate(interaction).
+ * Handles the interactionCreate event from Discord by delegating processing to the shared flow manager
+ * @param interaction Interaction Discord interaction instance received from the gateway
+ * @returns void
  * @example
  * client.on('interactionCreate', onInteractionCreate);
  */

@@ -1,8 +1,3 @@
-/**
- * /create object -- Create a game object instance from a template for an organization
- * Takes a template name (autocomplete from available templates) and an organization name
- */
-
 import { MessageFlags } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
@@ -16,10 +11,9 @@ import { ResolveExecutionOrganization } from '../../Flow/Object/Organization/ind
 const LOG_TAG = `Commands/Create/Object`;
 
 /**
- * Execute the /create object subcommand
- * Creates a new game object instance from a template, owned by a specified organization
- * @param interaction InteractionExecutionContextCarrier<ChatInputCommandInteraction> Discord interaction
- * @returns Promise<void>
+ * @brief Execute the create object subcommand
+ * @param interaction InteractionExecutionContextCarrier Discord interaction
+ * @returns void
  */
 export async function ExecuteCreateObject(
     interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,

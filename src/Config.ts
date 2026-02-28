@@ -1,19 +1,13 @@
 /**
- * Loads and provides access to application configuration settings from config files or environment variables.
- * Handles configuration validation, parsing, and event emission for configuration state changes.
+ * @brief Loads and provides access to application configuration from config files or environment variables
  */
 
 import { readConfigFile } from './Common/ConfigReader.js';
 import { MAIN_EVENT_BUS } from './Events/MainEventBus.js';
 
 /**
- * Application configuration interface defining all required and optional settings.
+ * @brief Application configuration interface defining all required and optional settings
  * @interface AppConfig
- * @property {string} discordToken - Discord bot token for authentication
- * @property {string} discordChannel - Discord channel ID for file storage operations
- * @property {string} dbPath - Path to SQLite database file for persistent storage
- * @property {number} [maxFileSize] - Maximum file size in bytes (optional, defaults to Discord limit)
- * @property {('debug'|'info'|'warn'|'error')} [logLevel] - Logging verbosity level (optional, defaults to 'info')
  */
 export interface AppConfig {
     discordToken: string; // Discord bot authentication token
@@ -21,11 +15,11 @@ export interface AppConfig {
     dbPath: string; // SQLite database file path
     maxFileSize?: number; // optional maximum file size limit
     logLevel?: `debug` | `info` | `warn` | `error`; // optional logging level
-    /** TODO: Temporary shim, Discord user ids allowed to view and manage tasks. */
+    /** TODO Temporary shim for Discord user ids allowed to view and manage tasks */
     taskAdminUserIds?: string[];
-    /** Optional Neo4j configuration for graph repository integration. */
+    /** Optional Neo4j configuration for graph repository integration */
     neo4j?: {
-        uri: string; // e.g., bolt://localhost:7687
+        uri: string; // Neo4j connection URI
         username: string; // Neo4j username
         password: string; // Neo4j password
         database?: string; // optional database name
@@ -33,10 +27,9 @@ export interface AppConfig {
 }
 
 /**
- * Loads and parses the global configuration file with validation and event emission.
- * Supports JSON and YAML configuration formats with comprehensive error handling.
- * @param configPath string - Path to configuration file (JSON or YAML format)
- * @returns Promise<AppConfig> - Parsed and validated configuration object
+ * @brief Loads and parses the global configuration file with validation and event emission
+ * @param configPath string Path to configuration file in JSON or YAML format
+ * @returns AppConfig Promise resolving to parsed and validated configuration object
  * @example
  * const config = await LoadConfig('./config/app.json');
  * console.log('Discord token:', config.discordToken);

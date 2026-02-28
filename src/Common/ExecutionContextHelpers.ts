@@ -4,16 +4,14 @@ import { flowManager } from './Flow/Manager.js';
 import type { InteractionExecutionContextCarrier } from './Type/Interaction.js';
 
 /**
- * Utility functions to help bridge between Discord.js commands and the execution context system.
- * These functions help existing commands adopt the execution context pattern.
+ * @brief Utility functions bridging Discord commands and the execution context system
  */
 
 /**
- * Create a CommandExecutionContext from a hydrated Discord ChatInputCommandInteraction.
- * This helper is useful for migrating existing commands to use execution context.
+ * @brief Creates a CommandExecutionContext from a hydrated Discord ChatInputCommandInteraction
  *
- * @param interaction InteractionExecutionContextCarrier<ChatInputCommandInteraction> Discord interaction with execution context attached
- * @param correlationId Optional correlation ID for tracing
+ * @param interaction InteractionExecutionContextCarrier Discord interaction with execution context attached
+ * @param correlationId string Optional correlation ID for tracing
  * @returns CommandExecutionContext with execution context populated
  *
  * @example
@@ -35,8 +33,7 @@ export function createCommandContext(
     interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
     correlationId?: string,
 ): CommandExecutionContext {
-    // Use the execution context that the interaction handler attaches (always present)
-    // The object attached to the interaction is an ExecutionContext implementation.
+    // Use the execution context that the interaction handler attaches which is always present
     const executionContext = interaction.executionContext;
 
     return {
@@ -49,7 +46,7 @@ export function createCommandContext(
             }),
         ),
         reply: async message => {
-            // Use reply for initial response, followUp for subsequent or deferred
+            // Use reply for initial response and followUp for subsequent or deferred
             const isInitial = !interaction.replied && !interaction.deferred;
             if (isInitial) {
                 if (typeof message === `string`) {
@@ -69,12 +66,11 @@ export function createCommandContext(
 }
 
 /**
- * Create execution context and pass it to flow manager for commands using flows.
- * This helper makes it easy to add execution context to flow-based commands.
+ * @brief Creates execution context and passes it to flow manager for commands using flows
  *
- * @param interaction InteractionExecutionContextCarrier<ChatInputCommandInteraction> Discord interaction carrying execution context
+ * @param interaction InteractionExecutionContextCarrier Discord interaction carrying execution context
  * @param flowBuilderFn Function that uses the flow builder
- * @param correlationId Optional correlation ID
+ * @param correlationId string Optional correlation ID
  *
  * @example
  * export async function execute(
@@ -99,9 +95,7 @@ export async function executeWithContext(
     flowBuilderFn: (flowManager: any, executionContext: any) => Promise<void>,
     correlationId?: string,
 ): Promise<void> {
-    // The interaction handler guarantees an executionContext is attached. Use the concrete
-    // ExecutionContext type for flow builder usage (flows expect ExecutionContext, not
-    // the command-layer wrapper type).
+    // The interaction handler guarantees executionContext is attached as the concrete ExecutionContext type
     const executionContext = interaction.executionContext;
     await flowBuilderFn(flowManager, executionContext);
 }

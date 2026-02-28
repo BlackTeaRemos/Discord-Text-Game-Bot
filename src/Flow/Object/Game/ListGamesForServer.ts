@@ -1,7 +1,7 @@
 import { neo4jClient } from '../../../Setup/Neo4j.js';
 
 /**
- * Minimal game listing item for selection prompts.
+ * Minimal game listing item for selection prompts
  */
 export interface ServerGameListItem {
     uid: string; // game uid
@@ -9,9 +9,9 @@ export interface ServerGameListItem {
 }
 
 /**
- * List games registered for a Discord server.
- * @param serverId string Discord guild id. @example '123456789012345678'
- * @returns Promise<ServerGameListItem[]> Games for the server ordered by name. @example [{ uid: 'game_1', name: 'Alpha' }]
+ * List games registered for a Discord server
+ * @param serverId string Discord guild id @example '123456789012345678'
+ * @returns ServerGameListItemArray Games for the server ordered by name @example [{ uid: 'game_1', name: 'Alpha' }]
  */
 export async function ListGamesForServer(serverId: string): Promise<ServerGameListItem[]> {
     const session = await neo4jClient.GetSession(`READ`);

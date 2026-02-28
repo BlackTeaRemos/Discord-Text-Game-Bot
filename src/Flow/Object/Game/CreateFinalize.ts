@@ -14,9 +14,9 @@ export interface GameCreateFinalizationResult {
 }
 
 /**
- * Persist the configured game using the gathered flow state.
- * @param state GameCreateFlowState Mutable flow state. @example await FinalizeGameCreation(state)
- * @returns Promise<GameCreateFinalizationResult> Outcome describing persistence status.
+ * @brief Persists the configured game using the gathered flow state
+ * @param state GameCreateFlowState Mutable flow state @example await FinalizeGameCreation(state)
+ * @returns GameCreateFinalizationResult Outcome describing persistence status
  */
 export async function FinalizeGameCreation(state: GameCreateFlowState): Promise<GameCreateFinalizationResult> {
     const trimmedName = state.gameName.trim();
@@ -47,9 +47,9 @@ export async function FinalizeGameCreation(state: GameCreateFlowState): Promise<
 }
 
 /**
- * Persist updates made to an existing game during the interactive flow.
- * @param state GameCreateFlowState Active flow state containing pending changes. @example await FinalizeGameUpdate(state)
- * @returns Promise<GameCreateFinalizationResult> Outcome describing update status and payload.
+ * @brief Persists updates made to an existing game during the interactive flow
+ * @param state GameCreateFlowState Active flow state containing pending changes @example await FinalizeGameUpdate(state)
+ * @returns GameCreateFinalizationResult Outcome describing update status and payload
  */
 export async function FinalizeGameUpdate(state: GameCreateFlowState): Promise<GameCreateFinalizationResult> {
     if (!state.gameUid) {
@@ -93,9 +93,9 @@ export async function FinalizeGameUpdate(state: GameCreateFlowState): Promise<Ga
 }
 
 /**
- * Build a description scope for game content, preferring organization visibility when available.
- * @param organizationUid string | null organization identifier for scoping. @example 'org_123'
- * @returns DescriptionScope scoped descriptor for save operations.
+ * @brief Builds a description scope for game content preferring organization visibility when available
+ * @param organizationUid string or null Organization identifier for scoping @example 'org_123'
+ * @returns DescriptionScope Scoped descriptor for save operations
  */
 function buildDescriptionScope(organizationUid: string | null): DescriptionScope {
     if (organizationUid && organizationUid.length > 0) {

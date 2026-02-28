@@ -5,7 +5,7 @@ import { FlowManager } from './Manager.js';
 import { StepBuilder } from './StepBuilder.js';
 
 /**
- * Builder for interactive flows using a fluent API.
+ * @brief Builder for interactive flows using a fluent API
  * @example
  * await manager
  *   .builder(userId, interaction, {})
@@ -27,19 +27,19 @@ export class FlowBuilder<State> {
     ) {}
 
     /**
-     * Add a new step with an optional component custom id and tag.
-     * @param customId string | string[] | undefined Custom id(s) to match for component interactions. Example 'select_type' or ['btn1', 'btn2'].
-     * @param tag string | undefined Unique tag identifier that allows later steps to recall this step's context. Example 'selectOrganization'.
-     * @returns StepBuilder<State> Step builder for configuring the step. Example builder.step('select').
+     * @brief Add a new step with an optional component custom id and tag
+     * @param customId string or string array or undefined Custom ids to match for component interactions
+     * @param tag string or undefined Unique tag identifier that allows later steps to recall this steps context
+     * @returns StepBuilder State Step builder for configuring the step
      */
     public step(customId?: string | string[], tag?: string): StepBuilder<State> {
         return new StepBuilder(this, customId, tag);
     }
 
     /**
-     * Collect a configured step into the flow definition.
-     * @param step FlowStep<State> Completed step definition from the StepBuilder. Example { prompt: async ctx => {...} }.
-     * @returns void Step is stored internally; call chaining is performed by StepBuilder.next().
+     * @brief Collect a configured step into the flow definition
+     * @param step FlowStep State Completed step definition from the StepBuilder
+     * @returns void Step is stored internally and call chaining is performed by StepBuilder next
      */
     public internalAddStep(step: FlowStep<State>) {
         if (step.tag) {
@@ -52,8 +52,8 @@ export class FlowBuilder<State> {
     }
 
     /**
-     * Start the built flow through the underlying manager.
-     * @returns Promise<void> Resolves after FlowManager.start completes. Example await builder.start().
+     * @brief Start the built flow through the underlying manager
+     * @returns Promise void Resolves after FlowManager start completes
      */
     public start(): Promise<void> {
         return this.manager.start(

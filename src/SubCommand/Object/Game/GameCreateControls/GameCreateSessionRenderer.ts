@@ -17,7 +17,7 @@ export async function UpdateGameCreateSessionPreview(session: GameCreateSession)
             content: ResolveGameCreatePreviewHeading(session.state),
             embeds: [BuildGamePreviewEmbed(session.state)],
         });
-    } catch (error) {
+    } catch(error) {
         log.error(
             `Failed to update game preview for user ${session.userId}: ${error instanceof Error ? error.message : String(error)}`,
             GameCreateFlowConstants.logSource,
@@ -36,7 +36,7 @@ export async function UpdateGameCreateSessionControls(session: GameCreateSession
             content: BuildControlsContent(session.state),
             components: BuildControlRows(session.state),
         });
-    } catch (error) {
+    } catch(error) {
         log.error(
             `Failed to update game controls for user ${session.userId}: ${error instanceof Error ? error.message : String(error)}`,
             GameCreateFlowConstants.logSource,

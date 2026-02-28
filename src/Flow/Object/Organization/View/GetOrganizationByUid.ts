@@ -1,5 +1,5 @@
 /**
- * Retrieve a single organization by UID.
+ * Retrieve a single organization by UID
  */
 
 import { neo4jClient } from '../../../../Setup/Neo4j.js';
@@ -8,9 +8,9 @@ import type { OrganizationView } from '../../../../Repository/Organization/Organ
 import { GetOrganizationHierarchy } from './GetOrganizationHierarchy.js';
 
 /**
- * Retrieve a single organization by UID.
- * @param uid Organization unique identifier. @example 'org_abc123'
- * @returns Promise<OrganizationView | null> Organization data or null if not found.
+ * Retrieve a single organization by UID
+ * @param uid Organization unique identifier @example 'org_abc123'
+ * @returns Promise of OrganizationView or null Organization data or null if not found
  * @example
  * const organization = await GetOrganizationByUid('org_abc123');
  */

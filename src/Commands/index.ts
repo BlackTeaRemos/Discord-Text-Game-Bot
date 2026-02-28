@@ -9,14 +9,14 @@ const __dirname = dirname(__filename);
 const commandsRoot = resolve(__dirname);
 
 /**
- * Interface representing a bot command with slash command data and an execution handler.
+ * @brief Interface representing a bot command with slash command data and an execution handler
  */
 export interface BotCommand {
-    /** Slash command builder instance defining this command. */
+    /** Slash command builder instance defining this command */
     data: any;
     /**
-     * Execute logic for this command when a ChatInputCommandInteraction is received.
-     * @param interaction The interaction triggered by the command.
+     * @brief Execute logic for this command when a ChatInputCommandInteraction is received
+     * @param interaction ChatInputCommandInteraction The interaction triggered by the command
      */
     execute(interaction: ChatInputCommandInteraction): Promise<void>;
     /** Permission token templates for this command */
@@ -34,7 +34,7 @@ const commands: BotCommandsMap = {};
 export const commandsReady: Promise<void> = (async() => {
     let modules: any[];
     try {
-        // load all commands in root (no subdirectories)
+        // load all commands in root without subdirectories
         const rootModules = await ExecuteFilesAndCollectExports(
             commandsRoot,
             [/\.js$/, /\.ts$/],
@@ -75,7 +75,7 @@ export const commandsReady: Promise<void> = (async() => {
             continue;
         }
         const moduleExports = mod as any;
-        // named export data+execute
+        // named export data and execute
         if (moduleExports.data && typeof moduleExports.execute === `function`) {
             commands[moduleExports.data.name] = {
                 data: moduleExports.data,

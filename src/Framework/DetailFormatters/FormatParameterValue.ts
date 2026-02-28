@@ -1,8 +1,5 @@
 /**
- * Format a parameter value for human-friendly display
- * Tries to parse JSON arrays/objects and render them readably
- * Plain strings render as inline code
- *
+ * @brief Format a parameter value for human friendly display
  * @param rawValue string Raw parameter value string
  * @returns string Parsed and formatted display string
  *
@@ -35,7 +32,7 @@ export function FormatParameterValue(rawValue: string): string {
                     .join(` | `);
             }
         } catch {
-            // Not valid JSON, fall through to plain display
+            // Not valid JSON so fall through to plain display
         }
     }
 

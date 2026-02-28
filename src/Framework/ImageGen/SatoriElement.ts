@@ -1,10 +1,4 @@
-/**
- * Lightweight element factory for Satori rendering
- * Produces plain objects matching the ReactNode shape that Satori expects
- * No React dependency required
- */
-
-/** Style properties accepted by Satori layout engine (subset of CSS) */
+/** @brief Style properties accepted by Satori layout engine as a subset of CSS */
 export interface SatoriStyle {
     display?: string;
     flexDirection?: string;
@@ -56,7 +50,7 @@ export interface SatoriStyle {
     flexShrink?: number;
 }
 
-/** Single Satori-compatible element node */
+/** @brief Single Satori compatible element node */
 export interface SatoriElement {
     type: string;
     props: {
@@ -67,16 +61,15 @@ export interface SatoriElement {
     key?: string | null;
 }
 
-/** A child can be a string (text node) or another element */
+/** @brief A child can be a string text node or another element */
 export type SatoriChild = string | number | SatoriElement | null | undefined | boolean;
 
 /**
- * Create a Satori-compatible element node
- * Equivalent to React.createElement but produces plain objects
+ * @brief Create a Satori compatible element node
  *
- * @param tag string HTML tag name (div, span, etc.)
- * @param style SatoriStyle CSS-like style object
- * @param children SatoriChild | SatoriChild[] Child elements or text
+ * @param tag string HTML tag name
+ * @param style SatoriStyle CSS style object
+ * @param children SatoriChild Child elements or text
  * @returns SatoriElement Plain object consumable by Satori
  *
  * @example

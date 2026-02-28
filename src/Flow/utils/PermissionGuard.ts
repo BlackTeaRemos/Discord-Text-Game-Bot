@@ -1,5 +1,5 @@
 /**
- * Utilities for command-level permission checks with contextual token resolution.
+ * Utilities for command level permission checks with contextual token resolution
  * @example
  * const result = await EnsureCommandPermission({
  *     context: ExtractFlowContext(interaction),
@@ -20,14 +20,7 @@ import { log } from '../../Common/Log.js';
 import type { IFlowInteractionContext, IFlowMember, FlowMemberProvider } from '../../Common/Type/FlowContext.js';
 
 /**
- * Options for EnsureCommandPermission.
- * @property context IFlowInteractionContext Extracted interaction data.
- * @property templates Array of templates resolved to permission tokens.
- * @property additionalContext Additional context values merged into the resolver context.
- * @property permissions Permission configuration object when available from config.
- * @property member IFlowMember | null | undefined Pre-resolved member data.
- * @property memberProvider FlowMemberProvider | undefined Callback to lazily fetch member.
- * @property skipAdminApproval When true, skip admin approval flow and return immediately.
+ * Options for EnsureCommandPermission
  */
 export interface EnsureCommandPermissionOptions {
     context: IFlowInteractionContext;
@@ -40,11 +33,7 @@ export interface EnsureCommandPermissionOptions {
 }
 
 /**
- * Result of EnsureCommandPermission.
- * @property allowed Indicates whether action is permitted (example: true when allowed).
- * @property reason Explanation message when denied (example: 'Explicitly forbidden').
- * @property tokens Tokens evaluated during the check.
- * @property decision Admin decision when approval was requested.
+ * Result of EnsureCommandPermission
  */
 export interface EnsureCommandPermissionResult {
     allowed: boolean;
@@ -54,7 +43,7 @@ export interface EnsureCommandPermissionResult {
 }
 
 /**
- * Build base context from flow interaction context.
+ * Build base context from flow interaction context
  */
 function __BuildBaseContext(context: IFlowInteractionContext): TokenResolveContext {
     const options = Object.fromEntries(
@@ -72,9 +61,9 @@ function __BuildBaseContext(context: IFlowInteractionContext): TokenResolveConte
 }
 
 /**
- * Ensure a command action is allowed by resolving permission templates against context.
- * @param options EnsureCommandPermissionOptions Configuration describing templates and context.
- * @returns Promise<EnsureCommandPermissionResult> Outcome of the permission check.
+ * Ensure a command action is allowed by resolving permission templates against context
+ * @param options EnsureCommandPermissionOptions Configuration describing templates and context
+ * @returns Promise_EnsureCommandPermissionResult Outcome of the permission check
  * @example
  * const result = await EnsureCommandPermission({
  *     context: ExtractFlowContext(interaction),

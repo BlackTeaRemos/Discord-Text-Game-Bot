@@ -1,11 +1,11 @@
 import type { DescriptionViewerState, DescriptionViewerOptions } from './Types.js';
-import type { DescriptionScope } from '../Scope/Types.js';
+import type { DescriptionScope } from '../../../Flow/Object/Description/Scope/Types.js';
 
 /**
- * Initialize viewer state from options and available scopes.
- * @param options DescriptionViewerOptions Configuration for the viewer flow.
- * @param availableScopes DescriptionScope[] Scopes the user can access.
- * @returns DescriptionViewerState Initialized state ready for the viewer loop.
+ * Initialize viewer state from options and available scopes
+ * @param options DescriptionViewerOptions Configuration for the viewer flow
+ * @param availableScopes DescriptionScope array Scopes the user can access
+ * @returns DescriptionViewerState Initialized state ready for the viewer loop
  * @example const state = CreateViewerState(options, scopes);
  */
 export function CreateViewerState(
@@ -29,9 +29,9 @@ export function CreateViewerState(
 }
 
 /**
- * Clone viewer state for immutable updates.
- * @param state DescriptionViewerState State to clone.
- * @returns DescriptionViewerState Deep copy of state.
+ * Clone viewer state for immutable updates
+ * @param state DescriptionViewerState State to clone
+ * @returns DescriptionViewerState Deep copy of state
  */
 export function CloneViewerState(state: DescriptionViewerState): DescriptionViewerState {
     return {

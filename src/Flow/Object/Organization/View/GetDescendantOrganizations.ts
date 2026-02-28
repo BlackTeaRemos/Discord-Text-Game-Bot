@@ -4,9 +4,9 @@ import type { OrganizationView } from '../../../../Repository/Organization/Organ
 import { GetOrganizationHierarchy } from './GetOrganizationHierarchy.js';
 
 /**
- * Get all descendant organizations (recursive children) for a given parent.
- * @param parentUid Parent organization UID. @example 'org_parent123'
- * @returns Promise<OrganizationView[]> List of all descendant organizations.
+ * Get all descendant organizations including recursive children for a given parent
+ * @param parentUid Parent organization UID @example 'org_parent123'
+ * @returns Promise of OrganizationView array List of all descendant organizations
  * @example
  * const descendants = await GetDescendantOrganizations('org_corp');
  */

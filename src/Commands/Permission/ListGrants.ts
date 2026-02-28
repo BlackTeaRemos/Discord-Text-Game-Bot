@@ -1,16 +1,13 @@
 import { MessageFlags, EmbedBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
-import { ListUserGrants } from '../../Flow/permission/ListUserGrants.js';
+import { ListUserGrants } from '../../Flow/Permission/ListUserGrants.js';
 import { TranslateFromContext } from '../../Services/I18nService.js';
 
 /**
- * Execute the /permit list subcommand.
- * Shows all permanent permission grants held by the target user.
- *
- * @param interaction InteractionExecutionContextCarrier<ChatInputCommandInteraction> Discord interaction.
- * @returns Promise<void> Resolves when reply is sent.
- *
+ * @brief Execute the permit list subcommand
+ * @param interaction InteractionExecutionContextCarrier Discord interaction
+ * @returns void Resolves when reply is sent
  * @example
  * await ExecuteListGrants(interaction);
  */

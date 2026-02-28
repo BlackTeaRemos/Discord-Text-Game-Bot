@@ -1,6 +1,5 @@
 /**
- * Organization represents a grouping entity that users can belong to.
- * Organizations can form hierarchies via parentUid allowing nested permission scoping.
+ * Grouping entity with optional parent hierarchy for nested permission scoping
  * @example
  * const org: Organization = {
  *   uid: 'org_abc123',
@@ -15,20 +14,14 @@ import type { UID } from '../Common/Ids.js';
 
 export interface Organization extends DBObject {
     /**
-     * UID of the parent organization for hierarchy traversal.
-     * Null indicates a root organization.
+     * UID of the parent organization for hierarchy traversal or null for root
      * @example 'org_parent456'
      */
     parentUid: UID | null;
 }
 
 /**
- * View representation of an organization with hierarchy chain.
- * @property uid Organization unique identifier.
- * @property name Canonical organization name.
- * @property friendlyName Human readable label.
- * @property parentUid Parent organization UID if any.
- * @property hierarchyChain Ordered list from root to this organization.
+ * View representation of an organization with hierarchy chain
  */
 export interface OrganizationView {
     uid: UID;
@@ -39,9 +32,7 @@ export interface OrganizationView {
 }
 
 /**
- * Organization with members for permission resolution.
- * @property organization Core organization data.
- * @property users List of users belonging to this organization.
+ * Organization with members for permission resolution
  */
 export interface OrganizationWithMembers {
     organization: OrganizationView;

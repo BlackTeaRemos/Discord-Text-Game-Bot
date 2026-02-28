@@ -1,5 +1,5 @@
 /**
- * Retrieve an organization with its members.
+ * Retrieve an organization with its members
  */
 
 import { neo4jClient } from '../../../../Setup/Neo4j.js';
@@ -8,9 +8,9 @@ import type { OrganizationView, OrganizationWithMembers } from '../../../../Repo
 import { GetOrganizationHierarchy } from './GetOrganizationHierarchy.js';
 
 /**
- * Retrieve an organization with its members.
- * @param uid Organization unique identifier. @example 'org_abc123'
- * @returns Promise<OrganizationWithMembers | null> Organization with member list or null.
+ * Retrieve an organization with its members
+ * @param uid Organization unique identifier @example 'org_abc123'
+ * @returns Promise of OrganizationWithMembers or null Organization with member list or null
  * @example
  * const organization = await GetOrganizationWithMembers('org_abc123');
  */

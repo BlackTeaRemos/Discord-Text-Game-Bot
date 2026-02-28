@@ -7,9 +7,7 @@ import { GetUserByUid } from '../Object/User/View.js';
 import { GameObjectRepository } from '../../Repository/GameObject/GameObjectRepository.js';
 
 /**
- * Context required for resolving view command permissions.
- * @property type string Selected object type (example: 'game').
- * @property id string Selected object identifier (example: 'game-123').
+ * Context required for resolving view command permissions
  */
 export interface ViewPermissionContext {
     type: string;
@@ -19,11 +17,10 @@ export interface ViewPermissionContext {
 export type ViewPermissionResult = CommandPermissionResult;
 
 /**
- * Build contextual permission overrides for view operations based on the target entity and requester.
- * Uses character context when available for organization-related access checks.
- * @param context IFlowInteractionContext Extracted interaction context (example: { userId: '123', guildId: '456', ... }).
- * @param viewContext ViewPermissionContext Object type and identifier selected by the user (example: { type: 'game', id: 'game_42' }).
- * @returns Promise<PermissionsObject | undefined> Permission overrides granting access when applicable.
+ * Build contextual permission overrides for view operations based on the target entity and requester
+ * @param context IFlowInteractionContext Extracted interaction context
+ * @param viewContext ViewPermissionContext Object type and identifier selected by the user
+ * @returns Promise_PermissionsObject or undefined Permission overrides granting access when applicable
  * @example
  * const permissions = await buildViewPermissionOverrides(flowContext, { type: 'game', id: 'game_42' });
  */
@@ -120,10 +117,7 @@ async function __BuildViewPermissionOverrides(
 }
 
 /**
- * Options for resolving view permissions.
- * @property context IFlowInteractionContext Extracted interaction data.
- * @property viewContext ViewPermissionContext Type and ID of object to view.
- * @property memberProvider FlowMemberProvider | undefined Callback to lazily fetch member.
+ * Options for resolving view permissions
  */
 export interface ResolveViewPermissionsOptions {
     context: IFlowInteractionContext;
@@ -132,9 +126,9 @@ export interface ResolveViewPermissionsOptions {
 }
 
 /**
- * Resolve view command permission tokens using the standardized resolver.
- * @param options ResolveViewPermissionsOptions Configuration for resolution.
- * @returns Promise<ViewPermissionResult> Resolution outcome describing allowance and tokens.
+ * Resolve view command permission tokens using the standardized resolver
+ * @param options ResolveViewPermissionsOptions Configuration for resolution
+ * @returns Promise_ViewPermissionResult Resolution outcome describing allowance and tokens
  * @example
  * const result = await ResolveViewPermissions({
  *     context: ExtractFlowContext(interaction),

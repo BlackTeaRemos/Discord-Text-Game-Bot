@@ -10,8 +10,7 @@ import { MenuCustomIdResolver } from './MenuCustomIdResolver.js';
 import { MenuComponentBuilder } from './MenuComponentBuilder.js';
 
 /**
- * Renders a hierarchical menu into Discord components and handles navigation events
- * Delegates component building to MenuComponentBuilder and ID resolution to MenuCustomIdResolver
+ * @brief Renders a hierarchical menu into Discord components and handles navigation events
  */
 export class MenuRenderer {
     private readonly _navigator: MenuTreeNavigator;
@@ -20,7 +19,7 @@ export class MenuRenderer {
 
     /**
      * @param config MenuConfig Menu configuration with root node and labels
-     * @param customIdPrefix string | undefined Namespace prefix for component custom IDs
+     * @param customIdPrefix string Namespace prefix for component custom IDs
      *
      * @example
      * const renderer = new MenuRenderer(config, 'settings_menu');
@@ -33,9 +32,9 @@ export class MenuRenderer {
     }
 
     /**
-     * Build Discord components for the current menu state
+     * @brief Build Discord components for the current menu state
      *
-     * @param state MenuState Current navigation path. Example: { path: ['root','settings'] }
+     * @param state MenuState Current navigation path
      * @returns MenuRenderResult Content and components to send or edit a message
      */
     public Render(state: MenuState): MenuRenderResult {
@@ -64,9 +63,9 @@ export class MenuRenderer {
     }
 
     /**
-     * Update menu state based on an interaction and return the new state
+     * @brief Update menu state based on an interaction and return the new state
      *
-     * @param interaction ButtonInteraction | StringSelectMenuInteraction Discord interaction
+     * @param interaction ButtonInteraction Discord interaction
      * @param state MenuState Current navigation path
      * @returns MenuState Updated path or original if not handled
      */

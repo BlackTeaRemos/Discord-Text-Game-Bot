@@ -2,38 +2,35 @@ import type { Interaction, Message } from 'discord.js';
 import type { ExecutionContext } from '../../Domain/Command.js';
 
 /**
- * Represents a single step in an interactive flow.
+ * @brief Represents a single step in an interactive flow
  */
 export interface FlowStep<State> {
     /**
-     * Unique identifier for interaction component (button or modal) expected in this step.
-     * If not applicable, leave undefined.
+     * @brief Unique identifier for interaction component expected in this step
      */
-    customId?: string | string[]; // optional component id(s) to match interactions
+    customId?: string | string[]; // optional component ids to match interactions
     /**
-     * Optional human-readable tag for referencing this step from later steps. Must be unique per flow definition.
+     * @brief Optional human readable tag unique per flow definition for referencing this step
      * @example 'selectOrganization'
      */
     tag?: string;
     /**
-     * Handler invoked when this step is activated. Should send prompts (embeds, components) via interaction or message.
+     * @brief Handler invoked when this step activates to send prompts via interaction or message
      * @example prompts the user with a message and buttons
      */
     prompt: (ctx: StepContext<State>) => Promise<void>;
     /**
-     * Handler invoked when an interaction (button/modal) arrives for this step.
-     * Return true to advance to next step, false to stay.
+     * @brief Handler invoked when a button or modal interaction arrives returning true to advance
      */
     handleInteraction?: (ctx: StepContext<State>, interaction: Interaction) => Promise<boolean>;
     /**
-     * Handler invoked when a message arrives for this step.
-     * Return true to advance to next step, false to stay.
+     * @brief Handler invoked when a message arrives returning true to advance
      */
     handleMessage?: (ctx: StepContext<State>, message: Message) => Promise<boolean>;
 }
 
 /**
- * Flow instance context passed to step handlers.
+ * @brief Flow instance context passed to step handlers
  */
 export interface StepContext<State> {
     userId: string; // discord user id
@@ -43,7 +40,7 @@ export interface StepContext<State> {
     cancel: () => Promise<void>; // cancel the flow
     /** Execution context for caching and shared state across flow steps */
     executionContext?: ExecutionContext;
-    /** Tag assigned to the current step, if any */
+    /** Tag assigned to the current step if any */
     tag?: string;
     /** Store arbitrary data for the current step so later tagged steps can reuse it */
     remember: (key: string, value: unknown) => void;
@@ -54,7 +51,7 @@ export interface StepContext<State> {
 }
 
 /**
- * Snapshot describing a previously executed tagged step.
+ * @brief Snapshot describing a previously executed tagged step
  */
 export interface StepSnapshot<State> {
     tag: string;

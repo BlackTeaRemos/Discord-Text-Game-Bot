@@ -16,8 +16,7 @@ import { ObjectViewSessionManager } from './ObjectViewSessionManager.js';
 import { ResolveSectionAnchors } from './ResolveSectionAnchors.js';
 
 /**
- * Renders paginated Discord embeds for object views and dispatches component interactions
- * Uses ObjectViewSessionManager for session lifecycle, focuses solely on rendering and routing
+ * @brief Renders paginated Discord embeds for object views and dispatches component interactions
  */
 export class ObjectViewRenderer {
     private static readonly __registry = new Map<string, ObjectViewRenderer>();
@@ -25,7 +24,7 @@ export class ObjectViewRenderer {
     private readonly _customIdPrefix: string;
 
     /**
-     * @param customIdPrefix string Prefix for component custom IDs, defaults to 'obj_view'
+     * @param customIdPrefix string Prefix for component custom IDs defaulting to obj_view
      *
      * @example
      * const renderer = new ObjectViewRenderer('game_view');
@@ -37,11 +36,10 @@ export class ObjectViewRenderer {
     }
 
     /**
-     * Dispatch an interaction to the correct renderer instance
-     * Tries all registered renderers until one handles the interaction
+     * @brief Dispatch an interaction to the correct renderer instance
      *
      * @param interaction ButtonInteraction Incoming button interaction
-     * @returns Promise<boolean> True if any renderer handled it
+     * @returns boolean True if any renderer handled it
      *
      * @example
      * const handled = await ObjectViewRenderer.DispatchInteraction(interaction);
@@ -57,15 +55,15 @@ export class ObjectViewRenderer {
     }
 
     /**
-     * Send the initial view reply, arming the session timeout
+     * @brief Send the initial view reply and arm the session timeout
      *
      * @param interaction ChatInputCommandInteraction The originating slash command interaction
      * @param model ObjectViewModel The view model to render
      * @param ephemeral boolean Whether the reply is ephemeral
-     * @param resolver ObjectViewResolver | undefined Optional data refresher
+     * @param resolver ObjectViewResolver Optional data refresher
      * @param timeoutMs number Session timeout in milliseconds
      * @param deleteOnTimeout boolean Delete message on timeout
-     * @returns Promise<Message | void> The sent message if available
+     * @returns Message The sent message if available
      */
     async RenderInitial(
         interaction: ChatInputCommandInteraction,
@@ -92,11 +90,10 @@ export class ObjectViewRenderer {
     }
 
     /**
-     * Handle a pagination or section jump button interaction
-     * Routes to the correct session and updates the embed
+     * @brief Handle a pagination or section jump button interaction
      *
      * @param interaction ButtonInteraction Incoming button interaction
-     * @returns Promise<boolean> True if this renderer handled the interaction
+     * @returns boolean True if this renderer handled the interaction
      */
     async HandleInteraction(interaction: ButtonInteraction): Promise<boolean> {
         const [prefix, sessionId, action] = (interaction.customId || ``).split(`:`);
@@ -207,12 +204,14 @@ export class ObjectViewRenderer {
             rows.push(new ActionRowBuilder<ButtonBuilder>().addComponents(prev, next));
         }
 
-        // Section quick-nav row below pagination
+        // Section quick nav row below pagination
         const sectionAnchors = ResolveSectionAnchors(pages);
         if (sectionAnchors.length > 0 && totalPages > 1) {
             // Determine which section the current page belongs to
             const currentSection = pages[index]?.section
-                ?? sectionAnchors.findLast(anchor => { return anchor.pageIndex <= index; })?.section;
+                ?? sectionAnchors.findLast(anchor => {
+                    return anchor.pageIndex <= index;
+                })?.section;
 
             const sectionButtons = sectionAnchors.map(anchor => {
                 const label = Translate(`objectView.section.${anchor.section}`);

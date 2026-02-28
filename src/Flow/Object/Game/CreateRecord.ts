@@ -3,38 +3,32 @@ import type { DBObject } from '../../../Repository/Object/Object.js';
 import { neo4jClient } from '../../../Setup/Neo4j.js';
 
 /**
- * Persisted game information stored in Neo4j.
- * @property uid string Unique identifier assigned to the game. @example "game_abcd"
- * @property name string Game name shown to players. @example "Galaxy League"
- * @property image string Public URL of the game preview image. @example "https://cdn.example/game.png"
- * @property serverId string Discord server id owning the game. @example "123456789012345678"
- * @property parameters Record<string, any> Arbitrary game parameters captured during creation.
- * @property description string | undefined Last known description associated with the game. @example "Season overview"
+ * @brief Persisted game information stored in Neo4j
  */
 export interface Game extends DBObject {
-    image: string;
-    serverId: string;
-    parameters: Record<string, any>;
-    description?: string;
+    image: string; // public URL of the game preview image
+    serverId: string; // Discord server id owning the game
+    parameters: Record<string, any>; // arbitrary game parameters captured during creation
+    description?: string; // last known description associated with the game
 }
 
 /**
- * Generate a unique game uid using a friendly prefix.
- * @param prefix string Prefix attached before the random suffix. @example "game"
- * @returns string Newly generated uid. @example "game_1a2b3c"
+ * @brief Generates a unique game uid using a friendly prefix
+ * @param prefix string Prefix attached before the random suffix @example "game"
+ * @returns string Newly generated uid @example "game_1a2b3c"
  */
 export function GenerateGameUid(prefix: string): string {
     return `${prefix}_${randomUUID().replace(/-/g, ``)}`;
 }
 
 /**
- * Create a new Game node linked to a Server. Fails if game name already exists for that server.
- * @param name string Game name chosen by the user. @example "Galaxy League"
- * @param image string URL pointing to the stored preview image. @example "https://cdn.example/game.png"
- * @param serverId string Discord server id owning the game. @example "123456789012345678"
- * @param uid string | undefined Optional client supplied uid.
- * @param parameters Record<string, any> | undefined Optional map of key-value parameters.
- * @returns Promise<Game> Persisted game payload from Neo4j.
+ * @brief Creates a new Game node linked to a Server and fails if game name already exists for that server
+ * @param name string Game name chosen by the user @example "Galaxy League"
+ * @param image string URL pointing to the stored preview image @example "https://cdn.example/game.png"
+ * @param serverId string Discord server id owning the game @example "123456789012345678"
+ * @param uid string Optional client supplied uid
+ * @param parameters Record of string to any Optional map of key value parameters
+ * @returns Game Persisted game payload from Neo4j
  */
 export async function CreateGame(
     name: string,
@@ -123,10 +117,10 @@ export interface UpdateGameOptions {
 }
 
 /**
- * Update an existing Game node while ensuring server uniqueness and parameter synchronization.
- * @param uid string Game identifier to update. @example "game_123"
- * @param options UpdateGameOptions New game properties to persist. @example await UpdateGame('game_123',{ name:'League', image:'https://...' })
- * @returns Promise<Game> Updated game payload with merged parameters.
+ * @brief Updates an existing Game node while ensuring server uniqueness and parameter synchronization
+ * @param uid string Game identifier to update @example "game_123"
+ * @param options UpdateGameOptions New game properties to persist @example await UpdateGame('game_123',{ name:'League', image:'https://...' })
+ * @returns Game Updated game payload with merged parameters
  */
 export async function UpdateGame(uid: string, options: UpdateGameOptions): Promise<Game> {
     const session = await neo4jClient.GetSession(`WRITE`);

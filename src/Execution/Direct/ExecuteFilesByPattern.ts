@@ -3,7 +3,7 @@ import * as path from 'path';
 import { log } from '../../Common/Log.js';
 
 export enum DepthMode {
-    UpToDepth, // Up to specific depth, including
+    UpToDepth, // Up to and including the specific depth
     ExactDepth, // Only on specific depth
     AfterDepth, // After specific depth
 }

@@ -1,23 +1,23 @@
 import type { ButtonInteraction, ChatInputCommandInteraction, Message, EmbedBuilder } from 'discord.js';
 import { MessageFlags } from 'discord.js';
 import type { DescriptionViewerOptions, DescriptionViewerResult, DescriptionViewerState } from './Types.js';
-import type { DescriptionScope } from '../Scope/Types.js';
-import { GetVisibleScopes } from '../Scope/GetVisibleScopes.js';
-import { CanViewScope } from '../Scope/ScopeAccessCheck.js';
+import type { DescriptionScope } from '../../../Flow/Object/Description/Scope/Types.js';
+import { GetVisibleScopes } from '../../../Flow/Object/Description/Scope/GetVisibleScopes.js';
+import { CanViewScope } from '../../../Flow/Object/Description/Scope/ScopeAccessCheck.js';
 import { BuildScopeSelectorComponent } from '../Editor/ScopeSelectorComponent.js';
 import { CreateViewerState } from './ViewerState.js';
 import { HandleViewerFlowLoop, LoadViewerDescriptionForScope } from './ViewerScopeHandler.js';
 import { HandleViewerPreviewLoop } from './ViewerNavigationHandler.js';
 import { BuildViewerPreview } from './ViewerPreview.js';
-import { GLOBAL_ORGANIZATION_UID } from '../../Organization/Global/Constants.js';
-import { ResolveExecutionOrganization } from '../../Organization/index.js';
-import { TranslateFromContext } from '../../../../Services/I18nService.js';
+import { GLOBAL_ORGANIZATION_UID } from '../../../Flow/Object/Organization/Global/Constants.js';
+import { ResolveExecutionOrganization } from '../../../Flow/Object/Organization/index.js';
+import { TranslateFromContext } from '../../../Services/I18nService.js';
 
 /**
- * Filter scopes by user permission to view.
- * @param scopes DescriptionScope[] Raw scope list.
- * @param options DescriptionViewerOptions Options containing permissions.
- * @returns Promise<DescriptionScope[]> Scopes user can view.
+ * Filter scopes by user permission to view
+ * @param scopes DescriptionScope array Raw scope list
+ * @param options DescriptionViewerOptions Options containing permissions
+ * @returns Promise of DescriptionScope array Scopes user can view
  */
 async function __FilterScopesByPermission(
     scopes: DescriptionScope[],
@@ -38,12 +38,13 @@ async function __FilterScopesByPermission(
 }
 
 /**
- * Run the description viewer flow.
- * Handles scope selection and paginated viewing.
- * Optionally triggers edit callback when edit button is clicked.
- * @param interaction ChatInputCommandInteraction | ButtonInteraction The triggering interaction.
- * @param options DescriptionViewerOptions Configuration for the viewer flow.
- * @returns Promise<DescriptionViewerResult> Result containing completion status and final state.
+ * Run the description viewer flow
+ * Handles scope selection and paginated viewing
+ * Optionally triggers edit callback when edit button is clicked
+ * @param interaction ChatInputCommandInteraction or ButtonInteraction The triggering interaction
+ * @param options DescriptionViewerOptions Configuration for the viewer flow
+ * @returns Promise of DescriptionViewerResult Result containing completion status and final state
+ *
  * @example await RunDescriptionViewerFlow(interaction, { objectType: 'vehicle', showEditButton: false, ... });
  */
 export async function RunDescriptionViewerFlow(
@@ -70,7 +71,7 @@ export async function RunDescriptionViewerFlow(
 
     const state: DescriptionViewerState = CreateViewerState(options, availableScopes);
 
-    // If only one scope is available, skip selection logic and pick it.
+    // If only one scope is available skip selection logic and pick it
     if (availableScopes.length === 1) {
         state.selectedScope = availableScopes[0];
         await LoadViewerDescriptionForScope(state);
@@ -100,7 +101,7 @@ export async function RunDescriptionViewerFlow(
     }
 
     if (!preferredScope) {
-        // Prefer the user's default organization (selection made via /organization select) when available.
+        // Prefer the users default organization selected via organization select when available
         try {
             const execOrg = await ResolveExecutionOrganization(options.userUid, null);
             if (execOrg.scopeType === `organization` && execOrg.organizationUid) {
@@ -155,11 +156,11 @@ export async function RunDescriptionViewerFlow(
 }
 
 /**
- * Send the initial message for the description viewer.
- * Supports interactions that are already deferred or replied.
- * @param interaction ChatInputCommandInteraction | ButtonInteraction Triggering interaction.
- * @param payload object Discord reply payload.
- * @returns Promise<Message> The created/edited message.
+ * Send the initial message for the description viewer
+ * Supports interactions that are already deferred or replied
+ * @param interaction ChatInputCommandInteraction or ButtonInteraction Triggering interaction
+ * @param payload object Discord reply payload
+ * @returns Promise of Message The created or edited message
  */
 async function __SendInitialReply(
     interaction: ChatInputCommandInteraction | ButtonInteraction,

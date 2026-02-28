@@ -15,7 +15,7 @@ import {
 } from './Events.js';
 
 /**
- * Provides a typed structure describing the event being logged by {@link FlowEventBus.registerLoggingDelegates}.
+ * Provides a typed structure describing the event being logged by FlowEventBus registerLoggingDelegates
  */
 export type FlowLoggingEvent<State> =
     | { kind: `prompt`; payload: FlowPromptPayload<State> }
@@ -25,11 +25,8 @@ export type FlowLoggingEvent<State> =
     | { kind: `cancel`; payload: FlowCancelPayload<State> };
 
 /**
- * Options controlling how flow logging delegates behave.
- * @template State - Flow state shared between steps. Example { targetType: 'game' }.
- * @property level LogLevel - Logging severity used for emitted entries. Example LogLevel.Debug.
- * @property source string - Logical category passed to the logging utility. Example 'Flow.Debug'.
- * @property formatter (event) => string - Custom message formatter receiving {@link FlowLoggingEvent}. Example event => `Handled ${event.kind}`.
+ * Options controlling how flow logging delegates behave
+ * @tparam State Flow state shared between steps
  */
 export interface FlowLoggingOptions<State> {
     level?: LogLevel;
@@ -57,35 +54,34 @@ function defaultFlowLogFormatter<State>(event: FlowLoggingEvent<State>): string 
 }
 
 /**
- * FlowEventBus wraps ComplexEventEmitter to dispatch flow lifecycle and step events.
+ * FlowEventBus wraps ComplexEventEmitter to dispatch flow lifecycle and step events
  */
 export class FlowEventBus<State> extends ComplexEventEmitter<any> {
     private loggingRegistered = false; // ensures debug listeners are attached once
     private defaultDelegatesRegistered = false; // prevents duplicate default listeners
 
     /**
-     * Emit a typed event.
+     * Emit a typed event
      */
     public emitEvent(eventId: EventIdentifier, payload: any) {
         this.emit(eventId, payload);
     }
 
     /**
-     * Register default listeners that call step handlers.
-     * These listeners can be overridden by additional listeners registered by the app.
+     * Register default listeners that call step handlers which can be overridden by the app
      */
     public registerDefaultDelegates() {
         if (this.defaultDelegatesRegistered) {
             return;
         }
         this.defaultDelegatesRegistered = true;
-        // Prompt: call step.prompt(ctx)
+        // Prompt handler invokes step prompt for the context
         this.on(anyStepPromptId, (payload: FlowPromptPayload<State>) => {
             const { step, ctx } = payload;
             void step.prompt(ctx);
         });
 
-        // Interaction: if step.customId matches, call step.handleInteraction(ctx, interaction) and optionally advance
+        // Interaction handler calls step handleInteraction and advances if successful
         this.on(anyStepInteractionId, (payload: FlowInteractionPayload<State>) => {
             const { step, ctx, interaction } = payload;
             if (!step.handleInteraction) {
@@ -99,7 +95,7 @@ export class FlowEventBus<State> extends ComplexEventEmitter<any> {
             })();
         });
 
-        // Message: call step.handleMessage(ctx, message) and optionally advance
+        // Message handler calls step handleMessage and advances if successful
         this.on(anyStepMessageId, (payload: FlowMessagePayload<State>) => {
             const { step, ctx, message } = payload;
             if (!step.handleMessage) {
@@ -112,13 +108,13 @@ export class FlowEventBus<State> extends ComplexEventEmitter<any> {
                 }
             })();
         });
-        // Advance/Cancel events are emitted for observability; default listeners are no-ops here.
+        // Advance and Cancel events are emitted for observability with no default behavior
     }
 
     /**
-     * Attach debug logging listeners for every flow event.
-     * @param options FlowLoggingOptions<State> - Optional configuration controlling log level, source and message formatting. Example { level: LogLevel.Info }.
-     * @returns void - No return value. Example flowManager.events.registerLoggingDelegates().
+     * Attach debug logging listeners for every flow event
+     * @param options FlowLoggingOptions Optional configuration controlling log level source and message formatting
+     * @returns void No return value
      * @example
      * flowManager.events.registerLoggingDelegates({
      *     formatter: event => `Flow ${event.kind} by ${event.payload.userId}`,

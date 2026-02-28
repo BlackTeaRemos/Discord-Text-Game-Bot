@@ -3,15 +3,15 @@ import { GroupIntoBlocks } from '../DetailFormatters/GroupIntoBlocks.js';
 import { MAX_PAGE_LENGTH } from './Constants.js';
 
 /**
- * Split lines into pages using block-aware logic
- * Consecutive non-empty lines form blocks that transfer together
+ * Split lines into pages using block aware logic
+ * Consecutive non empty lines form blocks that transfer together
  * Splits at block boundaries when a page would exceed MAX_PAGE_LENGTH
  *
- * @param lines string[] Content lines to split
+ * @param lines string array Content lines to split
  * @param title string Page title applied to each resulting page
  * @param separator string Join separator between blocks in a page
- * @param section string | undefined Section identifier tag for quick-nav buttons
- * @returns ObjectViewPage[] One or more pages with description text
+ * @param section string or undefined Section identifier tag for quick nav buttons
+ * @returns ObjectViewPage array One or more pages with description text
  *
  * @example SplitIntoPages(['a','b','','c','d'], 'Props', '\n', 'properties')
  */

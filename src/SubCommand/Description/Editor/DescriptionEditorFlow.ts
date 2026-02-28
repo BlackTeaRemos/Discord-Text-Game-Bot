@@ -1,12 +1,12 @@
 import type { ButtonInteraction, ChatInputCommandInteraction } from 'discord.js';
 import { MessageFlags } from 'discord.js';
-import type { DescriptionEditorFlowOptions } from '../Scope/Types.js';
+import type { DescriptionEditorFlowOptions } from '../../../Flow/Object/Description/Scope/Types.js';
 import type { DescriptionViewerState, ViewerEditCallback } from '../Viewer/Types.js';
-import { CalculatePageCount } from '../Scope/Types.js';
+import { CalculatePageCount } from '../../../Flow/Object/Description/Scope/Types.js';
 import { RunDescriptionViewerFlow } from '../Viewer/DescriptionViewerFlow.js';
-import { SaveScopedDescription } from '../Scope/SaveScopedDescription.js';
+import { SaveScopedDescription } from '../../../Flow/Object/Description/Scope/SaveScopedDescription.js';
 import { RunDescriptionComposerFlow } from '../Composer/DescriptionComposerFlow.js';
-import { TranslateFromContext } from '../../../../Services/I18nService.js';
+import { TranslateFromContext } from '../../../Services/I18nService.js';
 /** Timeout for text input collection in milliseconds. */
 const TEXT_INPUT_TIMEOUT_MS = 300000;
 

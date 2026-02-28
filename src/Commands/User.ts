@@ -38,7 +38,7 @@ function isKnownOption(key: string): boolean {
 }
 
 /**
- * Validate value for an option. Return null on success or error message on failure.
+ * @brief Validates a value for an option returning null on success or an error message on failure
  */
 export async function ValidateOptionValue(option: string, value: string): Promise<string | null> {
     try {
@@ -58,7 +58,7 @@ export async function ValidateOptionValue(option: string, value: string): Promis
         void error;
         return Translate(`commands.user.errors.validationFailed`);
     } finally {
-        // no-op
+        // no op
     }
 }
 
@@ -132,6 +132,6 @@ export async function execute(interaction: InteractionExecutionContextCarrier<Ch
             flags: MessageFlags.Ephemeral,
         });
     } finally {
-        // no-op
+        // no op
     }
 }

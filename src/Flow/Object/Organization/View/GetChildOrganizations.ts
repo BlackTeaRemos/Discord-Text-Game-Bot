@@ -4,9 +4,9 @@ import type { OrganizationView } from '../../../../Repository/Organization/Organ
 import { GetOrganizationHierarchy } from './GetOrganizationHierarchy.js';
 
 /**
- * Get all child organizations for a given parent organization.
- * @param parentUid Parent organization UID. @example 'org_parent123'
- * @returns Promise<OrganizationView[]> List of direct child organizations.
+ * Get all child organizations for a given parent organization
+ * @param parentUid Parent organization UID @example 'org_parent123'
+ * @returns Promise of OrganizationView array List of direct child organizations
  * @example
  * const children = await GetChildOrganizations('org_parent123');
  */

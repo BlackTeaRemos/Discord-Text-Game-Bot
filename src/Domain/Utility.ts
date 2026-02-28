@@ -1,12 +1,6 @@
-/**
- * Utility Types for the VPI system.
- * These interfaces and types provide common utilities and result wrappers.
- */
+/** Utility.ts  Central utility types and result wrappers for the VPI system */
 
-/**
- * Central enumeration of well-known event names for typed event bus helpers.
- * Extend as new events are introduced.
- */
+/** Central enumeration of well known event names for typed event bus helpers */
 export const EVENT_NAMES = {
     guildProvisioned: `guild.provisioned`,
     objectCreated: `object.created`,
@@ -24,5 +18,5 @@ export const EVENT_NAMES = {
     scriptExecuted: `script.executed`,
 } as const;
 
-/** Type union of event string literals. */
+/** Type union of event string literals */
 export type EventName = (typeof EVENT_NAMES)[keyof typeof EVENT_NAMES];

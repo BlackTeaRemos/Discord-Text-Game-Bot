@@ -1,20 +1,3 @@
-/**
- * Template merge flow.
- * When a template with the same name is uploaded, merges parameter and action definitions
- * into the existing template and migrates all existing object instances.
- *
- * Merge rules:
- *   Parameters -- new keys are added with default values to all objects.
- *                 Existing keys are kept with current values.
- *                 Removed keys trigger a destructive warning.
- *   Actions    -- new keys are added, updated keys are overwritten.
- *                 Removed keys trigger a destructive warning.
- *
- * Flow:
- *   1. AnalyzeMerge: compare old vs new template, produce a diff report.
- *   2. ExecuteMerge: apply changes to template + propagate to object instances.
- */
-
 import { log } from '../../Common/Log.js';
 import type { IGameObjectTemplate } from '../../Domain/GameObject/IGameObjectTemplate.js';
 import type { ITemplateDisplayConfig } from '../../Domain/GameObject/ITemplateDisplayConfig.js';
@@ -24,91 +7,90 @@ import type { IActionDefinition } from '../../Domain/GameObject/IActionDefinitio
 import type { IGameObjectTemplateRepository } from '../../Domain/GameObject/IGameObjectTemplateRepository.js';
 import type { IGameObjectRepository } from '../../Domain/GameObject/IGameObjectRepository.js';
 
-/** Log tag for merge operations. */
+/** Log tag for merge operations */
 const LOG_TAG = `Flow/GameObject/MergeTemplate`;
 
 /**
- * Describes a single parameter change in the merge diff.
+ * @brief Describes a single parameter change in the merge diff
  */
 export interface IParameterDiffEntry {
-    /** Parameter key. @example 'productionRate' */
+    /** Parameter key @example 'productionRate' */
     key: string;
 
-    /** Change type. @example 'added' */
+    /** Change type @example 'added' */
     change: `added` | `removed` | `typeChanged` | `unchanged`;
 
-    /** Old value type (for typeChanged). @example 'number' */
+    /** Old value type for typeChanged @example 'number' */
     oldType?: string;
 
-    /** New value type (for typeChanged or added). @example 'string' */
+    /** New value type for typeChanged or added @example 'string' */
     newType?: string;
 
-    /** Default value for newly added parameters. @example 10 */
+    /** Default value for newly added parameters @example 10 */
     newDefault?: string | number | boolean;
 }
 
 /**
- * Describes a single action change in the merge diff.
+ * @brief Describes a single action change in the merge diff
  */
 export interface IActionDiffEntry {
-    /** Action key. @example 'produceGoods' */
+    /** Action key @example 'produceGoods' */
     key: string;
 
-    /** Change type. @example 'updated' */
+    /** Change type @example 'updated' */
     change: `added` | `removed` | `updated` | `unchanged`;
 }
 
 /**
- * Full merge analysis report.
+ * @brief Full merge analysis report
  */
 export interface IMergeAnalysisResult {
-    /** Whether the merge has destructive changes requiring confirmation. @example true */
+    /** Whether the merge has destructive changes requiring confirmation @example true */
     hasDestructiveChanges: boolean;
 
-    /** Existing template UID being merged into. @example 'tpl_abc123' */
+    /** Existing template UID being merged into @example 'tpl_abc123' */
     existingTemplateUid: string;
 
-    /** Template name. @example 'Factory' */
+    /** Template name @example 'Factory' */
     templateName: string;
 
-    /** Number of existing object instances affected. @example 5 */
+    /** Number of existing object instances affected @example 5 */
     affectedObjectCount: number;
 
-    /** Per-parameter diff entries. */
+    /** Per parameter diff entries */
     parameterChanges: IParameterDiffEntry[];
 
-    /** Per-action diff entries. */
+    /** Per action diff entries */
     actionChanges: IActionDiffEntry[];
 
-    /** List of parameter keys about to be removed (destructive). */
+    /** List of parameter keys about to be removed as destructive changes */
     removedParameterKeys: string[];
 
-    /** List of action keys about to be removed (destructive). */
+    /** List of action keys about to be removed as destructive changes */
     removedActionKeys: string[];
 }
 
 /**
- * Result of executing a merge.
+ * @brief Result of executing a merge
  */
 export interface IMergeExecutionResult {
-    /** Whether the merge succeeded. @example true */
+    /** Whether the merge succeeded @example true */
     success: boolean;
 
-    /** Number of objects migrated. @example 5 */
+    /** Number of objects migrated @example 5 */
     migratedObjectCount: number;
 
-    /** Error message if merge failed. */
+    /** Error message if merge failed */
     error?: string;
 }
 
 /**
- * Analyze the diff between an existing template and new template data.
- * Does NOT modify any data -- read-only analysis.
- * @param existingTemplate IGameObjectTemplate Current template from the database.
- * @param newParameters IParameterDefinition[] Incoming parameter definitions.
- * @param newActions IActionDefinition[] Incoming action definitions.
- * @param objectRepository IGameObjectRepository Repository to count affected objects.
- * @returns Promise<IMergeAnalysisResult> Detailed diff report.
+ * @brief Analyzes the diff between an existing template and new template data without modifying anything
+ * @param existingTemplate IGameObjectTemplate Current template from the database
+ * @param newParameters IParameterDefinition array Incoming parameter definitions
+ * @param newActions IActionDefinition array Incoming action definitions
+ * @param objectRepository IGameObjectRepository Repository to count affected objects
+ * @returns IMergeAnalysisResult Detailed diff report
  * @example
  * const analysis = await AnalyzeMerge(existing, newParams, newActions, objectRepo);
  * if (analysis.hasDestructiveChanges) { /* prompt user * / }
@@ -232,15 +214,15 @@ export async function AnalyzeMerge(
 }
 
 /**
- * Execute a template merge -- update the template definition and migrate all object instances.
- * @param existingTemplate IGameObjectTemplate Current template.
- * @param newParameters IParameterDefinition[] New parameter definitions.
- * @param newActions IActionDefinition[] New action definitions.
- * @param newDescription string New description (optional override).
- * @param templateRepository IGameObjectTemplateRepository Template persistence.
- * @param objectRepository IGameObjectRepository Object instance persistence.
- * @param newDisplayConfig ITemplateDisplayConfig | undefined Optional updated display config.
- * @returns Promise<IMergeExecutionResult> Merge outcome.
+ * @brief Executes a template merge updating the template definition and migrating all object instances
+ * @param existingTemplate IGameObjectTemplate Current template
+ * @param newParameters IParameterDefinition array New parameter definitions
+ * @param newActions IActionDefinition array New action definitions
+ * @param newDescription string New description optionally overridden
+ * @param templateRepository IGameObjectTemplateRepository Template persistence
+ * @param objectRepository IGameObjectRepository Object instance persistence
+ * @param newDisplayConfig ITemplateDisplayConfig Optional updated display config
+ * @returns IMergeExecutionResult Merge outcome
  * @example
  * const result = await ExecuteMerge(existing, newParams, newActions, 'desc', tplRepo, objRepo, displayConfig);
  */
@@ -254,7 +236,7 @@ export async function ExecuteMerge(
     newDisplayConfig?: ITemplateDisplayConfig,
 ): Promise<IMergeExecutionResult> {
     try {
-        // Step 1: Update the template
+        // Update the template
         await templateRepository.Update(existingTemplate.uid, {
             description: newDescription,
             parameters: newParameters,
@@ -264,7 +246,7 @@ export async function ExecuteMerge(
 
         log.info(`Template "${existingTemplate.name}" definition updated.`, LOG_TAG);
 
-        // Step 2: Migrate all object instances
+        // Migrate all object instances
         const objects = await objectRepository.ListByGame(existingTemplate.gameUid, {
             templateUid: existingTemplate.uid,
         });
@@ -310,11 +292,10 @@ export async function ExecuteMerge(
 }
 
 /**
- * Migrate an object's parameter values to the new template schema.
- * Keeps values for existing keys, adds defaults for new keys, drops removed keys.
- * @param currentParameters IParameterValue[] Object's current parameter values.
- * @param newParamMap Map<string, IParameterDefinition> New parameter definitions keyed by key.
- * @returns IParameterValue[] Migrated parameter values.
+ * @brief Migrates object parameter values to the new template schema
+ * @param currentParameters IParameterValue array Current parameter values for the object
+ * @param newParamMap Map of string to IParameterDefinition New parameter definitions keyed by key
+ * @returns IParameterValue array Migrated parameter values
  */
 function __MigrateObjectParameters(
     currentParameters: IParameterValue[],
@@ -331,10 +312,10 @@ function __MigrateObjectParameters(
         const existingValue = currentValueMap.get(key);
 
         if (existingValue) {
-            // Keep existing value (even if type changed -- value stays as-is)
+            // Keep existing value even if type changed
             migratedParameters.push(existingValue);
         } else {
-            // New parameter: use default from definition
+            // New parameter uses default from definition
             migratedParameters.push({
                 key,
                 value: definition.defaultValue,

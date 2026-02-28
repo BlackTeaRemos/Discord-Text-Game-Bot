@@ -1,14 +1,10 @@
 import { commands, commandsReady } from '../../Commands/index.js';
-import { NormalizeToken } from '../../Common/Permission/normalizeToken.js';
-import { TokenKey } from '../../Common/Permission/tokenKey.js';
-import type { PermissionToken, PermissionTokenInput, TokenSegmentInput } from '../../Common/Permission/types.js';
+import { NormalizeToken } from '../../Common/Permission/NormalizeToken.js';
+import { TokenKey } from '../../Common/Permission/TokenKey.js';
+import type { PermissionToken, PermissionTokenInput, TokenSegmentInput } from '../../Common/Permission/Types.js';
 
 /**
- * Represents a discovered permission token with its origin command.
- *
- * @property token PermissionToken Normalized token segments.
- * @property serialized string Serialized form used for storage.
- * @property commandName string Name of the command that declared this token.
+ * Represents a discovered permission token with its origin command
  */
 export interface DiscoveredToken {
     token: PermissionToken;
@@ -17,11 +13,8 @@ export interface DiscoveredToken {
 }
 
 /**
- * Collect every unique permission token declared across all loaded bot commands.
- * Waits for the commands module to finish loading before scanning.
- *
- * @returns Promise<DiscoveredToken[]> Deduplicated list of discovered tokens.
- *
+ * Collect every unique permission token declared across all loaded bot commands after waiting for loading
+ * @returns DiscoveredToken array Deduplicated list of discovered tokens
  * @example
  * const tokens = await CollectAllTokens();
  * // [{ token: ['view'], serialized: 's:view', commandName: 'view' }, ...]
@@ -57,15 +50,13 @@ export async function CollectAllTokens(): Promise<DiscoveredToken[]> {
 }
 
 /**
- * Normalize raw permission token declarations into a flat array of inputs.
- * Handles string, single array, nested arrays, and function forms (skips functions).
- *
- * @param rawTokens any Raw permissionTokens value from command module.
- * @returns PermissionTokenInput[] Flat array of token inputs.
+ * Normalize raw permission token declarations into a flat array of inputs for all supported forms
+ * @param rawTokens any Raw permissionTokens value from command module
+ * @returns PermissionTokenInput array Flat array of token inputs
  */
 function __ExtractTokenEntries(rawTokens: any): PermissionTokenInput[] {
     if (typeof rawTokens === `function`) {
-        // Dynamic tokens require interaction context; skip during collection
+        // Dynamic tokens require interaction context so skip during collection
         return [];
     }
     if (typeof rawTokens === `string`) {
@@ -74,12 +65,12 @@ function __ExtractTokenEntries(rawTokens: any): PermissionTokenInput[] {
     if (!Array.isArray(rawTokens)) {
         return [];
     }
-    // Check if it's a nested array like [['view'], ['create']] vs a flat ['view']
+    // Check if this is a nested array or a flat array
     const firstElement = rawTokens[0];
     if (Array.isArray(firstElement)) {
-        // Nested: each sub-array is a separate token
+        // Nested so each sub array is a separate token
         return rawTokens as TokenSegmentInput[][];
     }
-    // Flat: the entire array is one token
+    // Flat so the entire array is one token
     return [rawTokens as TokenSegmentInput[]];
 }

@@ -5,10 +5,10 @@ import { flowAdvanceId, flowCancelId, flowStepInteractionId, flowStepMessageId, 
 import { FlowManager } from './Manager.js';
 
 /**
- * Represents active flow for a single user. Drives step prompts and handlers.
+ * @brief Represents active flow for a single user driving step prompts and handlers
  */
 export class FlowInstance<State> {
-    private current = 0; // zero-based current step index
+    private current = 0; // zero based current step index
     private initialInteraction: Interaction; // initial interaction used to send first prompt
     private historyByTag = new Map<string, StepSnapshot<State>>();
 
@@ -24,16 +24,16 @@ export class FlowInstance<State> {
     }
 
     /**
-     * Begin execution by prompting the initial step.
-     * @returns Promise<void> Resolves after the step prompt listeners have been triggered. Example await instance.start().
+     * @brief Begin execution by prompting the initial step
+     * @returns Promise void Resolves after the step prompt listeners have been triggered
      */
     public async start() {
         await this.promptCurrent();
     }
 
     /**
-     * Emit the prompt event for the current step, constructing the appropriate step context.
-     * @returns Promise<void> Resolves after prompt listeners are invoked. Example await instance['promptCurrent']().
+     * @brief Emit the prompt event for the current step constructing the appropriate step context
+     * @returns Promise void Resolves after prompt listeners are invoked
      */
     private async promptCurrent() {
         const step = this.steps[this.current];
@@ -52,9 +52,9 @@ export class FlowInstance<State> {
     }
 
     /**
-     * Process an interaction for the current step when the custom id matches.
-     * @param interaction Interaction Discord interaction routed by the manager. Example ButtonInteraction with matching customId.
-     * @returns Promise<void> Resolves after step-specific listeners execute. Example await instance.handleInteraction(interaction).
+     * @brief Process an interaction for the current step when the custom id matches
+     * @param interaction Interaction Discord interaction routed by the manager
+     * @returns Promise void Resolves after step specific listeners execute
      */
     public async handleInteraction(interaction: Interaction) {
         const step = this.steps[this.current];
@@ -99,9 +99,9 @@ export class FlowInstance<State> {
     }
 
     /**
-     * Process a message for the current step when a message handler exists.
-     * @param message Message Discord message routed by the manager. Example message containing follow-up text.
-     * @returns Promise<void> Resolves after message handlers execute. Example await instance.handleMessage(message).
+     * @brief Process a message for the current step when a message handler exists
+     * @param message Message Discord message routed by the manager
+     * @returns Promise void Resolves after message handlers execute
      */
     public async handleMessage(message: Message) {
         const step = this.steps[this.current];
@@ -125,8 +125,8 @@ export class FlowInstance<State> {
     }
 
     /**
-     * Advance to the next step, emitting advance events and prompting the subsequent step when available.
-     * @returns Promise<void> Resolves after scheduling the next prompt or cancelling. Example await ctx.advance().
+     * @brief Advance to the next step emitting advance events and prompting the subsequent step
+     * @returns Promise void Resolves after scheduling the next prompt or cancelling
      */
     private async advance() {
         const from = this.current;
@@ -145,8 +145,8 @@ export class FlowInstance<State> {
     }
 
     /**
-     * Cancel the flow, emit the cancel event, and unregister the flow from the manager.
-     * @returns Promise<void> Resolves after the cancel event fires. Example await ctx.cancel().
+     * @brief Cancel the flow and emit the cancel event and unregister from the manager
+     * @returns Promise void Resolves after the cancel event fires
      */
     public async cancel() {
         const ctx = this.buildContext();

@@ -3,8 +3,8 @@
  */
 import type { Neo4jClient } from '../../Repository/Neo4jClient.js';
 import type { TaskListItem } from '../../Domain/Task.js';
-import { REL_BELONGS_TO, REL_CREATED_TASK, REL_EXECUTES_TASK, TASK_LABEL } from './taskConstants.js';
-import { MapTaskRecord } from './mapTaskRecord.js';
+import { REL_BELONGS_TO, REL_CREATED_TASK, REL_EXECUTES_TASK, TASK_LABEL } from './TaskConstants.js';
+import { MapTaskRecord } from './MapTaskRecord.js';
 import type { FetchTaskByIdInput } from './TaskFlowTypes.js';
 
 export async function FetchTaskById(client: Neo4jClient, input: FetchTaskByIdInput): Promise<TaskListItem | null> {

@@ -1,16 +1,12 @@
-/**
- * Handles the 'ready' event from Discord, triggered when the bot is fully initialized and connected.
- */
 import { ChannelType, type Client } from 'discord.js';
 import { log } from '../Common/Log.js';
 import { commands, commandsReady } from '../Commands/index.js';
-import { LoadGrantsForGuild } from '../Common/Permission/store.js';
+import { LoadGrantsForGuild } from '../Common/Permission/Store.js';
 
 /**
- * Handles the ready event. Logs bot readiness, lists application and guild commands,
- * and ensures that a command text channel and a forum channel exist.
- * @param client {Client} - The Discord.js client instance
- * @returns {Promise<void>} - Resolves when setup is complete
+ * @brief Handles the ready event by logging bot readiness and listing commands then ensuring required channels exist
+ * @param client Client The Discord client instance
+ * @returns void Resolves when setup is complete
  */
 export async function OnReady(client: Client): Promise<void> {
     log.info(`Bot is ready as ${client.user?.tag}`, `Ready`);
@@ -26,7 +22,7 @@ export async function OnReady(client: Client): Promise<void> {
         log.error(`Failed to load permission grants: ${(error as Error).message}`, `Ready`);
     }
 
-    // Diagnostic: list registered application commands (global and guild)
+    // Diagnostic listing registered application commands for global and guild
     try {
         const application = client.application;
 
@@ -41,7 +37,7 @@ export async function OnReady(client: Client): Promise<void> {
                     .join(`, `)}`,
                 `Ready`,
             );
-            // Ensure command loader has completed. Registration is handled centrally in Boot.
+            // Ensure command loader has completed since registration is handled centrally in Boot
             try {
                 await commandsReady;
                 log.info(`Command loader ready; skipping automatic global registration in Ready handler.`, `Ready`);

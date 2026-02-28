@@ -3,11 +3,11 @@ import { neo4jClient } from '../../../Setup/Neo4j.js';
 const REL_SELECTED_GAME = `SELECTED_GAME`;
 
 /**
- * Set a user's active game selection.
- * Stores a single relationship from User to Game.
- * @param discordId string Discord user id. @example '123456789012345678'
- * @param gameUid string Game uid to select. @example 'game_abc123'
- * @returns Promise<void>
+ * Set a users active game selection
+ * Stores a single relationship from User to Game
+ * @param discordId string Discord user id @example '123456789012345678'
+ * @param gameUid string Game uid to select @example 'game_abc123'
+ * @returns Promise of void
  */
 export async function SetUserActiveGame(discordId: string, gameUid: string): Promise<void> {
     const session = await neo4jClient.GetSession(`WRITE`);
@@ -26,9 +26,9 @@ export async function SetUserActiveGame(discordId: string, gameUid: string): Pro
 }
 
 /**
- * Get a user's active game selection.
- * @param discordId string Discord user id. @example '123456789012345678'
- * @returns Promise<{ uid: string; name: string } | null> Selected game or null.
+ * Get a users active game selection
+ * @param discordId string Discord user id @example '123456789012345678'
+ * @returns Promise of game object or null Selected game or null
  */
 export async function GetUserActiveGame(
     discordId: string,

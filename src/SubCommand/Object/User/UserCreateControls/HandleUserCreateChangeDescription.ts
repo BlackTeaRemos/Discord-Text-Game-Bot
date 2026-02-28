@@ -48,7 +48,7 @@ export async function HandleUserCreateChangeDescription(
             session.state.description = sanitizeDescriptionText(trimmed);
             await UpdateUserCreateSessionPreview(session);
         }
-    } catch (error) {
+    } catch(error) {
         const promptMessages = GetUserCreatePromptMessages((session.baseInteraction as any).executionContext);
         const message = error instanceof Error ? error.message : promptMessages.genericError;
         const normalized = NormalizeUserCreatePromptErrorMessage({

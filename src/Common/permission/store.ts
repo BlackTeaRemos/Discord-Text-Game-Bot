@@ -1,19 +1,18 @@
-import { NormalizeToken } from './normalizeToken.js';
-import { TokenKey } from './tokenKey.js';
-import type { PermissionTokenInput } from './types.js';
+import { NormalizeToken } from './NormalizeToken.js';
+import { TokenKey } from './TokenKey.js';
+import type { PermissionTokenInput } from './Types.js';
 import { PermissionGrantRepository } from '../../Repository/Permission/index.js';
 import type { Neo4jClient } from '../../Repository/Neo4jClient.js';
 import { log } from '../Log.js';
 
-const grantedForever: Map<string, Map<string, Set<string>>> = new Map(); // guildId -> userId -> serialized tokens
+const grantedForever: Map<string, Map<string, Set<string>>> = new Map(); // guildId to userId to serialized tokens
 
 let _repository: PermissionGrantRepository | null = null;
 
 /**
- * Initialize the permission store with a Neo4j client.
- * Must be called before grants can be persisted.
- * @param client Neo4jClient Database client instance.
- * @returns Promise<void> Resolves when initialization complete.
+ * @brief Initialize the permission store before grants can be persisted
+ * @param client Neo4jClient Database client instance
+ * @returns void Resolves when initialization is complete
  */
 export async function InitializePermissionStore(client: Neo4jClient): Promise<void> {
     _repository = new PermissionGrantRepository(client);
@@ -22,10 +21,9 @@ export async function InitializePermissionStore(client: Neo4jClient): Promise<vo
 }
 
 /**
- * Load all grants for a guild into the in-memory cache.
- * Call this when a guild becomes available.
- * @param guildId string Guild identifier.
- * @returns Promise<void> Resolves when grants loaded.
+ * @brief Load all grants for a guild into the in memory cache when it becomes available
+ * @param guildId string Guild identifier
+ * @returns void Resolves when grants are loaded
  */
 export async function LoadGrantsForGuild(guildId: string): Promise<void> {
     if (!_repository) {
@@ -61,12 +59,12 @@ export async function LoadGrantsForGuild(guildId: string): Promise<void> {
 }
 
 /**
- * Persist a permanent permission grant both in memory and database.
- * @param guildId string Unique guild identifier (example: 'guild').
- * @param userId string Unique user identifier (example: 'user').
- * @param token PermissionTokenInput Token granted forever (example: 'command:create').
- * @param grantedBy string Discord user id who approved the grant.
- * @returns Promise<void> Resolves when grant is persisted.
+ * @brief Persist a permanent permission grant both in memory and database
+ * @param guildId string Unique guild identifier
+ * @param userId string Unique user identifier
+ * @param token PermissionTokenInput Token granted forever
+ * @param grantedBy string Discord user id who approved the grant
+ * @returns void Resolves when grant is persisted
  * @example
  * await grantForever('guild', 'user', 'command:create', 'admin123');
  */
@@ -97,13 +95,13 @@ export async function GrantForever(
         });
         __CacheGrant(guildId, userId, serialized);
         log.info(`Persisted permission grant: ${serialized} for user ${userId} in guild ${guildId}`, `PermissionStore`);
-    } catch (error) {
+    } catch(error) {
         log.error(`Failed to persist permission grant: ${(error as Error).message}`, `PermissionStore`);
         throw error instanceof Error ? error : new Error(String(error));
     }
 }
 
-// Internal helper to keep cache updated after persistence.
+// Internal helper to keep cache updated after persistence
 function __CacheGrant(guildId: string, userId: string, serializedToken: string): void {
     if (!grantedForever.has(guildId)) {
         grantedForever.set(guildId, new Map());
@@ -116,11 +114,11 @@ function __CacheGrant(guildId: string, userId: string, serializedToken: string):
 }
 
 /**
- * Checks whether a user already holds a permanent grant for any provided token.
- * @param guildId string Guild identifier (example: 'guild').
- * @param userId string User identifier (example: 'user').
- * @param tokens PermissionTokenInput[] Tokens to compare against stored grants (example: ['command:create']).
- * @returns boolean True when a matching permanent grant is found (example: true).
+ * @brief Check whether a user already holds a permanent grant for any provided token
+ * @param guildId string Guild identifier
+ * @param userId string User identifier
+ * @param tokens PermissionTokenInput array Tokens to compare against stored grants
+ * @returns boolean True when a matching permanent grant is found
  * @example
  * const allowed = hasPermanentGrant('guild', 'user', ['command:create']);
  */
@@ -154,10 +152,10 @@ export function HasPermanentGrant(
 }
 
 /**
- * Return all serialized grant tokens for a user in a guild.
- * @param guildId string Guild identifier (example: '123').
- * @param userId string User identifier (example: '456').
- * @returns string[] Set of serialized tokens currently granted (example: ['s:view', 's:create']).
+ * @brief Return all serialized grant tokens for a user in a guild
+ * @param guildId string Guild identifier
+ * @param userId string User identifier
+ * @returns string array Set of serialized tokens currently granted
  * @example
  * const tokens = GetUserGrants('123', '456');
  */
@@ -174,12 +172,11 @@ export function GetUserGrants(guildId: string, userId: string): string[] {
 }
 
 /**
- * Revoke all permanent grants for a user in a guild.
- * Removes from both in-memory cache and database.
- * @param guildId string Guild identifier (example: '123').
- * @param userId string User identifier (example: '456').
- * @param revokedBy string Discord user id who performed the revoke (example: '789').
- * @returns Promise<number> Number of tokens revoked (example: 5).
+ * @brief Revoke all permanent grants for a user in a guild from both cache and database
+ * @param guildId string Guild identifier
+ * @param userId string User identifier
+ * @param revokedBy string Discord user id who performed the revoke
+ * @returns number Count of tokens revoked
  * @example
  * const count = await RevokeAllGrants('123', '456', '789');
  */
@@ -209,12 +206,12 @@ export async function RevokeAllGrants(
             if (changed) {
                 revokedCount++;
             }
-        } catch (error) {
+        } catch(error) {
             log.error(`Failed to revoke token ${serializedToken}: ${(error as Error).message}`, `PermissionStore`);
         }
     }
 
-    // Clear in-memory cache for this user
+    // Clear in memory cache for this user
     const guildMap = grantedForever.get(guildId);
     if (guildMap) {
         guildMap.delete(userId);

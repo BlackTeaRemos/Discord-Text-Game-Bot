@@ -1,5 +1,5 @@
 /**
- * Build hierarchy chain from root to a target organization.
+ * Build hierarchy chain from root to a target organization
  */
 
 import { neo4jClient } from '../../../../Setup/Neo4j.js';
@@ -7,10 +7,10 @@ import { log } from '../../../../Common/Log.js';
 import type { UID } from '../../../../Repository/Common/Ids.js';
 
 /**
- * Build the hierarchy chain from root organization to specified target.
- * Returns ordered list of UIDs from root to target.
- * @param uid Target organization UID. @example 'org_abc123'
- * @returns Promise<UID[]> Ordered list from root to target.
+ * Build the hierarchy chain from root organization to specified target
+ * Returns ordered list of UIDs from root to target
+ * @param uid Target organization UID @example 'org_abc123'
+ * @returns Promise of UID array Ordered list from root to target
  * @example
  * const chain = await GetOrganizationHierarchy('org_abc123');
  */

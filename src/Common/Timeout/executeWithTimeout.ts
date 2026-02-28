@@ -1,12 +1,9 @@
 /**
- * Waits for a Promise to settle and rejects with `TimeoutError` if it does not
- * complete within `timeoutMs` milliseconds.
+ * Waits for a Promise to settle and rejects with TimeoutError if it does not complete within timeoutMs
  *
- * This helper does not cancel the underlying operation.
- *
- * @param promise - Promise to wait for
- * @param timeoutMs - Timeout in milliseconds
- * @param desc - Optional description included in errors
+ * @param promise Promise The source promise to race against timeout
+ * @param timeoutMs number Timeout in milliseconds
+ * @param desc string Optional description included in errors
  */
 import { TimeoutError } from './TimeoutError.js';
 

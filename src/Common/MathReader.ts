@@ -1,6 +1,5 @@
 /**
- * MathReader class for parsing and executing simple math operations on objects.
- * Supports assignment and arithmetic operations, with handler functions for each operation.
+ * Parses and executes simple math operations on objects using registered handler functions
  *
  * @example
  * const reader = new MathReader();
@@ -10,15 +9,14 @@
  */
 export class MathReader {
     /**
-     * Map of operation handlers
-     * @type {Record<string, (left: any, right: any) => any>} - Maps operation to handler function
+     * Map of operation handlers keyed by operation symbol
      */
     private _handlers: Record<string, (left: any, right: any) => any> = {};
 
     /**
-     * Registers a handler for a specific operation.
-     * @param operation string - The operation symbol (e.g., '+='). Example: '+='
-     * @param handler function - Handler function (left, right) => result
+     * Registers a handler for a specific operation
+     * @param operation string The operation symbol to register
+     * @param handler function Handler that maps left and right values to result
      * @returns void
      */
     public setHandler(operation: string, handler: (left: any, right: any) => any): void {
@@ -26,13 +24,13 @@ export class MathReader {
     }
 
     /**
-     * Parses and executes a math operation on the given object.
-     * @param obj Record<string, any> - The object to operate on. Example: { math1: 123 }
-     * @param expr string - The math expression (e.g., 'math1 += 22'). Example: 'math1 += 22'
-     * @returns Record<string, any> - The updated object. Example: { math1: 145 }
+     * Parses and executes a math operation on the given object
+     * @param obj object The target object to operate on
+     * @param expr string The math expression to evaluate on the object
+     * @returns object The updated object after the operation
      */
     public execute(obj: Record<string, any>, expr: string): Record<string, any> {
-        // Passive-aggressive: If you can't write a simple math expression, why are you even here?
+        // Match field name followed by operator and numeric value
         const match = expr.match(/^(\w+)\s*([+\-*/\^]=)\s*(\d+(?:\.\d+)?)$/);
 
         if (!match) {

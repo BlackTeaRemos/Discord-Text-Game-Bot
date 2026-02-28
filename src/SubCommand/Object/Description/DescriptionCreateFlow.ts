@@ -3,7 +3,7 @@ import type { ChatInputCommandInteraction } from 'discord.js';
 import type { InteractionExecutionContextCarrier } from '../../../Common/Type/Interaction.js';
 import type { FlowManager } from '../../../Common/Flow/Manager.js';
 import type { ExecutionContext } from '../../../Domain/index.js';
-import { RunDescriptionEditorFlow } from '../../../Flow/Object/Description/Editor/index.js';
+import { RunDescriptionEditorFlow } from '../../Description/Editor/index.js';
 import { SelectDescriptionTarget, type DescriptionTargetSelection } from './SelectDescriptionTarget.js';
 import {
     ResolveExecutionOrganization,
@@ -14,32 +14,32 @@ import { ExtractFlowContext, ExtractFlowMember } from '../../../Common/Type/Flow
 import { RequestPermissionFromAdmin } from '../../Permission/PermissionUI.js';
 import { resolve } from '../../../Common/Permission/index.js';
 import type { PermissionsObject } from '../../../Common/Permission/index.js';
-import type { PermissionToken } from '../../../Common/Permission/types.js';
+import type { PermissionToken } from '../../../Common/Permission/Types.js';
 import { TranslateFromContext } from '../../../Services/I18nService.js';
 
 export interface DescriptionCreateFlowOptions {
     /**
-     * Discord interaction that triggered the flow.
+     * Discord interaction that triggered the flow
      */
     interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>;
     /**
-     * Flow manager coordinating multi-step interactions.
+     * Flow manager coordinating multi step interactions
      */
     flowManager: FlowManager;
     /**
-     * Shared execution context for reuse within the flow.
+     * Shared execution context for reuse within the flow
      */
     executionContext: ExecutionContext;
     /**
-     * Optional pre-selected target to skip interactive selection.
+     * Optional preselected target to skip interactive selection
      */
     target?: DescriptionTargetSelection;
 }
 
 /**
- * Run the interactive modal-driven description creation flow.
- * @param options DescriptionCreateFlowOptions Configuration for the flow execution. @example await RunDescriptionCreateFlow({ interaction, flowManager, executionContext })
- * @returns Promise<void> Resolves once the flow finishes. @example await RunDescriptionCreateFlow({ interaction, flowManager, executionContext })
+ * Run the interactive modal driven description creation flow
+ * @param options DescriptionCreateFlowOptions Configuration for the flow execution @example await RunDescriptionCreateFlow({ interaction, flowManager, executionContext })
+ * @returns void Resolves once the flow finishes @example await RunDescriptionCreateFlow({ interaction, flowManager, executionContext })
  */
 export async function RunDescriptionCreateFlow(options: DescriptionCreateFlowOptions): Promise<void> {
     const { interaction, flowManager, executionContext, target } = options;
@@ -74,7 +74,7 @@ export async function RunDescriptionCreateFlow(options: DescriptionCreateFlowOpt
 
         if (!resolution.success) {
             await interaction.followUp({
-                    content: TranslateFromContext(interaction.executionContext, `descriptionCreate.permissionDeniedTarget`),
+                content: TranslateFromContext(interaction.executionContext, `descriptionCreate.permissionDeniedTarget`),
                 flags: MessageFlags.Ephemeral,
             });
             return;
@@ -84,7 +84,7 @@ export async function RunDescriptionCreateFlow(options: DescriptionCreateFlowOpt
     const objectType = selection.type === `building` ? `factory` : selection.type;
     const canEditGlobal = interaction.memberPermissions?.has(`Administrator`) ?? false;
 
-    // Resolve execution organization using defaults (no requested override in interactive flow)
+    // Resolve execution organization using defaults with no requested override in interactive flow
     const executionOrganization = await ResolveExecutionOrganization(interaction.user.id, null);
 
     if (executionOrganization.scopeType === `organization` && executionOrganization.organizationUid) {
@@ -123,12 +123,12 @@ export async function RunDescriptionCreateFlow(options: DescriptionCreateFlowOpt
         }
     }
 
-        await interaction.editReply({
-            content: TranslateFromContext(interaction.executionContext, `descriptionCreate.openingEditor`, {
-                params: { objectType, objectId: selection.id, organizationName: executionOrganization.organizationName },
-            }),
-            components: [],
-        });
+    await interaction.editReply({
+        content: TranslateFromContext(interaction.executionContext, `descriptionCreate.openingEditor`, {
+            params: { objectType, objectId: selection.id, organizationName: executionOrganization.organizationName },
+        }),
+        components: [],
+    });
 
     await RunDescriptionEditorFlow(interaction as unknown as ChatInputCommandInteraction, {
         objectType,
@@ -141,11 +141,9 @@ export async function RunDescriptionCreateFlow(options: DescriptionCreateFlowOpt
 }
 
 /**
- * Build default permission set for description scope UI.
- * This is intentionally permissive for user/org scopes because scope visibility is further
- * restricted by GetVisibleScopes (membership) and canEditGlobal.
- * @param canEditGlobal boolean Whether global scope is enabled. @example true
- * @returns PermissionsObject Permission map. @example { 'description:scope:user:view': 'allowed' }
+ * Build default permission set for description scope UI permissive for user and org scopes with visibility gated by GetVisibleScopes and canEditGlobal
+ * @param canEditGlobal boolean Whether global scope is enabled @example true
+ * @returns PermissionsObject Permission map @example { 'description:scope:user:view': 'allowed' }
  */
 function __BuildEditorPermissions(canEditGlobal: boolean): PermissionsObject {
     const permissions: PermissionsObject = {

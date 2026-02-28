@@ -6,25 +6,25 @@ import Joi from 'joi';
 import { resolve } from 'path';
 
 /**
- * Service responsible for loading and validating application configuration.
+ * Service responsible for loading and validating application configuration
  */
 export class ConfigService {
-    /** Event bus for emitting config-related events */
+    /** Event bus for emitting config related events */
     private _eventBus: EventEmitter;
 
     /**
-     * Constructs a ConfigService.
-     * @param eventBus EventEmitter - Event bus used for emitting `config:loaded`.
+     * Constructs a ConfigService
+     * @param eventBus EventEmitter Event bus used for emitting config loaded
      */
     constructor(eventBus: EventEmitter) {
         this._eventBus = eventBus;
     }
 
     /**
-     * Loads and validates the configuration from a JSON file.
-     * @param path string - Filesystem path to the config JSON. Example: './config/config.json'
-     * @returns Promise<ValidatedConfig> - The validated config object.
-     * @throws Error if loading or validation fails.
+     * Loads and validates the configuration from a JSON file
+     * @param path string Filesystem path to the config JSON
+     * @returns ValidatedConfig The validated config object
+     * @throws Error if loading or validation fails
      * @example
      * const configService = new ConfigService(eventBus);
      * const config = await configService.Load('./config/config.json');
@@ -32,7 +32,7 @@ export class ConfigService {
     public async Load(path: string): Promise<ValidatedConfig> {
         try {
             const rawConfig = await LoadConfig(path);
-            // Build Joi schema to validate app config (treat null as empty and default to {})
+            // Build Joi schema to validate app config treating null as empty and defaulting to empty object
             const schema = Joi.object({
                 discordToken: Joi.string().required(),
                 discordGuildId: Joi.string().required(),
@@ -59,7 +59,7 @@ export class ConfigService {
             if (error) {
                 throw new Error(`Config validation error: ${error.message}`);
             }
-            // Env overrides (highest precedence)
+            // Env overrides with highest precedence
             const envDataRoot = process.env.VPI_DATA_ROOT;
             const envMirrorRoot = process.env.VPI_MIRROR_ROOT;
             const envTempRoot = process.env.VPI_TEMP_ROOT;

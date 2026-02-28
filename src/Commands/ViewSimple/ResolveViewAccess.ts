@@ -9,35 +9,27 @@ import { resolve } from '../../Common/Permission/index.js';
 import { TranslateFromContext } from '../../Services/I18nService.js';
 
 /**
- * Resolved permission context after organization and user checks pass.
- * @property organizationUid string | null Resolved organization UID or null for user scope. Example: 'org_abc123'
- * @property organizationName string Display name of resolved organization. Example: 'Alpha Corps'
- * @property scopeType string Scope type of the execution context. Example: 'organization'
+ * @brief Resolved permission context after organization and user checks pass
  */
 export interface ViewPermissionContext {
-    organizationUid: string | null;
-    organizationName: string;
-    scopeType: string;
+    organizationUid: string | null; // resolved organization UID or null for user scope
+    organizationName: string; // display name of resolved organization
+    scopeType: string; // scope type of the execution context
 }
 
 /**
- * Options for resolving view permission.
- * @property interaction InteractionExecutionContextCarrier<ChatInputCommandInteraction> The triggering interaction
- * @property action string Permission action token suffix. Example: 'view'
- * @property requestedOrganizationUid string | null Optional user-provided organization override. Example: 'org_xyz'
+ * @brief Options for resolving view permission
  */
 export interface ResolveViewAccessOptions {
-    interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>;
-    action: string;
-    requestedOrganizationUid: string | null;
+    interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>; // triggering interaction
+    action: string; // permission action token suffix
+    requestedOrganizationUid: string | null; // optional user provided organization override
 }
 
 /**
- * Resolve organization context and check view permission.
- * Handles both organization-scoped and user-scoped permission flows.
- * Replies with denial message and returns null when unauthorized.
+ * @brief Resolve organization context and check view permission
  * @param options ResolveViewAccessOptions Configuration for access resolution
- * @returns Promise<ViewPermissionContext | null> Resolved context or null if denied
+ * @returns ViewPermissionContext or null Resolved context or null if denied
  * @example
  * const access = await ResolveViewAccess({ interaction, action: 'view', requestedOrganizationUid: null });
  * if (!access) return;

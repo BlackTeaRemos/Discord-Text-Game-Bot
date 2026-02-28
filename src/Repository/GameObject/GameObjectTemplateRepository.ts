@@ -5,24 +5,26 @@ import type { IGameObjectTemplate } from '../../Domain/GameObject/IGameObjectTem
 import type { ITemplateDisplayConfig } from '../../Domain/GameObject/ITemplateDisplayConfig.js';
 import type { IGameObjectTemplateRepository } from '../../Domain/GameObject/IGameObjectTemplateRepository.js';
 
-/** Neo4j node label for template nodes. */
+// GameObjectTemplateRepository.ts  Neo4j backed repository for game object templates
+
+/** Neo4j node label for template nodes */
 const TEMPLATE_LABEL = `GameObjectTemplate`;
 
-/** Relationship type linking Game to template. */
+/** Relationship type linking Game to template */
 const REL_HAS_TEMPLATE = `HAS_OBJECT_TEMPLATE`;
 
 /**
- * Generate a unique template UID.
- * @returns string Template uid. @example 'tpl_a1b2c3d4e5'
+ * @brief Generate a unique template UID
+ * @returns string Template uid @example 'tpl_a1b2c3d4e5'
  */
 function __GenerateTemplateUid(): string {
     return `tpl_${randomUUID().replace(/-/g, ``)}`;
 }
 
 /**
- * Map a Neo4j record properties to IGameObjectTemplate.
- * @param properties Record<string, any> Neo4j node properties.
- * @returns IGameObjectTemplate Mapped template object.
+ * @brief Map Neo4j record properties to IGameObjectTemplate
+ * @param properties Record_string_any Neo4j node properties
+ * @returns IGameObjectTemplate Mapped template object
  */
 function __MapNodeToTemplate(properties: Record<string, any>): IGameObjectTemplate {
     const template: IGameObjectTemplate = {
@@ -44,13 +46,13 @@ function __MapNodeToTemplate(properties: Record<string, any>): IGameObjectTempla
 }
 
 /**
- * Concrete implementation of IGameObjectTemplateRepository using Neo4j.
+ * @brief Concrete implementation of IGameObjectTemplateRepository using Neo4j
  */
 export class GameObjectTemplateRepository implements IGameObjectTemplateRepository {
     /**
-     * Persist a new template linked to a game.
-     * @param template Omit<IGameObjectTemplate, 'uid' | 'createdAt' | 'updatedAt'> Template data.
-     * @returns Promise<IGameObjectTemplate> Persisted template.
+     * @brief Persist a new template linked to a game
+     * @param template Omit_IGameObjectTemplate Template data
+     * @returns Promise_IGameObjectTemplate Persisted template
      * @example
      * const template = await repo.Create({ gameUid: 'game_123', name: 'Factory', ... });
      */
@@ -110,9 +112,9 @@ export class GameObjectTemplateRepository implements IGameObjectTemplateReposito
     }
 
     /**
-     * Retrieve a template by uid.
-     * @param uid string Template identifier.
-     * @returns Promise<IGameObjectTemplate | null> Template or null.
+     * @brief Retrieve a template by uid
+     * @param uid string Template identifier
+     * @returns Promise_IGameObjectTemplate_or_null Template or null
      */
     public async GetByUid(uid: string): Promise<IGameObjectTemplate | null> {
         const session = await neo4jClient.GetSession(`READ`);
@@ -134,9 +136,9 @@ export class GameObjectTemplateRepository implements IGameObjectTemplateReposito
     }
 
     /**
-     * List all templates belonging to a game.
-     * @param gameUid string Game identifier.
-     * @returns Promise<IGameObjectTemplate[]> Templates for the game.
+     * @brief List all templates belonging to a game
+     * @param gameUid string Game identifier
+     * @returns Promise_IGameObjectTemplate_array Templates for the game
      */
     public async ListByGame(gameUid: string): Promise<IGameObjectTemplate[]> {
         const session = await neo4jClient.GetSession(`READ`);
@@ -156,10 +158,10 @@ export class GameObjectTemplateRepository implements IGameObjectTemplateReposito
     }
 
     /**
-     * Find a template by name within a game.
-     * @param gameUid string Game identifier. @example 'game_xyz789'
-     * @param name string Template name (case-sensitive). @example 'Factory'
-     * @returns Promise<IGameObjectTemplate | null> Template or null if not found.
+     * @brief Find a template by name within a game
+     * @param gameUid string Game identifier @example 'game_xyz789'
+     * @param name string Template name case sensitive @example 'Factory'
+     * @returns Promise_IGameObjectTemplate_or_null Template or null if not found
      */
     public async FindByName(gameUid: string, name: string): Promise<IGameObjectTemplate | null> {
         const session = await neo4jClient.GetSession(`READ`);
@@ -182,10 +184,10 @@ export class GameObjectTemplateRepository implements IGameObjectTemplateReposito
     }
 
     /**
-     * Update a template's mutable fields.
-     * @param uid string Template uid.
-     * @param updates Partial<Omit<IGameObjectTemplate, 'uid' | 'gameUid' | 'createdAt'>> Fields to update.
-     * @returns Promise<IGameObjectTemplate> Updated template.
+     * @brief Update a templates mutable fields
+     * @param uid string Template uid
+     * @param updates Partial_Omit_IGameObjectTemplate Fields to update
+     * @returns Promise_IGameObjectTemplate Updated template
      */
     public async Update(
         uid: string,
@@ -246,9 +248,9 @@ export class GameObjectTemplateRepository implements IGameObjectTemplateReposito
     }
 
     /**
-     * Delete a template node.
-     * @param uid string Template uid.
-     * @returns Promise<boolean> True if deleted.
+     * @brief Delete a template node
+     * @param uid string Template uid
+     * @returns Promise_boolean True if deleted
      */
     public async Delete(uid: string): Promise<boolean> {
         const session = await neo4jClient.GetSession(`WRITE`);

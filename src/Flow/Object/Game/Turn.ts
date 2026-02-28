@@ -1,7 +1,7 @@
 import { neo4jClient } from '../../../Setup/Neo4j.js';
 
 /**
- * Get the game for a server.
+ * Get the game for a server
  * @param serverId Discord server ID
  * @returns Game properties or null if not found
  */
@@ -41,9 +41,9 @@ export async function GetGameForServer(
 }
 
 /**
- * Get the current turn value for a game.
- * @param gameUid string Game UID. @example 'game_abc123'
- * @returns Promise<number> Current turn number; defaults to 1 when missing or invalid. @example 3
+ * Get the current turn value for a game
+ * @param gameUid string Game UID @example 'game_abc123'
+ * @returns number Current turn number defaults to 1 when missing or invalid @example 3
  */
 export async function GetGameCurrentTurn(gameUid: string): Promise<number> {
     const session = await neo4jClient.GetSession(`READ`);
@@ -72,7 +72,7 @@ export async function GetGameCurrentTurn(gameUid: string): Promise<number> {
 }
 
 /**
- * Update the current turn for a game.
+ * Update the current turn for a game
  * @param gameUid Game UID
  * @param newTurn New turn number
  */

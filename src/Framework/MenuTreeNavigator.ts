@@ -1,7 +1,7 @@
 import type { MenuConfig, MenuNode } from './MenuTypes.js';
 
 /**
- * Resolves menu nodes and breadcrumbs for hierarchical menus.
+ * Resolves menu nodes and breadcrumbs for hierarchical menus
  */
 export class MenuTreeNavigator {
     private readonly _config: MenuConfig;
@@ -11,9 +11,9 @@ export class MenuTreeNavigator {
     }
 
     /**
-     * Resolve a menu node from a path.
-     * @param path string[] ordered node ids. Example: ['root','settings'].
-     * @returns MenuNode located node.
+     * Resolve a menu node from a path
+     * @param path string array ordered node ids
+     * @returns MenuNode located node
      */
     public ResolveNode(path: string[]): MenuNode {
         let current: MenuNode = this._config.root;
@@ -28,10 +28,10 @@ export class MenuTreeNavigator {
     }
 
     /**
-     * Find a child node by id.
-     * @param node MenuNode parent node. Example: { id: 'root', children: [...] }.
-     * @param identifier string child id. Example: 'settings'.
-     * @returns MenuNode | undefined child if found.
+     * Find a child node by id
+     * @param node MenuNode parent node
+     * @param identifier string child id
+     * @returns MenuNode or undefined child if found
      */
     public FindChild(node: MenuNode, identifier: string): MenuNode | undefined {
         return (node.children ?? []).find((child) => {
@@ -40,9 +40,9 @@ export class MenuTreeNavigator {
     }
 
     /**
-     * Build readable breadcrumbs for a path.
-     * @param path string[] ordered node ids. Example: ['root','settings','audio'].
-     * @returns string[] breadcrumb labels.
+     * Build readable breadcrumbs for a path
+     * @param path string array ordered node ids
+     * @returns string array breadcrumb labels
      */
     public BuildBreadcrumbs(path: string[]): string[] {
         const names: string[] = [this._config.root.label];

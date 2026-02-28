@@ -1,6 +1,6 @@
 import { ActionRowBuilder, StringSelectMenuBuilder } from 'discord.js';
-import type { DescriptionScope } from '../Scope/Types.js';
-import { Translate } from '../../../../Services/I18nService.js';
+import type { DescriptionScope } from '../../../Flow/Object/Description/Scope/Types.js';
+import { Translate } from '../../../Services/I18nService.js';
 
 export const SCOPE_SELECTOR_CUSTOM_ID = `description_scope_select`;
 

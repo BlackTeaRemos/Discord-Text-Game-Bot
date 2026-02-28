@@ -1,30 +1,19 @@
-/**
- * DBObject represents the base entity stored in the database.
- * - uid: unique identifier
- * - name: canonical name
- * - friendly_name: human readable label
- */
 import type { UID } from '../Common/Ids.js';
 
 export interface DBObject {
     uid: UID; // unique id for the object
     name: string; // canonical name
     friendly_name: string; // human readable label
-    id: string; // Neo4j internal id (mapped from uid)
+    id: string; // Neo4j internal id mapped from uid
 }
 
-/**
- * Concrete implementation of ObjectRepository using the BaseRepository.
- * Provides CRUD operations for DBObject entities stored in Neo4j.
- */
+// Concrete implementation of ObjectRepository using the BaseRepository
 
 import { BaseRepository } from '../BaseRepository.js';
 import { Neo4jClient } from '../Neo4jClient.js';
 import type { Neo4jObjectSchema, Neo4jRepositoryOptions, Neo4jQueryResult } from '../../Types/Repository/index.js';
 
-/**
- * Schema definition for DBObject to Neo4j mapping.
- */
+// Schema definition for DBObject to Neo4j mapping
 const dbObjectSchema: Neo4jObjectSchema<DBObject> = {
     primaryLabel: `DBObject`,
     additionalLabels: [`Entity`],
@@ -73,23 +62,22 @@ const dbObjectSchema: Neo4jObjectSchema<DBObject> = {
 };
 
 /**
- * Repository for managing DBObject entities in Neo4j.
- * Extends BaseRepository to provide type-safe CRUD operations.
+ * @brief Repository for managing DBObject entities in Neo4j
  */
 export class ObjectRepository extends BaseRepository<DBObject> {
     /**
-     * Initialize ObjectRepository with Neo4j client.
-     * @param client Neo4j client instance
-     * @param options Repository options
+     * @brief Initialize ObjectRepository with Neo4j client
+     * @param client Neo4jClient instance
+     * @param options Neo4jRepositoryOptions repository options
      */
     constructor(client: Neo4jClient, options: Neo4jRepositoryOptions = {}) {
         super(client, dbObjectSchema, options);
     }
 
     /**
-     * Find objects by name (case-insensitive search).
-     * @param name Name to search for
-     * @param options Query options
+     * @brief Find objects by name using case insensitive search
+     * @param name string Name to search for
+     * @param options object Query options
      */
     async findByName(
         name: string,
@@ -130,9 +118,9 @@ export class ObjectRepository extends BaseRepository<DBObject> {
     }
 
     /**
-     * Find objects by UID pattern.
-     * @param uidPattern UID pattern to match (supports wildcards)
-     * @param options Query options
+     * @brief Find objects by UID pattern
+     * @param uidPattern string UID pattern to match with wildcard support
+     * @param options object Query options
      */
     async findByUidPattern(
         uidPattern: string,
@@ -175,7 +163,7 @@ export class ObjectRepository extends BaseRepository<DBObject> {
     }
 
     /**
-     * Create multiple objects in a batch operation.
+     * @brief Create multiple objects in a batch operation
      * @param objects Array of objects to create
      */
     async createBatch(objects: Omit<DBObject, `uid`>[]): Promise<Neo4jQueryResult<DBObject[]>> {
@@ -203,9 +191,9 @@ export class ObjectRepository extends BaseRepository<DBObject> {
     }
 
     /**
-     * Get objects with relationships.
-     * @param id Object ID
-     * @param relationshipTypes Types of relationships to include
+     * @brief Get objects with relationships
+     * @param id string Object ID
+     * @param relationshipTypes Array of relationship types to include
      */
     async getWithRelationships(
         id: string,
@@ -258,7 +246,7 @@ export class ObjectRepository extends BaseRepository<DBObject> {
     }
 
     /**
-     * Override ID generation for DBObject to use uid format.
+     * @brief Override ID generation for DBObject to use uid format
      */
     protected generateId(): string {
         const timestamp = Date.now().toString(36);
@@ -268,9 +256,9 @@ export class ObjectRepository extends BaseRepository<DBObject> {
 }
 
 /**
- * Factory function to create ObjectRepository instance.
- * @param client Neo4j client instance
- * @param options Repository options
+ * @brief Factory function to create ObjectRepository instance
+ * @param client Neo4jClient instance
+ * @param options Neo4jRepositoryOptions repository options
  */
 export function createObjectRepository(client: Neo4jClient, options: Neo4jRepositoryOptions = {}): ObjectRepository {
     return new ObjectRepository(client, options);

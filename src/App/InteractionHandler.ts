@@ -11,8 +11,8 @@ import { EnrichWithCharacter } from '../Common/Type/CharacterContextEnricher.js'
 import { ResolveUserLocale } from '../Services/I18nService.js';
 
 /**
- * Factory for Discord interaction handler focused on chat input commands.
- * Replaces direct permission checks with `resolve` that asks admins and throws on denial.
+ * @brief Factory for Discord interaction handler focused on chat input commands
+ * Replaces direct permission checks with resolve that asks admins and throws on denial
  */
 export function CreateInteractionHandler(options: { loadedCommands: Record<string, any> }) {
     const { loadedCommands } = options;
@@ -67,7 +67,7 @@ export function CreateInteractionHandler(options: { loadedCommands: Record<strin
                 }
             }
 
-            // Hydrated resolve context so admin approval UI can be shown as needed.
+            // Hydrated resolve context so admin approval UI can be shown as needed
             const resolverCtx = {
                 commandName: interaction.commandName,
                 interaction,
@@ -86,22 +86,22 @@ export function CreateInteractionHandler(options: { loadedCommands: Record<strin
                 },
             };
 
-            // Defer reply to avoid "The application did not respond" when performing
-            // long-running permission checks or waiting for admin input.
+            // Defer reply to avoid the application did not respond error when performing
+            // long running permission checks or waiting for admin input
             let deferredByHandler = false;
             if (!interaction.replied && !interaction.deferred) {
                 try {
                     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
                     deferredByHandler = true;
                 } catch(e) {
-                    // If deferring fails, continue without blocking; the request may still work.
+                    // If deferring fails continue without blocking as the request may still work
                     log.warning(`Failed to defer interaction reply: ${String(e)}`, `InteractionHandler`);
                 }
             }
 
-            // Patch the interaction so commands never need to know about defer state.
-            // reply() transparently delegates to editReply() when already deferred.
-            // deferReply() becomes a no-op to prevent duplicate defer attempts.
+            // Patch the interaction so commands never need to know about defer state
+            // reply transparently delegates to editReply when already deferred
+            // deferReply becomes a noop to prevent duplicate defer attempts
             if (interaction.deferred || deferredByHandler) {
                 const _originalReply = interaction.reply?.bind(interaction);
                 (interaction as any).reply = async(options: any) => {
@@ -115,12 +115,12 @@ export function CreateInteractionHandler(options: { loadedCommands: Record<strin
                     }
                 };
                 (interaction as any).deferReply = async() => {
-                    return; // already deferred, no-op
+                    return; // already deferred noop
                 };
             }
 
-            // Global gate: resolve required tokens, check permanent grants, and request admin approval if needed.
-            // This gate remains independent from any local flow-level permission checks.
+            // Global gate resolves required tokens checks permanent grants and requests admin approval if needed
+            // This gate remains independent from any local flow level permission checks
             const flowMember = member ? ExtractFlowMember(member) : null;
             const resolution = await resolve(templates, {
                 context: resolverCtx as any,
@@ -134,7 +134,7 @@ export function CreateInteractionHandler(options: { loadedCommands: Record<strin
                 throw new Error(resolution.detail.reason ?? `Permission denied`);
             }
 
-            // Execute the command after the global gate passes.
+            // Execute the command after the global gate passes
             await command.execute(interaction);
         } catch(err: any) {
             // Centralized error handler for permission denials and execution errors

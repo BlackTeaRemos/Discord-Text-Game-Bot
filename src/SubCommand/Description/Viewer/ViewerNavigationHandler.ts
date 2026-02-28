@@ -10,12 +10,12 @@ import {
 import { HandleViewerScopeSelection, VIEWER_INTERACTION_TIMEOUT_MS } from './ViewerScopeHandler.js';
 
 /**
- * Handle button and select menu interactions for viewer preview.
- * @param message Message The message with components.
- * @param state DescriptionViewerState Mutable viewer state.
- * @param showEditButton boolean Whether edit button is displayed.
- * @param onEditRequest ViewerEditCallback | undefined Callback for edit button.
- * @returns Promise<DescriptionViewerState> Final state when loop ends.
+ * Handle button and select menu interactions for viewer preview
+ * @param message Message The message with components
+ * @param state DescriptionViewerState Mutable viewer state
+ * @param showEditButton boolean Whether edit button is displayed
+ * @param onEditRequest ViewerEditCallback or undefined Callback for edit button
+ * @returns Promise of DescriptionViewerState Final state when loop ends
  */
 export async function HandleViewerPreviewLoop(
     message: Message,
@@ -56,13 +56,13 @@ export async function HandleViewerPreviewLoop(
 }
 
 /**
- * Handle button interactions for navigation and edit trigger.
- * @param interaction ButtonInteraction The button interaction.
- * @param message Message The message to update.
- * @param state DescriptionViewerState Mutable viewer state.
- * @param showEditButton boolean Whether edit button is displayed.
- * @param onEditRequest ViewerEditCallback | undefined Callback for edit button.
- * @returns Promise<DescriptionViewerState> Updated state after button handling.
+ * Handle button interactions for navigation and edit trigger
+ * @param interaction ButtonInteraction The button interaction
+ * @param message Message The message to update
+ * @param state DescriptionViewerState Mutable viewer state
+ * @param showEditButton boolean Whether edit button is displayed
+ * @param onEditRequest ViewerEditCallback or undefined Callback for edit button
+ * @returns Promise of DescriptionViewerState Updated state after button handling
  */
 export async function HandleViewerButtonInteraction(
     interaction: ButtonInteraction,
@@ -103,10 +103,10 @@ export async function HandleViewerButtonInteraction(
 }
 
 /**
- * Update the preview embed after pagination change.
- * @param interaction ButtonInteraction The triggering interaction.
- * @param state DescriptionViewerState Current viewer state.
- * @param showEditButton boolean Whether edit button is displayed.
+ * Update the preview embed after pagination change
+ * @param interaction ButtonInteraction The triggering interaction
+ * @param state DescriptionViewerState Current viewer state
+ * @param showEditButton boolean Whether edit button is displayed
  */
 export async function UpdateViewerPreview(
     interaction: ButtonInteraction,
@@ -126,13 +126,12 @@ export async function UpdateViewerPreview(
 }
 
 /**
- * Refresh viewer display after edit callback completes.
- * Returns a fresh message reference to ensure component collectors work properly.
- * @param message Message The message to update.
- * @param state DescriptionViewerState Updated viewer state.
- * @param showEditButton boolean Whether edit button is displayed.
- * @param interaction ButtonInteraction The deferred button interaction for editing.
- * @returns Promise<Message> Fresh message reference after edit.
+ * Refresh viewer display after edit callback completes and return a fresh message reference
+ * @param message Message The message to update
+ * @param state DescriptionViewerState Updated viewer state
+ * @param showEditButton boolean Whether edit button is displayed
+ * @param interaction ButtonInteraction The deferred button interaction for editing
+ * @returns Promise of Message Fresh message reference after edit
  */
 async function __RefreshViewerAfterEdit(
     message: Message,
@@ -146,7 +145,7 @@ async function __RefreshViewerAfterEdit(
         state.selectedScope?.scopeUid ?? null,
     );
 
-    // Use interaction.editReply since the interaction was deferred with deferUpdate
+    // Edit reply through interaction since the update was deferred
     await interaction.editReply({
         embeds: [preview.embed],
         components: [scopeSelector, ...preview.components],
@@ -157,8 +156,8 @@ async function __RefreshViewerAfterEdit(
 }
 
 /**
- * Disable all components on timeout.
- * @param message Message The message to update.
+ * Disable all components on timeout
+ * @param message Message The message to update
  */
 async function __DisableViewerComponents(message: Message): Promise<void> {
     try {

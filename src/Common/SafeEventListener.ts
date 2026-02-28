@@ -1,29 +1,28 @@
 /**
- * Provides a defensive wrapper for event listeners.
- * Ensures errors never escape to the event emitter as unhandled promise rejections.
+ * Provides a defensive wrapper for event listeners ensuring errors never escape as unhandled rejections
  */
 
 export interface SafeEventListenerOptions {
     /**
-     * Optional diagnostic name for the listener, used in error reporting.
+     * Optional diagnostic name for the listener used in error reporting
      * @example 'discord:interactionCreate'
      */
     name?: string;
 
     /**
-     * Error callback invoked when the listener throws or rejects.
-     * @param error unknown The error thrown/rejected. @example new Error('boom')
-     * @param name string | undefined The diagnostic name, if provided. @example 'discord:interactionCreate'
-     * @returns void No return value.
+     * Error callback invoked when the listener throws or rejects
+     * @param error unknown The error thrown or rejected @example new Error('boom')
+     * @param name string or undefined The diagnostic name if provided @example 'discord:interactionCreate'
+     * @returns void No return value
      */
     onError?: (error: unknown, name?: string) => void;
 }
 
 /**
- * Wrap an event listener so it never throws and never rejects.
- * @param listener (...args: any[]) => unknown Original listener. @example async () => { throw new Error('boom'); }
- * @param options SafeEventListenerOptions Optional diagnostic naming and error callback.
- * @returns (...args: any[]) => Promise<void> Safe listener that always resolves.
+ * Wrap an event listener so it never throws and never rejects
+ * @param listener function Original listener @example async () => { throw new Error('boom'); }
+ * @param options SafeEventListenerOptions Optional diagnostic naming and error callback
+ * @returns function Safe listener that always resolves
  * @example
  * const safe = CreateSafeEventListener(async () => { throw new Error('boom'); }, { name: 'x', onError: console.error });
  * await safe();
@@ -41,7 +40,7 @@ export function CreateSafeEventListener(
             try {
                 onError?.(error, name);
             } catch {
-                // Last-resort: never allow error reporting to crash the app.
+                // Never allow error reporting to crash the app
             }
         }
     };

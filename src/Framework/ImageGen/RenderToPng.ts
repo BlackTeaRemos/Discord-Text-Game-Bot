@@ -43,7 +43,7 @@ let _resvgInitialized = false;
 /**
  * Lazily import and cache the Satori render function
  *
- * @returns Promise<SatoriRenderFn> Satori default export
+ * @returns SatoriRenderFn Satori default export
  */
 async function __loadSatori(): Promise<SatoriRenderFn> {
     if (!_satoriRender) {
@@ -54,9 +54,9 @@ async function __loadSatori(): Promise<SatoriRenderFn> {
 }
 
 /**
- * Lazily import, cache, and initialize the resvg-wasm module
+ * Lazily import cache and initialize the resvg wasm module
  *
- * @returns Promise<ResvgConstructor> Initialized Resvg class
+ * @returns ResvgConstructor Initialized Resvg class
  */
 async function __loadResvg(): Promise<ResvgConstructor> {
     if (!_ResvgClass) {
@@ -77,17 +77,16 @@ async function __loadResvg(): Promise<ResvgConstructor> {
 }
 
 /**
- * Font data used by Satori for text rendering
- * Loaded once and cached for subsequent renders
+ * Font data used by Satori for text rendering loaded once and cached for subsequent renders
  */
 let _interFontCache: ArrayBuffer | null = null;
 let _quanticoRegularCache: ArrayBuffer | null = null;
 let _quanticoBoldCache: ArrayBuffer | null = null;
 
 /**
- * Load the Inter font from the @fontsource/inter package
+ * Load the Inter font from the fontsource inter package
  *
- * @returns Promise<ArrayBuffer | null> Font data buffer or null
+ * @returns ArrayBuffer or null Font data buffer or null
  */
 async function __loadInterFont(): Promise<ArrayBuffer | null> {
     if (_interFontCache) {
@@ -105,9 +104,9 @@ async function __loadInterFont(): Promise<ArrayBuffer | null> {
 }
 
 /**
- * Load Quantico Regular (400) font from @fontsource/quantico package
+ * Load Quantico Regular 400 font from the fontsource quantico package
  *
- * @returns Promise<ArrayBuffer | null> Font data buffer or null
+ * @returns ArrayBuffer or null Font data buffer or null
  */
 async function __loadQuanticoRegular(): Promise<ArrayBuffer | null> {
     if (_quanticoRegularCache) {
@@ -125,9 +124,9 @@ async function __loadQuanticoRegular(): Promise<ArrayBuffer | null> {
 }
 
 /**
- * Load Quantico Bold (700) font from @fontsource/quantico package
+ * Load Quantico Bold 700 font from the fontsource quantico package
  *
- * @returns Promise<ArrayBuffer | null> Font data buffer or null
+ * @returns ArrayBuffer or null Font data buffer or null
  */
 async function __loadQuanticoBold(): Promise<ArrayBuffer | null> {
     if (_quanticoBoldCache) {
@@ -147,7 +146,7 @@ async function __loadQuanticoBold(): Promise<ArrayBuffer | null> {
 /**
  * Load all available fonts for Satori rendering
  *
- * @returns Promise<SatoriFont[]> Array of loaded font entries
+ * @returns SatoriFont array Array of loaded font entries
  */
 async function __loadAllFonts(): Promise<SatoriFont[]> {
     const [interData, quanticoRegularData, quanticoBoldData] = await Promise.all([
@@ -174,13 +173,12 @@ async function __loadAllFonts(): Promise<SatoriFont[]> {
 }
 
 /**
- * Render a Satori element tree to a PNG buffer
- * Pipeline: element tree -> Satori SVG -> resvg-wasm PNG
+ * Render a Satori element tree to a PNG buffer via Satori SVG then resvg wasm
  *
  * @param element SatoriElement Root element tree from CardLayout
- * @param width number Image width in pixels, defaults to CARD_WIDTH
- * @param maxHeight number Maximum height in pixels, defaults to CARD_MAX_HEIGHT
- * @returns Promise<Buffer> PNG image as Node.js Buffer
+ * @param width number Image width in pixels defaulting to CARD_WIDTH
+ * @param maxHeight number Maximum height in pixels defaulting to CARD_MAX_HEIGHT
+ * @returns Buffer PNG image as a NodeJS Buffer
  *
  * @example
  * const tree = BuildCardLayout({ detail, ... });
@@ -197,15 +195,14 @@ export async function RenderToPng(
         __loadAllFonts(),
     ]);
 
-    // Satori renders at maxHeight canvas, then we crop to actual content
+    // Satori renders at maxHeight canvas then we crop to actual content
     const rawSvg = await satoriRender(element as unknown, {
         width,
         height: maxHeight,
         fonts,
     });
 
-    // Crop the SVG viewport to the actual card content height
-    // Satori's first <rect> is the root element background, its height = real content height
+    // Crop the SVG viewport to the actual card content height via first rect element bounds
     const croppedSvg = __cropSvgToContent(rawSvg, width);
 
     // resvg converts cropped SVG to PNG
@@ -220,16 +217,14 @@ export async function RenderToPng(
 }
 
 /**
- * Crop the SVG viewport to match actual card content height
- * Satori renders at maxHeight canvas but only the card content occupies a portion
- * The first rect element in the SVG is the root flexbox background, its height = real content
+ * Crop the SVG viewport to match actual card content height using the first rect element as content bounds
  *
  * @param svg string Raw SVG output from Satori
  * @param width number Card width for viewBox replacement
  * @returns string SVG with height and viewBox cropped to content bounds
  */
 function __cropSvgToContent(svg: string, width: number): string {
-    // Match the first <rect> with a height attribute -- this is the root element background
+    // Match the first rect with a height attribute as the root element background
     const rectHeightMatch = svg.match(/<rect[^>]*?height="([\d.]+)"[^>]*?>/);
     if (!rectHeightMatch || !rectHeightMatch[1]) {
         return svg;

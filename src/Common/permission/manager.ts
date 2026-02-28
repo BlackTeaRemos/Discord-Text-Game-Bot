@@ -1,15 +1,15 @@
 import type { IFlowMember } from '../Type/FlowContext.js';
-import { BuildPermissionEmitter } from './emitter.js';
-import { HasPermanentGrant } from './store.js';
-import type { PermissionCheckResult, PermissionState, PermissionTokenInput, PermissionsObject } from './types.js';
-import { NormalizeToken } from './normalizeToken.js';
-import { FormatPermissionToken } from './formatPermissionToken.js';
+import { BuildPermissionEmitter } from './Emitter.js';
+import { HasPermanentGrant } from './Store.js';
+import type { PermissionCheckResult, PermissionState, PermissionTokenInput, PermissionsObject } from './Types.js';
+import { NormalizeToken } from './NormalizeToken.js';
+import { FormatPermissionToken } from './FormatPermissionToken.js';
 import { EvaluateToken } from './EvaluateToken.js';
 /**
- * Translates a permission state into a standardized permission check result.
- * @param state PermissionState Evaluated permission state (example: 'once').
- * @param formattedToken string Token presented to humans (example: 'command:create').
- * @returns PermissionCheckResult Result object matching the state (example: { allowed: false, requiresApproval: true }).
+ * @brief Translates a permission state into a standardized permission check result
+ * @param state PermissionState Evaluated permission state example once
+ * @param formattedToken string Token presented to humans example command_create
+ * @returns PermissionCheckResult Result object matching the state
  * @example
  * const result = computeStateResult('allowed', 'command:create');
  */
@@ -37,11 +37,11 @@ function ComputeStateResult(state: PermissionState, formattedToken: string): Per
 }
 
 /**
- * Evaluates whether a guild member holds permissions for provided tokens.
- * @param permissions PermissionsObject | undefined Permission configuration object, optional (example: { 'command:create': 'allowed' }).
- * @param member IFlowMember | null Flow member requesting the action (example: extracted IFlowMember instance).
- * @param tokens PermissionTokenInput[] Candidate tokens to evaluate (example: ['command:create']).
- * @returns Promise<PermissionCheckResult> Permission check outcome (example: { allowed: true }).
+ * @brief Evaluates whether a guild member holds permissions for provided tokens
+ * @param permissions PermissionsObject or undefined Permission configuration object
+ * @param member IFlowMember or null Flow member requesting the action
+ * @param tokens PermissionTokenInput array Candidate tokens to evaluate
+ * @returns PermissionCheckResult Promise resolving to permission check outcome
  * @example
  * const result = await checkPermission(config.permissions, member, ['command:create']);
  */
@@ -51,9 +51,7 @@ export async function CheckPermission(
     tokens: PermissionTokenInput[],
 ): Promise<PermissionCheckResult> {
     try {
-        // TEMPORARY: disable instant admin approval so approval flows and audit
-        // paths can be exercised during testing. Restore this early-return when
-        // admin bypass behaviour is desired again.
+        // Temporarily disabled admin approval bypass so approval flows and audit paths can be tested
         // if (member && member.permissions?.has && member.permissions.has('Administrator')) {
         //     return { allowed: true };
         // }

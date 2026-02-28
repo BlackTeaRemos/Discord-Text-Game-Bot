@@ -1,13 +1,9 @@
-// Removed Sapphire container; using direct assignment
 import { Neo4jClient, type Neo4jConfig } from '../Repository/Neo4jClient.js';
 import { ConfigService } from '../Services/ConfigService.js';
 import { MAIN_EVENT_BUS } from '../Events/MainEventBus.js';
-import { InitializePermissionStore } from '../Common/Permission/store.js';
+import { InitializePermissionStore } from '../Common/Permission/Store.js';
 
-/**
- * Initializes the Neo4jClient and registers it with the Sapphire container.
- * This allows any part of the application to access the Neo4j client via `container.neo4j`.
- */
+/** Initializes the Neo4jClient and registers it so any part of the application can access the Neo4j client */
 export let neo4jClient: Neo4jClient;
 export async function setupNeo4j() {
     const configService = new ConfigService(MAIN_EVENT_BUS);

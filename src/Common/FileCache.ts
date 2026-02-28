@@ -1,30 +1,28 @@
 /**
- * Generic file-based cache for temporary storage and retrieval of data.
- * Not tied to Discord or any application logic. Use for any local file caching needs.
+ * Generic file based cache for temporary storage and retrieval of data not tied to any application logic
  */
 import { promises as fs } from 'fs';
 import path from 'path';
 
 /**
- * FileCache manages temporary local storage for file data.
- * Main storage is always external; this is for performance only.
+ * FileCache manages temporary local storage for file data as a performance layer over external storage
  */
 export class FileCache {
-    /** Directory for cache files [// absolute path] */
+    /** Directory for cache files */
     private _cacheDir: string;
 
     /**
-     * @param cacheDir string - Directory to store cache files (e.g. '/tmp/cache')
+     * @param cacheDir string Directory to store cache files
      */
     constructor(cacheDir: string) {
         this._cacheDir = cacheDir;
     }
 
     /**
-     * Writes file data to cache.
-     * @param fileId string - Unique file ID
-     * @param data Buffer - File data
-     * @returns Promise<void>
+     * Writes file data to cache
+     * @param fileId string Unique file ID
+     * @param data Buffer File data
+     * @returns void
      * @example
      * await fileCache.write('abc123', Buffer.from('data'));
      */
@@ -35,9 +33,9 @@ export class FileCache {
     }
 
     /**
-     * Reads file data from cache.
-     * @param fileId string - Unique file ID
-     * @returns Promise<Buffer | null> - File data or null if not found
+     * Reads file data from cache
+     * @param fileId string Unique file ID
+     * @returns Buffer or null File data or null if not found
      * @example
      * const data = await fileCache.read('abc123');
      */
@@ -52,9 +50,9 @@ export class FileCache {
     }
 
     /**
-     * Removes file from cache.
-     * @param fileId string - Unique file ID
-     * @returns Promise<void>
+     * Removes file from cache
+     * @param fileId string Unique file ID
+     * @returns void
      * @example
      * await fileCache.remove('abc123');
      */
@@ -69,7 +67,7 @@ export class FileCache {
     }
 
     /**
-     * Gets the cache file path for a file ID.
+     * Gets the cache file path for a file ID
      * @param fileId string
      * @returns string
      * @example

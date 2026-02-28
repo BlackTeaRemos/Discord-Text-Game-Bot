@@ -13,9 +13,9 @@ const _orgSelectPrefix = `org_select`; // select menu custom id prefix
 const _maxOptions = 25; // max selectable organizations
 
 /**
- * Handle /organization select command.
- * @param interaction Discord interaction.
- * @returns Promise<void> Resolves when selection prompt handled.
+ * Handle organization select command
+ * @param interaction Discord interaction
+ * @returns void
  */
 export async function ExecuteOrganizationSelect(
     interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,

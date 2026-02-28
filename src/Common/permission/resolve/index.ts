@@ -1,3 +1,3 @@
-export * from './types.js';
-export { ResolveTokens as resolveTokens } from './resolveTokens.js';
-export { Resolve as resolve } from './resolve.js';
+export * from './Types.js';
+export { ResolveTokens as resolveTokens } from './ResolveTokens.js';
+export { Resolve as resolve } from './Resolve.js';

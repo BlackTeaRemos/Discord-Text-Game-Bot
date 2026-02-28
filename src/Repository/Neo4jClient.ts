@@ -1,33 +1,29 @@
-/**
- * Lightweight Neo4j driver wrapper used by repositories and services.
- * Provides lifecycle management and a typed getSession helper.
- */
 import neo4j, { auth, type Driver, type Session } from 'neo4j-driver';
 
 export interface Neo4jConfig {
-    uri: string; // bolt://host:port or neo4j://host
+    uri: string; // connection URI for the database
     username: string; // db user
     password: string; // db password
     database?: string; // optional database name
 }
 
 /**
- * Small client holding a singleton-like driver instance with explicit init/close.
+ * @brief Small client holding a singleton like driver instance with explicit init and close
  */
 export class Neo4jClient {
     private _driver: Driver | null = null; // underlying driver instance
     private _config: Neo4jConfig; // connection settings
 
     /**
-     * Initialize client with provided configuration (does not connect yet).
-     * @param config Neo4jConfig – connection settings
+     * @brief Initialize client with provided configuration without connecting
+     * @param config Neo4jConfig connection settings
      */
     constructor(config: Neo4jConfig) {
         this._config = config;
     }
 
     /**
-     * Establish a driver connection if not already created.
+     * @brief Establish a driver connection if not already created
      */
     async Init(): Promise<void> {
         if (this._driver) {
@@ -40,7 +36,7 @@ export class Neo4jClient {
     }
 
     /**
-     * Acquire a session bound to configured database (if provided).
+     * @brief Acquire a session bound to configured database
      */
     async GetSession(mode: `READ` | `WRITE` = `WRITE`): Promise<Session> {
         if (!this._driver) {
@@ -54,7 +50,7 @@ export class Neo4jClient {
     }
 
     /**
-     * Close underlying driver and free sockets.
+     * @brief Close underlying driver and free sockets
      */
     async Close(): Promise<void> {
         if (this._driver) {

@@ -1,30 +1,30 @@
 import type { TemplateJsonSchema, TemplateParameterSchema, TemplateActionSchema, DisplayConfigSchema } from './TemplateJsonSchema.js';
 import { ValidateDisplayConfig } from './ValidateDisplayConfig.js';
 
-/** Valid identifier pattern for parameter keys and action keys. */
+/** Valid identifier pattern for parameter keys and action keys */
 const VALID_KEY_PATTERN = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
 
-/** Allowed value types for parameters. */
+/** Allowed value types for parameters */
 const VALID_VALUE_TYPES = new Set([`number`, `string`, `boolean`]);
 
-/** Allowed action triggers. */
+/** Allowed action triggers */
 const VALID_TRIGGERS = new Set([`onTurnAdvance`, `onManual`, `onCreate`, `onDestroy`]);
 
 /**
- * Result of template validation.
+ * @brief Result of template validation
  */
 export interface TemplateValidationResult {
-    /** Whether the template passed all checks. @example true */
+    /** Whether the template passed all checks @example true */
     valid: boolean;
 
-    /** List of human-readable error messages. Empty when valid. */
+    /** List of human readable error messages that is empty when valid */
     errors: string[];
 }
 
 /**
- * Validate an uploaded template JSON object.
- * @param input unknown Raw parsed JSON to validate.
- * @returns TemplateValidationResult Validation outcome with error details.
+ * @brief Validates an uploaded template JSON object
+ * @param input unknown Raw parsed JSON to validate
+ * @returns TemplateValidationResult Validation outcome with error details
  * @example
  * const result = ValidateTemplateJson(JSON.parse(rawJson));
  * if (!result.valid) { console.error(result.errors); }
@@ -47,9 +47,9 @@ export function ValidateTemplateJson(input: unknown): TemplateValidationResult {
 }
 
 /**
- * Validate the name field.
- * @param template Record<string, unknown> Template object.
- * @param errors string[] Accumulator for errors.
+ * @brief Validates the name field
+ * @param template Record of string to unknown Template object
+ * @param errors string array Accumulator for errors
  */
 function __ValidateName(template: Record<string, unknown>, errors: string[]): void {
     if (typeof template.name !== `string` || template.name.trim().length === 0) {
@@ -58,10 +58,10 @@ function __ValidateName(template: Record<string, unknown>, errors: string[]): vo
 }
 
 /**
- * Validate parameters array and collect valid keys for expression validation.
- * @param template Record<string, unknown> Template object.
- * @param errors string[] Accumulator for errors.
- * @returns Set<string> Set of valid parameter keys.
+ * @brief Validates parameters array and collects valid keys for expression validation
+ * @param template Record of string to unknown Template object
+ * @param errors string array Accumulator for errors
+ * @returns Set of string Set of valid parameter keys
  */
 function __ValidateParameters(template: Record<string, unknown>, errors: string[]): Set<string> {
     const keys = new Set<string>();
@@ -112,10 +112,10 @@ function __ValidateParameters(template: Record<string, unknown>, errors: string[
 }
 
 /**
- * Validate actions array and check expression syntax against known parameter keys.
- * @param template Record<string, unknown> Template object.
- * @param parameterKeys Set<string> Valid parameter keys for expression validation.
- * @param errors string[] Accumulator for errors.
+ * @brief Validates actions array and checks expression syntax against known parameter keys
+ * @param template Record of string to unknown Template object
+ * @param parameterKeys Set of string Valid parameter keys for expression validation
+ * @param errors string array Accumulator for errors
  */
 function __ValidateActions(template: Record<string, unknown>, parameterKeys: Set<string>, errors: string[]): void {
     if (template.actions === undefined || template.actions === null) {
@@ -171,9 +171,9 @@ function __ValidateActions(template: Record<string, unknown>, parameterKeys: Set
 }
 
 /**
- * Cast a validated template JSON to the typed schema. Call only after ValidateTemplateJson returns valid.
- * @param input unknown Validated JSON input.
- * @returns TemplateJsonSchema Typed template object.
+ * @brief Casts a validated template JSON to the typed schema after ValidateTemplateJson returns valid
+ * @param input unknown Validated JSON input
+ * @returns TemplateJsonSchema Typed template object
  */
 export function CastTemplateJson(input: unknown): TemplateJsonSchema {
     const raw = input as Record<string, unknown>;
@@ -212,12 +212,10 @@ export function CastTemplateJson(input: unknown): TemplateJsonSchema {
 }
 
 /**
- * Validate the optional displayConfig section of a template JSON.
- * Delegates structural validation to ValidateDisplayConfig and cross-references
- * parameterDisplay keys against known parameter keys.
- * @param template Record<string, unknown> Template object.
- * @param parameterKeys Set<string> Valid parameter keys from the parameters section.
- * @param errors string[] Accumulator for errors.
+ * @brief Validates the optional displayConfig section of a template JSON
+ * @param template Record of string to unknown Template object
+ * @param parameterKeys Set of string Valid parameter keys from the parameters section
+ * @param errors string array Accumulator for errors
  */
 function __ValidateDisplayConfig(
     template: Record<string, unknown>,
@@ -238,7 +236,7 @@ function __ValidateDisplayConfig(
         errors.push(`displayConfig: ${configError}`);
     }
 
-    // Cross-reference parameterDisplay keys against declared parameters
+    // Cross reference parameterDisplay keys against declared parameters
     const config = template.displayConfig as Record<string, unknown>;
     if (Array.isArray(config.parameterDisplay)) {
         for (const entry of config.parameterDisplay as Array<Record<string, unknown>>) {
@@ -248,7 +246,7 @@ function __ValidateDisplayConfig(
         }
     }
 
-    // Cross-reference group keys against parameter categories
+    // Cross reference group keys against parameter categories
     if (Array.isArray(config.groups)) {
         const groupKeys = new Set((config.groups as Array<Record<string, unknown>>).map(group => {
             return group.key as string;
@@ -264,9 +262,9 @@ function __ValidateDisplayConfig(
 }
 
 /**
- * Cast an already-validated displayConfig object to the typed schema.
- * @param raw unknown Validated displayConfig object.
- * @returns DisplayConfigSchema Typed display config.
+ * @brief Casts a validated displayConfig object to the typed schema
+ * @param raw unknown Validated displayConfig object
+ * @returns DisplayConfigSchema Typed display config
  */
 function __CastDisplayConfig(raw: unknown): DisplayConfigSchema {
     const config = raw as Record<string, unknown>;

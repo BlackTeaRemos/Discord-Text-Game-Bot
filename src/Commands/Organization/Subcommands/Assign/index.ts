@@ -30,9 +30,9 @@ export function BuildOrganizationAssignSubcommand(
 }
 
 /**
- * Execute assign subcommand -- assigns an object to an organization
- * @param interaction InteractionExecutionContextCarrier<ChatInputCommandInteraction> Discord interaction
- * @returns Promise<void>
+ * Execute assign subcommand to assign an object to an organization
+ * @param interaction InteractionExecutionContextCarrier Discord interaction
+ * @returns void
  */
 export async function ExecuteOrganizationAssignSubcommand(
     interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
@@ -93,7 +93,7 @@ export async function ExecuteOrganizationAssignSubcommand(
             }),
         });
     } finally {
-        // no-op
+        // no op
     }
 }
 

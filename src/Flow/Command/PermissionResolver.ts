@@ -10,12 +10,7 @@ import { log } from '../../Common/Log.js';
 import type { IFlowInteractionContext, IFlowMember, FlowMemberProvider } from '../../Common/Type/FlowContext.js';
 
 /**
- * Result of command permission resolution.
- * @property allowed boolean Whether the action is permitted (example: true).
- * @property reason string | undefined Explanation when denied (example: 'No matching grant').
- * @property tokens PermissionToken[] Resolved permission tokens.
- * @property decision PermissionDecision | undefined The raw decision from the resolver.
- * @property requiresApproval boolean | undefined Whether admin approval is needed.
+ * Result of command permission resolution
  */
 export interface CommandPermissionResult {
     allowed: boolean;
@@ -26,16 +21,7 @@ export interface CommandPermissionResult {
 }
 
 /**
- * Options for resolving command permissions.
- * @property context IFlowInteractionContext Extracted interaction data.
- * @property templates Array<string | TokenSegmentInput[]> Permission token templates.
- * @property additionalContext Record<string, unknown> | undefined Extra context values.
- * @property logSource string Logging identifier (example: 'ViewCommand').
- * @property action string | undefined Action name for logging (example: 'view').
- * @property skipApproval boolean | undefined Whether to skip approval flow.
- * @property permissions PermissionsObject | undefined Permissions config object.
- * @property member IFlowMember | null | undefined Pre-resolved member data.
- * @property memberProvider FlowMemberProvider | undefined Callback to lazily fetch member.
+ * Options for resolving command permissions
  */
 export interface ResolveCommandPermissionOptions {
     context: IFlowInteractionContext;
@@ -50,9 +36,9 @@ export interface ResolveCommandPermissionOptions {
 }
 
 /**
- * Resolve permissions for a command without Discord dependencies.
- * @param options ResolveCommandPermissionOptions Configuration for resolution.
- * @returns Promise<CommandPermissionResult> Resolution outcome.
+ * Resolve permissions for a command without Discord dependencies
+ * @param options ResolveCommandPermissionOptions Configuration for resolution
+ * @returns Promise of CommandPermissionResult Resolution outcome
  * @example
  * const result = await ResolveCommandPermission({
  *     context: ExtractFlowContext(interaction),

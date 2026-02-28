@@ -1,4 +1,3 @@
-// Types (DescriptionObjectReference comes from Scope, not re-exported here to avoid conflict)
 export type {
     DescriptionViewerState,
     DescriptionViewerOptions,

@@ -1,7 +1,7 @@
 import { neo4jClient } from '../../../Setup/Neo4j.js';
 
 /**
- * Character properties returned by view operations.
+ * @brief Character properties returned by view operations
  */
 export interface ViewCharacter {
     uid: string; // unique character identifier
@@ -12,7 +12,7 @@ export interface ViewCharacter {
 }
 
 /**
- * Character with additional relationship context.
+ * @brief Character with additional relationship context
  */
 export interface CharacterWithOrganization {
     character: ViewCharacter;
@@ -20,9 +20,9 @@ export interface CharacterWithOrganization {
 }
 
 /**
- * Retrieve a character by UID.
- * @param uid string Character unique identifier. @example 'char_abc123'
- * @returns Promise<ViewCharacter | null> Character data or null if not found.
+ * @brief Retrieves a character by UID
+ * @param uid string Character unique identifier @example 'char_abc123'
+ * @returns ViewCharacter or null Character data or null if not found
  */
 export async function GetCharacterByUid(uid: string): Promise<ViewCharacter | null> {
     const session = await neo4jClient.GetSession(`READ`);
@@ -49,9 +49,9 @@ export async function GetCharacterByUid(uid: string): Promise<ViewCharacter | nu
 }
 
 /**
- * Retrieve a character with organization context.
- * @param uid string Character unique identifier. @example 'char_abc123'
- * @returns Promise<CharacterWithOrganization | null> Character with organization name or null.
+ * @brief Retrieves a character with organization context
+ * @param uid string Character unique identifier @example 'char_abc123'
+ * @returns CharacterWithOrganization or null Character with organization name or null
  */
 export async function GetCharacterWithOrganization(uid: string): Promise<CharacterWithOrganization | null> {
     const session = await neo4jClient.GetSession(`READ`);
@@ -83,9 +83,9 @@ export async function GetCharacterWithOrganization(uid: string): Promise<Charact
 }
 
 /**
- * List all characters belonging to a specific organization.
- * @param organizationUid string Organization unique identifier. @example 'org_xyz789'
- * @returns Promise<ViewCharacter[]> Array of characters in the organization.
+ * @brief Lists all characters belonging to a specific organization
+ * @param organizationUid string Organization unique identifier @example 'org_xyz789'
+ * @returns ViewCharacter array Array of characters in the organization
  */
 export async function ListCharactersByOrganization(organizationUid: string): Promise<ViewCharacter[]> {
     const session = await neo4jClient.GetSession(`READ`);

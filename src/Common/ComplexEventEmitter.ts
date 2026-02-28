@@ -1,15 +1,3 @@
-/**
- * ComplexEventEmitter
- * @description A complex event emitter that supports event identifiers with string, number and undefined values
- * @example
- * const emitter = new ComplexEventEmitter();
- * emitter.on( [ 'chat', 123, 'message' ], ( text: string ) => {
- *    console.log( `Received message: ${ text }` );
- * } );
- * emitter.emit( [ 'chat', 123, 'message' ], 'Hello, world!' );
- * @exports ComplexEventEmitter
- */
-
 export type Listener<T> = (...args: T[]) => void;
 export type EventIdentifierSubset = string | number | boolean | undefined;
 export type EventIdentifier = EventIdentifierSubset[];
@@ -21,32 +9,18 @@ export class TrieNode<T> {
 }
 
 /**
- * ComplexEventEmitter
- * @description A complex event emitter that supports event identifiers with string, number and undefined values
- * @example
- * const emitter = new ComplexEventEmitter();
- * emitter.on( [ 'chat', 123, 'message' ], ( text: string ) => {
- *   console.log( `Received message: ${ text }` );
- * } );
- * emitter.emit( [ 'chat', 123, 'message' ], 'Hello, world!' );
- * @exports ComplexEventEmitter
- * @version 1.0.0
- * @since 1.0.0
- * @category Events
- * @param {void}
- * @returns {ComplexEventEmitter}
+ * @brief Complex event emitter supporting event identifiers with string number and undefined values
  */
 export default class ComplexEventEmitter<EventData> {
     protected root: TrieNode<EventData> = new TrieNode();
     protected listenerIdCounter: number = 0;
 
     /**
-   * @description Get the key part of the event identifier
-   * @protected
-   * @param {EventIdentifierSubset} value
-   * @returns {string}
-   * @memberof ComplexEventEmitter
-   */
+     * @brief Get the key part of the event identifier
+     * @protected
+     * @param value EventIdentifierSubset The value to convert to a key string
+     * @returns string The string representation of the value
+     */
     protected getKeyPart(value: EventIdentifierSubset): string {
         return value === undefined ? `*` : String(value);
     }
@@ -56,20 +30,14 @@ export default class ComplexEventEmitter<EventData> {
     }
 
     /**
-   * @description Add a listener to the event emitter
-   * @protected
-   * @param {TrieNode} node - The node to add the listener to
-   * @param {EventIdentifier} eventIdentifier - The event identifier to listen for
-   * @param {Listener} listener - The listener to add
-   * @param {boolean} once - Whether the listener should only be called once
-   * @returns {void}
-   * @memberof ComplexEventEmitter
-   * @since 1.0.0
-   * @version 1.0.0
-   * @category Events
-   * @example
-   * this.addListener( this.root, eventIdentifier, listener, false );
-   */
+     * @brief Add a listener to the event emitter
+     * @protected
+     * @param node TrieNode The trie node to attach the listener to
+     * @param eventIdentifier EventIdentifier The event path to listen for
+     * @param listener Listener The callback to invoke
+     * @param once boolean Whether to fire only once
+     * @returns string The generated listener id
+     */
     protected addListener(
         node: TrieNode<EventData>,
         eventIdentifier: EventIdentifier,
@@ -99,19 +67,11 @@ export default class ComplexEventEmitter<EventData> {
     }
 
     /**
-   * @description Add a listener to the event emitter
-   * @param {EventIdentifier} eventIdentifier - The event identifier to listen for
-   * @param {Listener} listener - The listener to add
-   * @returns {void}
-   * @memberof ComplexEventEmitter
-   * @since 1.0.0
-   * @version 1.0.0
-   * @category Events
-   * @example
-   * emitter.on( [ 'chat', 123, 'message' ], ( text: string ) => {
-   *  console.log( `Received message: ${ text }` );
-   * } );
-   */
+     * @brief Register a persistent listener for an event identifier
+     * @param eventIdentifier EventIdentifier The event path to listen for
+     * @param listener Listener The callback to invoke
+     * @returns string The generated listener id
+     */
     public on(
         eventIdentifier: EventIdentifier,
         listener: Listener<EventData>,
@@ -120,23 +80,11 @@ export default class ComplexEventEmitter<EventData> {
     }
 
     /**
-   * @description Add a listener to the event emitter that will only be called once
-   * @param {EventIdentifier} eventIdentifier - The event identifier to listen for
-   * @param {Listener} listener - The listener to add
-   * @returns {void}
-   * @memberof ComplexEventEmitter
-   * @since 1.0.0
-   * @version 1.0.0
-   * @category Events
-   * @example
-   * emitter.once( [ 'chat', 123, 'message' ], ( text: string ) => {
-   *   console.log( `Received message: ${ text }` );
-   * } );
-   * emitter.emit( [ 'chat', 123, 'message' ], 'Hello, world!' );
-   * // Output: Received message: Hello, world!
-   * emitter.emit( [ 'chat', 123, 'message' ], 'Hello, world!' );
-   * // No output
-   */
+     * @brief Register a listener that fires only once then removes itself
+     * @param eventIdentifier EventIdentifier The event path to listen for
+     * @param listener Listener The callback to invoke
+     * @returns string The generated listener id
+     */
     public once(
         eventIdentifier: EventIdentifier,
         listener: Listener<EventData>,
@@ -145,25 +93,18 @@ export default class ComplexEventEmitter<EventData> {
     }
 
     /**
-   * @description Emit an event
-   * @protected
-   * @param {TrieNode} node - The node to emit the event from
-   * @param {EventIdentifier} eventIdentifier - The event identifier to emit
-   * @param {any[]} args - The arguments to pass to the listeners
-   * @returns {void}
-   * @memberof ComplexEventEmitter
-   * @since 1.0.0
-   * @version 1.0.0
-   * @category Events
-   * @example
-   * this.emitListeners( this.root, eventIdentifier, args );
-   */
+     * @brief Recursively emit an event through the trie
+     * @protected
+     * @param node TrieNode The current trie node being traversed
+     * @param eventIdentifier EventIdentifier The remaining event path segments
+     * @param args any[] The arguments to pass to the listeners
+     */
     protected emitListeners(
         node: TrieNode<EventData>,
         eventIdentifier: EventIdentifier,
         args: any[],
     ): void {
-    // 1. Always fire the current node's listeners (prefix match)
+        // Always fire the current nodes listeners as prefix match
         for (const listener of node.listeners) {
             listener.listener(...args);
         }
@@ -191,36 +132,21 @@ export default class ComplexEventEmitter<EventData> {
     }
 
     /**
-   * @description Emit an event
-   * @param {EventIdentifier} eventIdentifier - The event identifier to emit
-   * @param {any[]} args - The arguments to pass to the listeners
-   * @returns {void}
-   * @memberof ComplexEventEmitter
-   * @since 1.0.0
-   * @version 1.0.0
-   * @category Events
-   * @example
-   * emitter.emit( [ 'chat', 123, 'message' ], 'Hello, world!' );
-   * // Output: Received message: Hello, world!
-   */
+     * @brief Emit an event to all matching listeners
+     * @param eventIdentifier EventIdentifier The event path to emit
+     * @param args any[] The arguments to pass to the listeners
+     */
     public emit(eventIdentifier: EventIdentifier, ...args: any[]): void {
         this.emitListeners(this.root, eventIdentifier, args);
     }
 
     /**
-   * @description Collect all event identifiers in the event emitter
-   * @protected
-   * @param {TrieNode} node - The node to collect the event identifiers from
-   * @param {EventIdentifier} prefix - The prefix to add to the event identifiers
-   * @returns {EventIdentifier[]}
-   * @memberof ComplexEventEmitter
-   * @since 1.0.0
-   * @version 1.0.0
-   * @category Events
-   * @example
-   * this.collectEventIdentifiers( this.root, [] );
-   * // Output: [ [ 'chat', 123, 'message' ], [ 'chat', 123, 'message', 'edited' ] ]
-   */
+     * @brief Collect all registered event identifiers from the trie
+     * @protected
+     * @param node TrieNode The current trie node being traversed
+     * @param prefix EventIdentifier The accumulated path segments
+     * @returns EventIdentifier[] All event identifiers found in the subtree
+     */
     protected collectEventIdentifiers(
         node: TrieNode<EventData>,
         prefix: EventIdentifier,
@@ -240,41 +166,19 @@ export default class ComplexEventEmitter<EventData> {
         return result;
     }
     /**
-   * @description Get a list of all event identifiers in the event emitter
-   * @returns {EventIdentifier[]} - An array of event identifiers
-   * @memberof ComplexEventEmitter
-   * @since 1.0.0
-   * @version 1.0.0
-   * @category Events
-   * @example
-   * const emitter = new ComplexEventEmitter();
-   * emitter.on( [ 'chat', 123, 'message' ], ( text: string ) => {
-   *    console.log( `Received message: ${ text }` );
-   * } );
-   * emitter.on( [ 'chat', 123, 'message', 'edited' ], ( text: string ) => {
-   *    console.log( `Received edited message: ${ text }` );
-   * } );
-   * console.log( emitter.getEventList() );
-   * // Output: [ [ 'chat', 123, 'message' ], [ 'chat', 123, 'message', 'edited' ] ]
-   */
+     * @brief Get a list of all registered event identifiers
+     * @returns EventIdentifier[] All event identifiers in the emitter
+     */
     public getEventList(): EventIdentifier[] {
         return this.collectEventIdentifiers(this.root, []);
     }
 
     /**
-   * @description Remove all listeners from the event emitter
-   * @protected
-   * @param {TrieNode} node - The node to remove the listeners from
-   * @param {EventIdentifier} eventIdentifier - The event identifier to remove the listeners from
-   * @returns {void}
-   * @memberof ComplexEventEmitter
-   * @since 1.0.0
-   * @version 1.0.0
-   * @category Events
-   * @example
-   * this.removeListeners( this.root, eventIdentifier );
-   * // Output: All listeners for the event identifier are removed
-   */
+     * @brief Remove all listeners at a specific event identifier
+     * @protected
+     * @param node TrieNode The current trie node being traversed
+     * @param eventIdentifier EventIdentifier The event path to clear
+     */
     protected removeListeners(
         node: TrieNode<EventData>,
         eventIdentifier: EventIdentifier,
@@ -297,36 +201,20 @@ export default class ComplexEventEmitter<EventData> {
     }
 
     /**
-   * @description Remove all listeners from the event emitter
-   * @param {EventIdentifier} eventIdentifier - The event identifier to remove the listeners from
-   * @returns {void}
-   * @memberof ComplexEventEmitter
-   * @since 1.0.0
-   * @version 1.0.0
-   * @category Events
-   * @example
-   * emitter.removeAllListeners( [ 'chat', 123, 'message' ] );
-   * // Output: All listeners for the event identifier are removed
-   */
+     * @brief Remove all listeners for a given event identifier
+     * @param eventIdentifier EventIdentifier The event path to clear
+     */
     public removeAllListeners(eventIdentifier: EventIdentifier): void {
         this.removeListeners(this.root, eventIdentifier);
     }
 
     /**
-   * @description Remove a specific listener from the event emitter
-   * @protected
-   * @param {TrieNode} node - The node to remove the listener from
-   * @param {EventIdentifier} eventIdentifier - The event identifier to remove the listener from
-   * @param {Listener} listener - The listener to remove
-   * @returns {void}
-   * @memberof ComplexEventEmitter
-   * @since 1.0.0
-   * @version 1.0.0
-   * @category Events
-   * @example
-   * this.removeSpecificListener( this.root, eventIdentifier, listener );
-   * // Output: The listener for the event identifier is removed
-   */
+     * @brief Remove a specific listener by id from an event identifier
+     * @protected
+     * @param node TrieNode The current trie node being traversed
+     * @param eventIdentifier EventIdentifier The event path to search
+     * @param id string The listener id to remove
+     */
     protected removeSpecificListener(
         node: TrieNode<EventData>,
         eventIdentifier: EventIdentifier,
@@ -354,18 +242,10 @@ export default class ComplexEventEmitter<EventData> {
     }
 
     /**
-   * @description Remove a specific listener from the event emitter
-   * @param {EventIdentifier} eventIdentifier - The event identifier to remove the listener from
-   * @param {Listener} listener - The listener to remove
-   * @returns {void}
-   * @memberof ComplexEventEmitter
-   * @since 1.0.0
-   * @version 1.0.0
-   * @category Events
-   * @example
-   * emitter.off( [ 'chat', 123, 'message' ], listener );
-   * // Output: The listener for the event identifier is removed
-   */
+     * @brief Remove a specific listener by id
+     * @param eventIdentifier EventIdentifier The event path the listener is registered on
+     * @param id string or undefined The listener id to remove
+     */
     public off(eventIdentifier: EventIdentifier, id: string | undefined): void {
         if (id) {
             this.removeSpecificListener(this.root, eventIdentifier, id);
