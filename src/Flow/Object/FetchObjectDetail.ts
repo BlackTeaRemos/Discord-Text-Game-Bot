@@ -1,6 +1,6 @@
 import { neo4jClient } from '../../Setup/Neo4j.js';
 import { ParameterSnapshotRepository } from '../../Repository/GameObject/ParameterSnapshotRepository.js';
-import type { IParameterSnapshot } from '../../Domain/GameObject/IParameterSnapshot.js';
+import type { IParameterSnapshot } from '../../Domain/GameObject/Entity/IParameterSnapshot.js';
 
 /**
  * @brief Represents a relationship from the object to another node

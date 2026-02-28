@@ -1,10 +1,10 @@
 import { randomUUID } from 'crypto';
 import { neo4jClient } from '../../Setup/Neo4j.js';
 import { log } from '../../Common/Log.js';
-import type { IGameObject } from '../../Domain/GameObject/IGameObject.js';
-import type { IGameObjectRepository } from '../../Domain/GameObject/IGameObjectRepository.js';
-import type { IParameterValue } from '../../Domain/GameObject/IParameterValue.js';
-import type { IParameterDefinition } from '../../Domain/GameObject/IParameterDefinition.js';
+import type { IGameObject } from '../../Domain/GameObject/Entity/IGameObject.js';
+import type { IGameObjectRepository } from '../../Domain/GameObject/Repository/IGameObjectRepository.js';
+import type { IParameterValue } from '../../Domain/GameObject/Entity/IParameterValue.js';
+import type { IParameterDefinition } from '../../Domain/GameObject/Entity/IParameterDefinition.js';
 import { ParameterSnapshotRepository } from './ParameterSnapshotRepository.js';
 
 /** Neo4j node label for game object instances */

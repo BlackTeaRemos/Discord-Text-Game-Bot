@@ -8,8 +8,8 @@ import { AnalyzeMerge, ExecuteMerge, type IMergeAnalysisResult } from '../../Flo
 import { GameObjectTemplateRepository } from '../../Repository/GameObject/GameObjectTemplateRepository.js';
 import { GameObjectRepository } from '../../Repository/GameObject/GameObjectRepository.js';
 import { TranslateFromContext } from '../../Services/I18nService.js';
-import type { IActionDefinition } from '../../Domain/GameObject/IActionDefinition.js';
-import type { ITemplateDisplayConfig } from '../../Domain/GameObject/ITemplateDisplayConfig.js';
+import type { IActionDefinition } from '../../Domain/GameObject/Action/IActionDefinition.js';
+import type { ITemplateDisplayConfig } from '../../Domain/GameObject/Display/ITemplateDisplayConfig.js';
 
 /** Log tag for this module */
 const LOG_TAG = `Commands/Import/Template`;

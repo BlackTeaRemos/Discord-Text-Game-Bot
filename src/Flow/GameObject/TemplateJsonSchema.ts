@@ -29,10 +29,10 @@
  * }
  */
 
-import type { ParameterValueType } from '../../Domain/GameObject/IParameterDefinition.js';
-import type { ActionTrigger } from '../../Domain/GameObject/IActionDefinition.js';
-import type { ICardStyleConfig } from '../../Domain/GameObject/ICardStyleConfig.js';
-import type { ParameterGraphType } from '../../Domain/GameObject/IParameterDisplayConfig.js';
+import type { ParameterValueType } from '../../Domain/GameObject/Entity/IParameterDefinition.js';
+import type { ActionTrigger } from '../../Domain/GameObject/Action/IActionDefinition.js';
+import type { ICardStyleConfig } from '../../Domain/GameObject/Display/ICardStyleConfig.js';
+import type { ParameterGraphType } from '../../Domain/GameObject/Display/IParameterDisplayConfig.js';
 
 /**
  * Root schema for an uploaded template JSON.

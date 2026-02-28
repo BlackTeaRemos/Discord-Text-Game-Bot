@@ -8,7 +8,7 @@ import {
     FONT_FAMILY_BODY,
     PROPERTY_ROW_HEIGHT,
 } from './CardTheme.js';
-import type { ParameterGraphType } from '../../Domain/GameObject/IParameterDisplayConfig.js';
+import type { ParameterGraphType } from '../../Domain/GameObject/Display/IParameterDisplayConfig.js';
 import { BuildSparklineElement } from './SparklineBuilder.js';
 
 const _AVG_UPPERCASE_CHAR_WIDTH = 9;

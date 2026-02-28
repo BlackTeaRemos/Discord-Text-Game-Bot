@@ -1,7 +1,7 @@
 import { GameObjectTemplateRepository } from '../../Repository/GameObject/GameObjectTemplateRepository.js';
 import { GameObjectRepository } from '../../Repository/GameObject/GameObjectRepository.js';
 import { FetchObjectDetail } from '../Object/FetchObjectDetail.js';
-import type { ITemplateDisplayConfig } from '../../Domain/GameObject/ITemplateDisplayConfig.js';
+import type { ITemplateDisplayConfig } from '../../Domain/GameObject/Display/ITemplateDisplayConfig.js';
 import type { ObjectDetail } from '../Object/FetchObjectDetail.js';
 import { RenderObjectCard } from '../../Framework/ImageGen/ObjectCardRenderer.js';
 import { log } from '../../Common/Log.js';

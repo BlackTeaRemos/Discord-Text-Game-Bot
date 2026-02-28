@@ -7,10 +7,10 @@ import {
     PROPERTY_ROW_HEIGHT,
 } from './CardTheme.js';
 import { FormatPropertyKey } from '../DetailFormatters/FormatPropertyKey.js';
-import type { IParameterValue } from '../../Domain/GameObject/IParameterValue.js';
-import type { ITemplateDisplayConfig } from '../../Domain/GameObject/ITemplateDisplayConfig.js';
-import type { IParameterDisplayConfig, ParameterGraphType } from '../../Domain/GameObject/IParameterDisplayConfig.js';
-import type { IDisplayChart } from '../../Domain/GameObject/IDisplayChart.js';
+import type { IParameterValue } from '../../Domain/GameObject/Entity/IParameterValue.js';
+import type { ITemplateDisplayConfig } from '../../Domain/GameObject/Display/ITemplateDisplayConfig.js';
+import type { IParameterDisplayConfig, ParameterGraphType } from '../../Domain/GameObject/Display/IParameterDisplayConfig.js';
+import type { IDisplayChart } from '../../Domain/GameObject/Display/IDisplayChart.js';
 import { Translate } from '../../Services/I18nService.js';
 import {
     GetCardLayoutStyle,

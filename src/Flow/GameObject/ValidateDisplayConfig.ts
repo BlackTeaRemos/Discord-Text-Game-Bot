@@ -1,5 +1,5 @@
-import type { ITemplateDisplayConfig } from '../../Domain/GameObject/ITemplateDisplayConfig.js';
-import type { ICardStyleConfig } from '../../Domain/GameObject/ICardStyleConfig.js';
+import type { ITemplateDisplayConfig } from '../../Domain/GameObject/Display/ITemplateDisplayConfig.js';
+import type { ICardStyleConfig } from '../../Domain/GameObject/Display/ICardStyleConfig.js';
 
 /** Allowed graph type values for individual parameters. */
 const _VALID_GRAPH_TYPES = new Set([`sparkline`, `bar`, `none`]);

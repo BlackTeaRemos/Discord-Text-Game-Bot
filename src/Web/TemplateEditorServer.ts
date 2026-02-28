@@ -8,7 +8,7 @@ import { ValidateTemplateJson } from '../Flow/GameObject/ValidateTemplateJson.js
 import { ExpressionEvaluator } from '../Flow/GameObject/ExpressionEvaluator.js';
 import { GameObjectTemplateRepository } from '../Repository/GameObject/GameObjectTemplateRepository.js';
 import { ValidateDisplayConfig } from '../Flow/GameObject/ValidateDisplayConfig.js';
-import type { ITemplateDisplayConfig } from '../Domain/GameObject/ITemplateDisplayConfig.js';
+import type { ITemplateDisplayConfig } from '../Domain/GameObject/Display/ITemplateDisplayConfig.js';
 import { RenderCardPreview } from '../Flow/GameObject/RenderCardPreview.js';
 
 /** Default port for the template editor web server */

@@ -4,7 +4,7 @@ import { TurnActionEngine } from './TurnActionEngine.js';
 import { GameObjectRepository } from '../../Repository/GameObject/GameObjectRepository.js';
 import { GameObjectTemplateRepository } from '../../Repository/GameObject/GameObjectTemplateRepository.js';
 import { ParameterSnapshotRepository } from '../../Repository/GameObject/ParameterSnapshotRepository.js';
-import type { IActionExecutionResult } from '../../Domain/GameObject/IActionExecutionResult.js';
+import type { IActionExecutionResult } from '../../Domain/GameObject/Action/IActionExecutionResult.js';
 
 /** Module level log tag */
 const LOG_TAG = `Flow/GameObject/AdvanceTurn`;

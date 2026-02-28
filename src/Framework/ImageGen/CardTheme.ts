@@ -1,4 +1,4 @@
-import type { ICardStyleConfig } from '../../Domain/GameObject/ICardStyleConfig.js';
+import type { ICardStyleConfig } from '../../Domain/GameObject/Display/ICardStyleConfig.js';
 
 /** Card body background pure black */
 export const CARD_BACKGROUND = `#000000`;

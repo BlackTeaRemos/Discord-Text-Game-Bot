@@ -8,7 +8,7 @@ import type { OrganizationView, OrganizationWithMembers } from '../../Flow/Objec
 import { GetUserByUid } from '../../Flow/Object/User/View.js';
 import type { ViewUser } from '../../Flow/Object/User/View/ViewUser.js';
 import { GameObjectRepository } from '../../Repository/GameObject/GameObjectRepository.js';
-import type { IGameObject } from '../../Domain/GameObject/IGameObject.js';
+import type { IGameObject } from '../../Domain/GameObject/Entity/IGameObject.js';
 import { sanitizeDescriptionText } from '../../Flow/Object/Description/BuildDefinition.js';
 import { GetPriorityScopedDescription } from '../../Flow/Object/Description/Scope/GetPriorityScopedDescription.js';
 import { GetUserOrganizations } from '../../Flow/Object/Organization/View/GetUserOrganizations.js';

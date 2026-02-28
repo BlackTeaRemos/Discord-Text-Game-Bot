@@ -1,4 +1,4 @@
-import type { IParameterSnapshot } from '../../Domain/GameObject/IParameterSnapshot.js';
+import type { IParameterSnapshot } from '../../Domain/GameObject/Entity/IParameterSnapshot.js';
 import type { SatoriElement } from './SatoriElement.js';
 import { ACCENT_COLOR } from './CardTheme.js';
 

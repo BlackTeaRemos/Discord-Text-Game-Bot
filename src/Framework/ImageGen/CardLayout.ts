@@ -15,9 +15,9 @@ import {
 } from './CardTheme.js';
 import { FormatPropertyKey } from '../DetailFormatters/FormatPropertyKey.js';
 import { ParseJsonProperty } from '../DetailFormatters/ParseJsonProperty.js';
-import type { IParameterValue } from '../../Domain/GameObject/IParameterValue.js';
-import type { IActionDefinition } from '../../Domain/GameObject/IActionDefinition.js';
-import type { ITemplateDisplayConfig } from '../../Domain/GameObject/ITemplateDisplayConfig.js';
+import type { IParameterValue } from '../../Domain/GameObject/Entity/IParameterValue.js';
+import type { IActionDefinition } from '../../Domain/GameObject/Action/IActionDefinition.js';
+import type { ITemplateDisplayConfig } from '../../Domain/GameObject/Display/ITemplateDisplayConfig.js';
 import { BuildAllTimeSeries } from './SparklineBuilder.js';
 import { Translate } from '../../Services/I18nService.js';
 import {

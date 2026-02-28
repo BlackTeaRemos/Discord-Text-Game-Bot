@@ -1,12 +1,12 @@
 import { log } from '../../Common/Log.js';
-import type { ActionTrigger, IActionDefinition } from '../../Domain/GameObject/IActionDefinition.js';
-import type { IActionExecutionResult, IActionExecutionError } from '../../Domain/GameObject/IActionExecutionResult.js';
-import type { IGameObject } from '../../Domain/GameObject/IGameObject.js';
-import type { IGameObjectTemplate } from '../../Domain/GameObject/IGameObjectTemplate.js';
-import type { IParameterValue } from '../../Domain/GameObject/IParameterValue.js';
-import type { ITurnActionEngine } from '../../Domain/GameObject/ITurnActionEngine.js';
-import type { IGameObjectRepository } from '../../Domain/GameObject/IGameObjectRepository.js';
-import type { IGameObjectTemplateRepository } from '../../Domain/GameObject/IGameObjectTemplateRepository.js';
+import type { ActionTrigger, IActionDefinition } from '../../Domain/GameObject/Action/IActionDefinition.js';
+import type { IActionExecutionResult, IActionExecutionError } from '../../Domain/GameObject/Action/IActionExecutionResult.js';
+import type { IGameObject } from '../../Domain/GameObject/Entity/IGameObject.js';
+import type { IGameObjectTemplate } from '../../Domain/GameObject/Entity/IGameObjectTemplate.js';
+import type { IParameterValue } from '../../Domain/GameObject/Entity/IParameterValue.js';
+import type { ITurnActionEngine } from '../../Domain/GameObject/Action/ITurnActionEngine.js';
+import type { IGameObjectRepository } from '../../Domain/GameObject/Repository/IGameObjectRepository.js';
+import type { IGameObjectTemplateRepository } from '../../Domain/GameObject/Repository/IGameObjectTemplateRepository.js';
 import { ExpressionEvaluator, type CrossObjectState } from './ExpressionEvaluator.js';
 
 /** Module level tag for logging */

@@ -4,7 +4,7 @@ import { ACCENT_COLOR } from './CardTheme.js';
 import { BuildCardLayout } from './CardLayout.js';
 import type { CardLayoutOptions } from './CardLayout.js';
 import { RenderToPng } from './RenderToPng.js';
-import type { ITemplateDisplayConfig } from '../../Domain/GameObject/ITemplateDisplayConfig.js';
+import type { ITemplateDisplayConfig } from '../../Domain/GameObject/Display/ITemplateDisplayConfig.js';
 
 /**
  * Options for rendering an object card image

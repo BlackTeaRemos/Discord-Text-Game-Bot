@@ -1,11 +1,11 @@
 import { log } from '../../Common/Log.js';
-import type { IGameObjectTemplate } from '../../Domain/GameObject/IGameObjectTemplate.js';
-import type { ITemplateDisplayConfig } from '../../Domain/GameObject/ITemplateDisplayConfig.js';
-import type { IParameterDefinition } from '../../Domain/GameObject/IParameterDefinition.js';
-import type { IParameterValue } from '../../Domain/GameObject/IParameterValue.js';
-import type { IActionDefinition } from '../../Domain/GameObject/IActionDefinition.js';
-import type { IGameObjectTemplateRepository } from '../../Domain/GameObject/IGameObjectTemplateRepository.js';
-import type { IGameObjectRepository } from '../../Domain/GameObject/IGameObjectRepository.js';
+import type { IGameObjectTemplate } from '../../Domain/GameObject/Entity/IGameObjectTemplate.js';
+import type { ITemplateDisplayConfig } from '../../Domain/GameObject/Display/ITemplateDisplayConfig.js';
+import type { IParameterDefinition } from '../../Domain/GameObject/Entity/IParameterDefinition.js';
+import type { IParameterValue } from '../../Domain/GameObject/Entity/IParameterValue.js';
+import type { IActionDefinition } from '../../Domain/GameObject/Action/IActionDefinition.js';
+import type { IGameObjectTemplateRepository } from '../../Domain/GameObject/Repository/IGameObjectTemplateRepository.js';
+import type { IGameObjectRepository } from '../../Domain/GameObject/Repository/IGameObjectRepository.js';
 
 /** Log tag for merge operations */
 const LOG_TAG = `Flow/GameObject/MergeTemplate`;

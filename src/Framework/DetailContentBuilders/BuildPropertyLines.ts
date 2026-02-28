@@ -1,6 +1,6 @@
 import type { ObjectDetail } from '../../Flow/Object/FetchObjectDetail.js';
-import type { IParameterValue } from '../../Domain/GameObject/IParameterValue.js';
-import type { IActionDefinition } from '../../Domain/GameObject/IActionDefinition.js';
+import type { IParameterValue } from '../../Domain/GameObject/Entity/IParameterValue.js';
+import type { IActionDefinition } from '../../Domain/GameObject/Action/IActionDefinition.js';
 import { FormatPropertyKey } from '../DetailFormatters/FormatPropertyKey.js';
 import { FormatPropertyValue } from '../DetailFormatters/FormatPropertyValue.js';
 import { FormatParameterValue } from '../DetailFormatters/FormatParameterValue.js';
