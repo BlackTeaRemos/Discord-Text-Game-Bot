@@ -1,6 +1,6 @@
 import type { IParameterDefinition } from './IParameterDefinition.js';
-import type { IActionDefinition } from './IActionDefinition.js';
-import type { ITemplateDisplayConfig } from './ITemplateDisplayConfig.js';
+import type { IActionDefinition } from '../Action/IActionDefinition.js';
+import type { ITemplateDisplayConfig } from '../Display/ITemplateDisplayConfig.js';
 
 export interface IGameObjectTemplate {
     /** Unique template identifier. @example 'tpl_factory_abc123' */

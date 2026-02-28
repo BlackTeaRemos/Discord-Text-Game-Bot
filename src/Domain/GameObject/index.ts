@@ -1,28 +1,22 @@
-export type { IGameObjectTemplate } from './IGameObjectTemplate.js';
+export type { IGameObjectTemplate } from './Entity/IGameObjectTemplate.js';
 
-// Instance
-export type { IGameObject } from './IGameObject.js';
+export type { IGameObject } from './Entity/IGameObject.js';
 
-// Parameter types
-export type { IParameterDefinition, ParameterValueType } from './IParameterDefinition.js';
-export type { IParameterValue } from './IParameterValue.js';
-export type { IParameterSnapshot } from './IParameterSnapshot.js';
+export type { IParameterDefinition, ParameterValueType } from './Entity/IParameterDefinition.js';
+export type { IParameterValue } from './Entity/IParameterValue.js';
+export type { IParameterSnapshot } from './Entity/IParameterSnapshot.js';
 
-// Action types
-export type { IActionDefinition, ActionTrigger } from './IActionDefinition.js';
-export type { IActionExecutionResult, IActionExecutionError } from './IActionExecutionResult.js';
+export type { IActionDefinition, ActionTrigger } from './Action/IActionDefinition.js';
+export type { IActionExecutionResult, IActionExecutionError } from './Action/IActionExecutionResult.js';
 
-// Display configuration
-export type { ITemplateDisplayConfig } from './ITemplateDisplayConfig.js';
-export type { ICardStyleConfig } from './ICardStyleConfig.js';
-export type { IDisplayGroup } from './IDisplayGroup.js';
-export type { IDisplayChart, DisplayChartType } from './IDisplayChart.js';
-export type { IParameterDisplayConfig, ParameterGraphType } from './IParameterDisplayConfig.js';
+export type { ITemplateDisplayConfig } from './Display/ITemplateDisplayConfig.js';
+export type { ICardStyleConfig } from './Display/ICardStyleConfig.js';
+export type { IDisplayGroup } from './Display/IDisplayGroup.js';
+export type { IDisplayChart, DisplayChartType } from './Display/IDisplayChart.js';
+export type { IParameterDisplayConfig, ParameterGraphType } from './Display/IParameterDisplayConfig.js';
 
-// Repository interfaces
-export type { IGameObjectTemplateRepository } from './IGameObjectTemplateRepository.js';
-export type { IGameObjectRepository } from './IGameObjectRepository.js';
-export type { IParameterSnapshotRepository } from './IParameterSnapshotRepository.js';
+export type { IGameObjectTemplateRepository } from './Repository/IGameObjectTemplateRepository.js';
+export type { IGameObjectRepository } from './Repository/IGameObjectRepository.js';
+export type { IParameterSnapshotRepository } from './Repository/IParameterSnapshotRepository.js';
 
-// Engine interface
-export type { ITurnActionEngine } from './ITurnActionEngine.js';
+export type { ITurnActionEngine } from './Action/ITurnActionEngine.js';

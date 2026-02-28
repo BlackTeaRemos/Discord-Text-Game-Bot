@@ -1,11 +1,9 @@
 import { randomUUID } from 'crypto';
 import { neo4jClient } from '../../Setup/Neo4j.js';
 import { log } from '../../Common/Log.js';
-import type { IParameterSnapshot } from '../../Domain/GameObject/IParameterSnapshot.js';
-import type { IParameterSnapshotRepository } from '../../Domain/GameObject/IParameterSnapshotRepository.js';
-import type { IParameterValue } from '../../Domain/GameObject/IParameterValue.js';
-
-// ParameterSnapshotRepository.ts  Neo4j backed repository for parameter snapshots
+import type { IParameterSnapshot } from '../../Domain/GameObject/Entity/IParameterSnapshot.js';
+import type { IParameterSnapshotRepository } from '../../Domain/GameObject/Repository/IParameterSnapshotRepository.js';
+import type { IParameterValue } from '../../Domain/GameObject/Entity/IParameterValue.js';
 
 /** Neo4j node label for snapshot records */
 const SNAPSHOT_LABEL = `ParameterSnapshot`;

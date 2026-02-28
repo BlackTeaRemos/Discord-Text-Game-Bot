@@ -1,5 +1,5 @@
-import type { IGameObject } from './IGameObject.js';
-import type { IParameterValue } from './IParameterValue.js';
+import type { IGameObject } from '../Entity/IGameObject.js';
+import type { IParameterValue } from '../Entity/IParameterValue.js';
 
 export interface IGameObjectRepository {
     /**

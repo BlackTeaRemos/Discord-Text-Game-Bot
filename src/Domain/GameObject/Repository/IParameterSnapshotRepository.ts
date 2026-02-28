@@ -1,5 +1,5 @@
-import type { IParameterSnapshot } from './IParameterSnapshot.js';
-import type { IParameterValue } from './IParameterValue.js';
+import type { IParameterSnapshot } from '../Entity/IParameterSnapshot.js';
+import type { IParameterValue } from '../Entity/IParameterValue.js';
 
 /**
  * @brief Repository contract for persisting and querying parameter snapshots capturing full state at specific moments

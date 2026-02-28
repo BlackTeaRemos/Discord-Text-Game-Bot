@@ -1,4 +1,4 @@
-import type { IGameObjectTemplate } from './IGameObjectTemplate.js';
+import type { IGameObjectTemplate } from '../Entity/IGameObjectTemplate.js';
 
 export interface IGameObjectTemplateRepository {
     /**

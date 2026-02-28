@@ -1,4 +1,4 @@
-import type { IParameterValue } from './IParameterValue.js';
+import type { IParameterValue } from '../Entity/IParameterValue.js';
 
 export interface IActionExecutionResult {
     /** UID of the game object that was processed. @example 'obj_factory_001' */

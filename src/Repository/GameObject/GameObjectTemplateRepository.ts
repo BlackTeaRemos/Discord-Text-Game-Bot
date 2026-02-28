@@ -1,11 +1,9 @@
 import { randomUUID } from 'crypto';
 import { neo4jClient } from '../../Setup/Neo4j.js';
 import { log } from '../../Common/Log.js';
-import type { IGameObjectTemplate } from '../../Domain/GameObject/IGameObjectTemplate.js';
-import type { ITemplateDisplayConfig } from '../../Domain/GameObject/ITemplateDisplayConfig.js';
-import type { IGameObjectTemplateRepository } from '../../Domain/GameObject/IGameObjectTemplateRepository.js';
-
-// GameObjectTemplateRepository.ts  Neo4j backed repository for game object templates
+import type { IGameObjectTemplate } from '../../Domain/GameObject/Entity/IGameObjectTemplate.js';
+import type { ITemplateDisplayConfig } from '../../Domain/GameObject/Display/ITemplateDisplayConfig.js';
+import type { IGameObjectTemplateRepository } from '../../Domain/GameObject/Repository/IGameObjectTemplateRepository.js';
 
 /** Neo4j node label for template nodes */
 const TEMPLATE_LABEL = `GameObjectTemplate`;
