@@ -9,9 +9,9 @@ import {
     REL_PART_OF_GAME,
     REL_RELATES_TO,
     TASK_LABEL,
-} from './TaskConstants.js';
-import { MapTaskRecord } from './MapTaskRecord.js';
-import type { CreateTaskInput } from './TaskFlowTypes.js';
+} from '../Support/TaskConstants.js';
+import { MapTaskRecord } from '../Support/MapTaskRecord.js';
+import type { CreateTaskInput } from '../Support/TaskFlowTypes.js';
 
 /**
  * Create task record and required user nodes in Neo4j

@@ -1,6 +1,6 @@
 import type { Neo4jClient } from '../../Repository/Neo4jClient.js';
-import { TASK_LABEL, REL_BELONGS_TO } from './TaskConstants.js';
-import type { RemoveTaskInput } from './TaskFlowTypes.js';
+import { TASK_LABEL, REL_BELONGS_TO } from '../Support/TaskConstants.js';
+import type { RemoveTaskInput } from '../Support/TaskFlowTypes.js';
 
 /**
  * Permanently remove a task record from Neo4j after verifying permissions.

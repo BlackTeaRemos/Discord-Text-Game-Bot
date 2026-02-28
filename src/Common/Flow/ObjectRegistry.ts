@@ -13,7 +13,7 @@ import { sanitizeDescriptionText } from '../../Flow/Object/Description/BuildDefi
 import { GetPriorityScopedDescription } from '../../Flow/Object/Description/Scope/GetPriorityScopedDescription.js';
 import { GetUserOrganizations } from '../../Flow/Object/Organization/View/GetUserOrganizations.js';
 import { ResolveEmbedThumbnailUrl } from './ResolveEmbedThumbnailUrl.js';
-import { FetchTaskById } from '../../Flow/Task/FetchTaskById.js';
+import { FetchTaskById } from '../../Flow/Task/Query/FetchTaskById.js';
 import { Translate } from '../../Services/I18nService.js';
 
 export type ObjectTypeKey = `game` | `organization` | `user` | `building` | `task`;

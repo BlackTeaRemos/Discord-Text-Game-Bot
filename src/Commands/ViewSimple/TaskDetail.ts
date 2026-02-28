@@ -7,8 +7,8 @@ import {
 } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 import type { TaskListItem } from '../../Domain/Task.js';
-import { FetchTaskById } from '../../Flow/Task/FetchTaskById.js';
-import { UpdateTaskStatus } from '../../Flow/Task/UpdateTaskStatus.js';
+import { FetchTaskById } from '../../Flow/Task/Query/FetchTaskById.js';
+import { UpdateTaskStatus } from '../../Flow/Task/Command/UpdateTaskStatus.js';
 import { FetchDescriptionForObject } from '../../Flow/Object/Description/FetchForObject.js';
 import { FetchObjectDetail } from '../../Flow/Object/FetchObjectDetail.js';
 import { ResolveObjectActions } from '../../Flow/Object/ResolveObjectActions.js';

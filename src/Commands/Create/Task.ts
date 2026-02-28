@@ -3,8 +3,8 @@ import type { ChatInputCommandInteraction, Message, MessageContextMenuCommandInt
 import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
 import { ListGamesForServer } from '../../Flow/Object/Game/ListGamesForServer.js';
 import { GetGameCurrentTurn } from '../../Flow/Object/Game/Turn.js';
-import { CreateTaskRecord } from '../../Flow/Task/CreateTaskRecord.js';
-import { RemoveTask } from '../../Flow/Task/RemoveTask.js';
+import { CreateTaskRecord } from '../../Flow/Task/Command/CreateTaskRecord.js';
+import { RemoveTask } from '../../Flow/Task/Command/RemoveTask.js';
 import { neo4jClient } from '../../Setup/Neo4j.js';
 import { flowManager } from '../../Common/Flow/Manager.js';
 import { log } from '../../Common/Log.js';

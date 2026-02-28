@@ -10,8 +10,8 @@ import type { InteractionExecutionContextCarrier } from '../../Common/Type/Inter
 import type { TaskListItem } from '../../Domain/Task.js';
 import { ListGamesForServer } from '../../Flow/Object/Game/ListGamesForServer.js';
 import { GetGameCurrentTurn } from '../../Flow/Object/Game/Turn.js';
-import { FetchTasksForViewer } from '../../Flow/Task/FetchTasksForViewer.js';
-import { ResolveStatusesForGroup } from '../../Flow/Task/ResolveStatusesForGroup.js';
+import { FetchTasksForViewer } from '../../Flow/Task/Query/FetchTasksForViewer.js';
+import { ResolveStatusesForGroup } from '../../Flow/Task/Support/ResolveStatusesForGroup.js';
 import { neo4jClient } from '../../Setup/Neo4j.js';
 import { flowManager } from '../../Common/Flow/Manager.js';
 import { log } from '../../Common/Log.js';
