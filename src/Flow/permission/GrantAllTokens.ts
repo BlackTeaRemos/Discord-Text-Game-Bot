@@ -1,7 +1,7 @@
 import { GrantForever } from '../../Common/Permission/Store.js';
 import { CollectAllTokens } from './CollectAllTokens.js';
 import type { DiscoveredToken } from './CollectAllTokens.js';
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 
 /**
  * Result of a bulk grant all operation
@@ -34,14 +34,14 @@ export async function GrantAllTokens(
             await GrantForever(guildId, userId, discovered.token, grantedBy);
             grantedCount++;
         } catch(error) {
-            log.error(
+            Log.error(
                 `Failed to grant token ${discovered.serialized} to ${userId}: ${(error as Error).message}`,
                 `GrantAllTokens`,
             );
         }
     }
 
-    log.info(
+    Log.info(
         `Granted ${grantedCount}/${allTokens.length} tokens to user ${userId} in guild ${guildId}`,
         `GrantAllTokens`,
     );

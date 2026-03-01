@@ -12,12 +12,12 @@ import { UpdateTaskStatus } from '../../Flow/Task/Command/UpdateTaskStatus.js';
 import { FetchDescriptionForObject } from '../../Flow/Object/Description/FetchForObject.js';
 import { FetchObjectDetail } from '../../Flow/Object/FetchObjectDetail.js';
 import { ResolveObjectActions } from '../../Flow/Object/ResolveObjectActions.js';
-import { BuildDetailPages } from '../../Framework/ObjectDetailPageBuilder.js';
+import { BuildDetailPages } from '../../Framework/ObjectView/ObjectDetailPageBuilder.js';
 import { neo4jClient } from '../../Setup/Neo4j.js';
 import { flowManager } from '../../Common/Flow/Manager.js';
 import type { ExecutionContext } from '../../Domain/Command.js';
 import { TranslateFromContext, GetCachedLocale } from '../../Services/I18nService.js';
-import type { ObjectViewPage } from '../../Framework/ObjectViewTypes.js';
+import type { ObjectViewPage } from '../../Framework/ObjectView/ObjectViewTypes.js';
 
 const VIEW_TASK_DETAIL_PREV_ID = `view_task_detail_prev`;
 const VIEW_TASK_DETAIL_NEXT_ID = `view_task_detail_next`;

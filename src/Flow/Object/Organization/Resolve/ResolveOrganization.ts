@@ -1,4 +1,4 @@
-import { log } from '../../../../Common/Log.js';
+import { Log } from '../../../../Common/Log.js';
 import { GetOrganizationByUid } from '../View/GetOrganizationByUid.js';
 import { GetUserOrganizations } from '../View/GetUserOrganizations.js';
 import type { OrganizationResolveOptions, OrganizationResolveResult } from './Types.js';
@@ -31,7 +31,7 @@ export async function ResolveOrganization(
     const { context } = options;
     const { organizationUid, userId, action } = context;
 
-    log.debug(
+    Log.debug(
         `Resolving organization permission`,
         `OrganizationResolve`,
         `org=${organizationUid} user=${userId} action=${action}`,
@@ -47,7 +47,7 @@ export async function ResolveOrganization(
 
     const userOrganizations = await GetUserOrganizations(userId);
     if (userOrganizations.length === 0) {
-        log.debug(
+        Log.debug(
             `User has no organization memberships`,
             `OrganizationResolve`,
             `user=${userId}`,
@@ -67,7 +67,7 @@ export async function ResolveOrganization(
         const userPermissionPath = BuildPermissionPath(userHierarchy);
 
         if (targetPermissionPath.startsWith(userPermissionPath)) {
-            log.info(
+            Log.info(
                 `Permission granted via hierarchy match`,
                 `OrganizationResolve`,
                 `user=${userId} org=${organizationUid} matchedVia=${userOrganization.uid}`,
@@ -80,7 +80,7 @@ export async function ResolveOrganization(
         }
     }
 
-    log.debug(
+    Log.debug(
         `No hierarchy match found for user organizations`,
         `OrganizationResolve`,
         `user=${userId} target=${organizationUid}`,

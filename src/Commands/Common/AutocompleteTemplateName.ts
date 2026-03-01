@@ -1,7 +1,7 @@
 import type { AutocompleteInteraction } from 'discord.js';
 import { ListGamesForServer } from '../../Flow/Object/Game/ListGamesForServer.js';
 import { GameObjectTemplateRepository } from '../../Repository/GameObject/GameObjectTemplateRepository.js';
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 
 /** Log tag for this module */
 const LOG_TAG = `AutocompleteTemplateName`;
@@ -58,7 +58,7 @@ export async function AutocompleteTemplateName(interaction: AutocompleteInteract
         await interaction.respond(suggestions);
     } catch(error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Autocomplete failed: ${message}`, LOG_TAG);
+        Log.error(`Autocomplete failed: ${message}`, LOG_TAG);
         await interaction.respond([]);
     }
 }

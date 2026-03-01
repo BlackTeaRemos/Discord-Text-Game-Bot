@@ -1,5 +1,5 @@
 import type { GameCreateStepContext } from '../../../../Flow/Object/Game/CreateTypes.js';
-import { log } from '../../../../Common/Log.js';
+import { Log } from '../../../../Common/Log.js';
 import { GameCreateFlowConstants } from '../../../../Flow/Object/Game/CreateState.js';
 import { BuildGamePreviewEmbed } from './BuildGamePreviewEmbed.js';
 import { RecallInteraction } from './RecallInteraction.js';
@@ -30,7 +30,7 @@ export async function RenderPreview(ctx: GameCreateStepContext): Promise<void> {
             await base.webhook.editMessage(ctx.state.previewMessageId, payload);
         }
     } catch (error) {
-        log.error(
+        Log.error(
             `Failed to render game preview: ${String(error)}`,
             GameCreateFlowConstants.logSource,
             `RenderPreview`,

@@ -1,5 +1,5 @@
 import { neo4jClient } from '../../../../Setup/Neo4j.js';
-import { log } from '../../../../Common/Log.js';
+import { Log } from '../../../../Common/Log.js';
 
 export interface RemoveObjectFromOrganizationResult {
     success: boolean;
@@ -30,7 +30,7 @@ export async function RemoveObjectFromOrganization(
             return { success: false, error: `Object is not associated with organization` };
         }
 
-        log.info(
+        Log.info(
             `Object removed from organization`,
             `OrganizationRemoveObject`,
             `object=${objectUid} org=${organizationUid}`,
@@ -39,7 +39,7 @@ export async function RemoveObjectFromOrganization(
         return { success: true };
     } catch(error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Failed to remove object from organization`, message, `OrganizationRemoveObject`);
+        Log.error(`Failed to remove object from organization`, message, `OrganizationRemoveObject`);
         return { success: false, error: message };
     } finally {
         await session.close();

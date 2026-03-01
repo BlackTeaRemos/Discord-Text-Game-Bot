@@ -29,7 +29,7 @@ export enum LogLevel {
  * @example
  * log(LogLevel.Info, 'Server started', 'App');
  */
-export function log(level: LogLevel, message: string, from: string, context?: string): void {
+export function Log(level: LogLevel, message: string, from: string, context?: string): void {
     const timestamp = GetTimestamp();
     const body = context ? `[${context}] ${message}` : message;
     const formatted = `[${timestamp}] [${from}] ${body}`;
@@ -57,7 +57,7 @@ export function log(level: LogLevel, message: string, from: string, context?: st
  * @param message string Message to log
  * @param context string Optional context or source identifier
  */
-export namespace log {
+export namespace Log {
     /**
      * @brief Logs a critical level message
      * @param message string Message to log
@@ -65,7 +65,7 @@ export namespace log {
      * @param context string Optional additional context or details
      */
     export function critical(message: string, from: string, context?: string): void {
-        log(LogLevel.Critical, message, from, context);
+        Log(LogLevel.Critical, message, from, context);
     }
 
     /**
@@ -75,7 +75,7 @@ export namespace log {
      * @param context string Optional additional context or details
      */
     export function error(message: string, from: string, context?: string): void {
-        log(LogLevel.Error, message, from, context);
+        Log(LogLevel.Error, message, from, context);
     }
 
     /**
@@ -85,7 +85,7 @@ export namespace log {
      * @param context string Optional additional context or details
      */
     export function warning(message: string, from: string, context?: string): void {
-        log(LogLevel.Warning, message, from, context);
+        Log(LogLevel.Warning, message, from, context);
     }
 
     /**
@@ -95,7 +95,7 @@ export namespace log {
      * @param context string Optional additional context or details
      */
     export function info(message: string, from: string, context?: string): void {
-        log(LogLevel.Info, message, from, context);
+        Log(LogLevel.Info, message, from, context);
     }
 
     /**
@@ -105,7 +105,7 @@ export namespace log {
      * @param context string Optional additional context or details
      */
     export function debug(message: string, from: string, context?: string): void {
-        log(LogLevel.Debug, message, from, context);
+        Log(LogLevel.Debug, message, from, context);
     }
 
     /**
@@ -120,15 +120,4 @@ export namespace log {
     export function Helper_LocationBuilder(dirname: string, className: string, funcName?: string): string {
         return `${dirname}/${className}${funcName ? `/${funcName}` : ``}`;
     }
-}
-
-/** Public alias using preferred CamelCase */
-export function Log(level: LogLevel, message: string, from: string, context?: string): void {
-    // delegate
-    log(level, message, from, context);
-}
-/** Private and legacy style alias with leading double underscore to illustrate migration pattern */
-export function __Log(level: LogLevel, message: string, from: string, context?: string): void {
-    // delegate
-    log(level, message, from, context);
 }

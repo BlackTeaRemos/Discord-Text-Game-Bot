@@ -1,9 +1,9 @@
-import { NormalizeToken } from './NormalizeToken.js';
-import { TokenKey } from './TokenKey.js';
+import { NormalizeToken } from './Token/NormalizeToken.js';
+import { TokenKey } from './Token/TokenKey.js';
 import type { PermissionTokenInput } from './Types.js';
 import { PermissionGrantRepository } from '../../Repository/Permission/index.js';
 import type { Neo4jClient } from '../../Repository/Neo4jClient.js';
-import { log } from '../Log.js';
+import { Log } from '../Log.js';
 
 const grantedForever: Map<string, Map<string, Set<string>>> = new Map(); // guildId to userId to serialized tokens
 
@@ -17,7 +17,7 @@ let _repository: PermissionGrantRepository | null = null;
 export async function InitializePermissionStore(client: Neo4jClient): Promise<void> {
     _repository = new PermissionGrantRepository(client);
     await _repository.Initialize();
-    log.info(`Permission store initialized`, `PermissionStore`);
+    Log.info(`Permission store initialized`, `PermissionStore`);
 }
 
 /**
@@ -52,7 +52,7 @@ export async function LoadGrantsForGuild(guildId: string): Promise<void> {
         }
     }
 
-    log.info(
+    Log.info(
         `Loaded ${loadedTokenCount} permission grants across ${bundles.length} bundles for guild ${guildId}`,
         `PermissionStore`,
     );
@@ -94,9 +94,9 @@ export async function GrantForever(
             updatedBy: grantedBy,
         });
         __CacheGrant(guildId, userId, serialized);
-        log.info(`Persisted permission grant: ${serialized} for user ${userId} in guild ${guildId}`, `PermissionStore`);
+        Log.info(`Persisted permission grant: ${serialized} for user ${userId} in guild ${guildId}`, `PermissionStore`);
     } catch(error) {
-        log.error(`Failed to persist permission grant: ${(error as Error).message}`, `PermissionStore`);
+        Log.error(`Failed to persist permission grant: ${(error as Error).message}`, `PermissionStore`);
         throw error instanceof Error ? error : new Error(String(error));
     }
 }
@@ -207,7 +207,7 @@ export async function RevokeAllGrants(
                 revokedCount++;
             }
         } catch(error) {
-            log.error(`Failed to revoke token ${serializedToken}: ${(error as Error).message}`, `PermissionStore`);
+            Log.error(`Failed to revoke token ${serializedToken}: ${(error as Error).message}`, `PermissionStore`);
         }
     }
 
@@ -217,6 +217,6 @@ export async function RevokeAllGrants(
         guildMap.delete(userId);
     }
 
-    log.info(`Revoked ${revokedCount} grants for user ${userId} in guild ${guildId}`, `PermissionStore`);
+    Log.info(`Revoked ${revokedCount} grants for user ${userId} in guild ${guildId}`, `PermissionStore`);
     return revokedCount;
 }

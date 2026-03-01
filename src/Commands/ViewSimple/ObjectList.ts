@@ -4,11 +4,11 @@ import type { InteractionExecutionContextCarrier } from '../../Common/Type/Inter
 import { ListGamesForServer } from '../../Flow/Object/Game/ListGamesForServer.js';
 import { GameObjectTemplateRepository } from '../../Repository/GameObject/GameObjectTemplateRepository.js';
 import { GameObjectRepository } from '../../Repository/GameObject/GameObjectRepository.js';
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 import { ResolveViewAccess } from './ResolveViewAccess.js';
 import { TranslateFromContext } from '../../Services/I18nService.js';
-import { ObjectViewRenderer } from '../../Framework/ObjectViewRenderer.js';
-import type { ObjectViewModel, ObjectViewPage } from '../../Framework/ObjectViewTypes.js';
+import { ObjectViewRenderer } from '../../Framework/ObjectView/ObjectViewRenderer.js';
+import type { ObjectViewModel, ObjectViewPage } from '../../Framework/ObjectView/ObjectViewTypes.js';
 
 /** Maximum number of objects displayed per page */
 const MAX_OBJECTS_PER_PAGE = 25;
@@ -140,7 +140,7 @@ export async function ExecuteViewObjectList(
         await _objectListViewRenderer.RenderInitial(interaction, viewModel);
     } catch(error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Failed to list objects`, message, `ViewObjectList`);
+        Log.error(`Failed to list objects`, message, `ViewObjectList`);
         await interaction.editReply({
             content: TranslateFromContext(interaction.executionContext, `commands.view.objectList.errors.failed`, {
                 params: { message },

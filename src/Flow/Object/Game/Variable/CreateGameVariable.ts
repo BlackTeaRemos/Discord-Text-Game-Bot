@@ -2,7 +2,7 @@
  * Game variable persistence utilities ensure that each game owns a JSON payload stored in Neo4j
  */
 import { neo4jClient } from '../../../../Setup/Neo4j.js';
-import { log } from '../../../../Common/Log.js';
+import { Log } from '../../../../Common/Log.js';
 
 /**
  * Persisted game variable response structure
@@ -46,7 +46,7 @@ export async function CreateGameVariable(options: {
             payload: normalizedPayload,
         };
     } catch(error) {
-        log.error(
+        Log.error(
             `Failed to persist game variables: ${String(error)}`,
             `Flow/Object/Game/Variable`,
             `CreateGameVariable`,

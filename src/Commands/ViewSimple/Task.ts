@@ -14,7 +14,7 @@ import { FetchTasksForViewer } from '../../Flow/Task/Query/FetchTasksForViewer.j
 import { ResolveStatusesForGroup } from '../../Flow/Task/Support/ResolveStatusesForGroup.js';
 import { neo4jClient } from '../../Setup/Neo4j.js';
 import { flowManager } from '../../Common/Flow/Manager.js';
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 import { resolve } from '../../Common/Permission/index.js';
 import type { IFlowMember } from '../../Common/Type/FlowContext.js';
 import {
@@ -139,7 +139,7 @@ export async function ExecuteViewTask(
 
             allowOverride = outcome.success;
         } catch (error) {
-            log.warning(`Failed to resolve task:view:all: ${String(error)}`, `ViewTask`);
+            Log.warning(`Failed to resolve task:view:all: ${String(error)}`, `ViewTask`);
         } finally {
             // no cleanup needed
         }
@@ -233,7 +233,7 @@ export async function ExecuteViewTask(
             .start();
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Failed to view tasks`, message, `ViewTask`);
+        Log.error(`Failed to view tasks`, message, `ViewTask`);
         await interaction.editReply({
             content: TranslateFromContext(interaction.executionContext, `commands.view.task.errors.failed`, {
                 params: { message },

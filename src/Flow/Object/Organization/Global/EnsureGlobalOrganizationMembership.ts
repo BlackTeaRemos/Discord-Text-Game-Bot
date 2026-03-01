@@ -1,5 +1,5 @@
 import { neo4jClient } from '../../../../Setup/Neo4j.js';
-import { log } from '../../../../Common/Log.js';
+import { Log } from '../../../../Common/Log.js';
 import type { UID } from '../../../../Repository/Common/Ids.js';
 import { CreateUser } from '../../User/Create.js';
 import { EnsureGlobalOrganization } from './EnsureGlobalOrganization.js';
@@ -60,7 +60,7 @@ export async function EnsureGlobalOrganizationMembership(
         return { success: true, organizationUid: globalOrganization.uid };
     } catch(error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Failed to ensure global organization membership`, message, `OrganizationGlobal`);
+        Log.error(`Failed to ensure global organization membership`, message, `OrganizationGlobal`);
         return {
             success: false,
             organizationUid: globalOrganization.uid,

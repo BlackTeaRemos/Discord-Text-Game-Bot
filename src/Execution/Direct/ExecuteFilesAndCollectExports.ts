@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { pathToFileURL } from 'url';
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 
 export enum DepthMode {
     UpToDepth, // include files whose directory depth relative to start is at most depth
@@ -86,7 +86,7 @@ async function searchFiles(root: string, patterns: RegExp[], options: SearchOpti
                         withFileTypes: true,
                     });
                 } catch(error) {
-                    log.error(`Dir read failed ${task.dir}`, (error as Error).message, import.meta.filename);
+                    Log.error(`Dir read failed ${task.dir}`, (error as Error).message, import.meta.filename);
                     throw new Error(`Directory access error: Failed to read directory at ${task.dir}`);
                 }
                 for (const entry of dirEntries) {
@@ -115,7 +115,7 @@ async function searchFiles(root: string, patterns: RegExp[], options: SearchOpti
  */
 async function executeFile(filePath: string): Promise<any | null> {
     if (!isWithinAllowedRoots(filePath)) {
-        log.error(`Blocked import outside allowed roots`, filePath);
+        Log.error(`Blocked import outside allowed roots`, filePath);
         return null;
     }
     try {
@@ -127,10 +127,10 @@ async function executeFile(filePath: string): Promise<any | null> {
         } catch {
             /* ignore */
         }
-        log.info(`Loaded ${path.basename(filePath)}`, `keys=${JSON.stringify(keys)}`);
+        Log.info(`Loaded ${path.basename(filePath)}`, `keys=${JSON.stringify(keys)}`);
         return imported;
     } catch(error) {
-        log.error(`Import failed ${filePath}`, (error as Error).message, import.meta.filename);
+        Log.error(`Import failed ${filePath}`, (error as Error).message, import.meta.filename);
         return null;
     }
 }

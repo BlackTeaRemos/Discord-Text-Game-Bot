@@ -1,5 +1,5 @@
 import type { UID } from '../../../../Repository/Common/Ids.js';
-import { log } from '../../../../Common/Log.js';
+import { Log } from '../../../../Common/Log.js';
 import { GetUserOrganizations } from '../View/GetUserOrganizations.js';
 import {
     EnsureGlobalOrganization,
@@ -108,7 +108,7 @@ export async function ResolveExecutionOrganization(
         };
     } catch(error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Failed to resolve execution organization`, message, `OrganizationSelection`);
+        Log.error(`Failed to resolve execution organization`, message, `OrganizationSelection`);
         return {
             scopeType: `user`,
             organizationUid: null,

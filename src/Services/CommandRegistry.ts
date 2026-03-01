@@ -7,7 +7,7 @@ import {
     CommandExecutionContext,
     createExecutionContext,
 } from '../Domain/index.js';
-import { log } from '../Common/Log.js';
+import { Log } from '../Common/Log.js';
 import {
     resolve,
     type PermissionTokenInput,

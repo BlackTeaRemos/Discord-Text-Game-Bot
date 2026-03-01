@@ -1,5 +1,5 @@
 import { neo4jClient } from '../../../../Setup/Neo4j.js';
-import { log } from '../../../../Common/Log.js';
+import { Log } from '../../../../Common/Log.js';
 
 export interface AssignObjectToOrganizationResult {
     success: boolean;
@@ -30,7 +30,7 @@ export async function AssignObjectToOrganization(
             return { success: false, error: `Object or organization not found` };
         }
 
-        log.info(
+        Log.info(
             `Object assigned to organization`,
             `OrganizationAssignObject`,
             `object=${objectUid} org=${organizationUid}`,
@@ -39,7 +39,7 @@ export async function AssignObjectToOrganization(
         return { success: true };
     } catch(error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Failed to assign object to organization`, message, `OrganizationAssignObject`);
+        Log.error(`Failed to assign object to organization`, message, `OrganizationAssignObject`);
         return { success: false, error: message };
     } finally {
         await session.close();

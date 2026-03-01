@@ -1,4 +1,4 @@
-import type { PermissionToken } from './Types.js';
+import type { PermissionToken } from '../Types.js';
 
 export function FormatPermissionToken(token: PermissionToken): string {
     if (!token.length) {

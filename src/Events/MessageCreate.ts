@@ -1,5 +1,5 @@
 import type { Message } from 'discord.js';
-import { log } from '../Common/Log.js';
+import { Log } from '../Common/Log.js';
 import { flowManager } from '../Common/Flow/Manager.js';
 
 /**
@@ -14,6 +14,6 @@ export async function OnMessageCreate(message: Message): Promise<void> {
     try {
         await flowManager.onMessage(message);
     } catch (error) {
-        log.error(`Flow manager failed to process message ${message.id}: ${(error as Error).message}`, `Flow`);
+        Log.error(`Flow manager failed to process message ${message.id}: ${(error as Error).message}`, `Flow`);
     }
 }

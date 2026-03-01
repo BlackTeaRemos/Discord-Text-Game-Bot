@@ -1,7 +1,7 @@
 import { Attachment, ChatInputCommandInteraction, Message, MessageFlags } from 'discord.js';
 import { MAIN_EVENT_BUS } from '../../Events/MainEventBus.js';
 import { ValidateFileOrImageInput } from './File.js';
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
 import { TranslateFromContext } from '../../Services/I18nService.js';
 
@@ -70,7 +70,7 @@ export async function AwaitFileInput(options: AwaitFileInputOptions): Promise<{
             try {
                 await interaction.webhook.deleteMessage(promptResponse.id);
             } catch(error) {
-                log.warning(
+                Log.warning(
                     `Failed to delete prompt message ${promptResponse.id}: ${error instanceof Error ? error.message : String(error)}`,
                     `Prompt/FileAsync`,
                 );
@@ -79,7 +79,7 @@ export async function AwaitFileInput(options: AwaitFileInputOptions): Promise<{
             try {
                 await message.delete();
             } catch(error) {
-                log.warning(
+                Log.warning(
                     `Failed to delete file response ${message.id}: ${error instanceof Error ? error.message : String(error)}`,
                     `Prompt/FileAsync`,
                 );
@@ -98,7 +98,7 @@ export async function AwaitFileInput(options: AwaitFileInputOptions): Promise<{
             try {
                 await interaction.webhook.deleteMessage(promptResponse.id);
             } catch(deleteError) {
-                log.warning(
+                Log.warning(
                     `Failed to delete prompt message ${promptResponse.id}: ${deleteError instanceof Error ? deleteError.message : String(deleteError)}`,
                     `Prompt/FileAsync`,
                 );

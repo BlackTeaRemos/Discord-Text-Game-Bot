@@ -6,7 +6,7 @@ import {
     type TokenSegmentInput,
     type TokenResolveContext,
 } from '../../Common/Permission/index.js';
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 import type { IFlowInteractionContext, IFlowMember, FlowMemberProvider } from '../../Common/Type/FlowContext.js';
 
 /**
@@ -73,7 +73,7 @@ export async function ResolveCommandPermission(
         ...additionalContext,
     };
 
-    log.info(
+    Log.info(
         `${logSource}: resolving permissions for action=${action} user=${context.userId}`,
         logSource,
         `resolveCommandPermission`,
@@ -86,7 +86,7 @@ export async function ResolveCommandPermission(
         try {
             member = await memberProvider();
         } catch(error) {
-            log.warning(
+            Log.warning(
                 `${logSource}: failed to fetch member via provider for action=${action} reason=${String(error)}`,
                 logSource,
                 `resolveCommandPermission`,
@@ -101,7 +101,7 @@ export async function ResolveCommandPermission(
         skipApproval: options.skipApproval ?? false,
     });
 
-    log.info(
+    Log.info(
         `${logSource}: permission result action=${action} success=${outcome.success} reason=${outcome.detail.reason}`,
         logSource,
         `resolveCommandPermission`,

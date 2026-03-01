@@ -1,5 +1,5 @@
 import { RevokeAllGrants } from '../../Common/Permission/Store.js';
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 
 /**
  * Result of a bulk revoke-all operation.
@@ -28,13 +28,13 @@ export async function RevokeAllTokens(
 ): Promise<RevokeAllResult> {
     try {
         const revokedCount = await RevokeAllGrants(guildId, userId, revokedBy);
-        log.info(
+        Log.info(
             `Revoked ${revokedCount} permission grants for user ${userId} in guild ${guildId}`,
             `RevokeAllTokens`,
         );
         return { revokedCount };
     } catch (error) {
-        log.error(
+        Log.error(
             `Failed to revoke grants for ${userId}: ${(error as Error).message}`,
             `RevokeAllTokens`,
         );

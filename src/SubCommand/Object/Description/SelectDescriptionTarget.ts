@@ -1,6 +1,6 @@
 import { ActionRowBuilder, MessageFlags, StringSelectMenuBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
-import { getSupportedTypes, listRecordsFor, type ObjectTypeKey } from '../../../Common/Flow/ObjectRegistry.js';
+import { GetSupportedTypes, ListRecordsFor, type ObjectTypeKey } from '../../../Common/Flow/ObjectRegistry.js';
 import { PrepareOrganizationPrompt } from '../../Prompt/Organization.js';
 import { BuildViewSelectOptions } from '../../../Common/BuildViewSelectOptions.js';
 import { GetUserByDiscordId } from '../../../Flow/Object/User/View/GetUserByDiscordId.js';
@@ -85,7 +85,7 @@ async function __EnsureEphemeralReply(interaction: ChatInputCommandInteraction):
 }
 
 async function __SelectType(interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>): Promise<ObjectTypeKey | null> {
-    const typeOptions = getSupportedTypes().map(item => {
+    const typeOptions = GetSupportedTypes().map(item => {
         return { label: item.label, value: item.value } as any;
     });
 
@@ -214,7 +214,7 @@ async function __SelectMyOrganization(interaction: InteractionExecutionContextCa
 }
 
 async function __SelectObject(interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>, type: ObjectTypeKey): Promise<string | null> {
-    const records = await listRecordsFor(type);
+    const records = await ListRecordsFor(type);
     const options = BuildViewSelectOptions(records, 25);
 
     if (options.length === 0) {

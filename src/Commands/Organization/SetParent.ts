@@ -1,7 +1,7 @@
 import { MessageFlags, EmbedBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 import {
     SetOrganizationParent,
     GetOrganizationByUid,
@@ -126,14 +126,14 @@ export async function ExecuteOrganizationSetParent(
             embeds: [embed],
         });
 
-        log.info(
+        Log.info(
             `Organization parent updated: ${organizationUid}`,
             `OrganizationSetParentCommand`,
             `oldParent=${existingOrganization.parentUid ?? `none`} newParent=${newParentUid ?? `none`} by=${interaction.user.id}`,
         );
     } catch(error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Failed to set organization parent`, message, `OrganizationSetParentCommand`);
+        Log.error(`Failed to set organization parent`, message, `OrganizationSetParentCommand`);
         await interaction.editReply({
             content: TranslateFromContext(interaction.executionContext, `commands.organization.setParent.errors.failed`, {
                 params: { reason: message },

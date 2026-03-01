@@ -1,5 +1,5 @@
-import { log } from '../../Log.js';
-import { CheckPermission } from '../Manager.js';
+import { Log } from '../../Log.js';
+import { CheckPermission } from '../Engine/Manager.js';
 import type { PermissionTokenInput } from '../Types.js';
 import type { ResolveEnsureOptions, ResolveEnsureResult } from './Types.js';
 import type { IFlowMember } from '../../Type/FlowContext.js';
@@ -30,7 +30,7 @@ export async function Resolve(
         const context = (options.context ?? {}) as import('./Types.js').TokenResolveContext;
         const tokens = CollectEnsureTokens(templates, context);
 
-        log.debug(
+        Log.debug(
             `Permission.Resolve: collected ${tokens.length} tokens from ${templates.length} templates`,
             `Permission.Resolve`,
             JSON.stringify({ tokens, hasApprovalCallback: !!options.requestApproval }),
@@ -48,7 +48,7 @@ export async function Resolve(
         const inputs: PermissionTokenInput[] = ToInputs(tokens);
         const evaluation = await CheckPermission(options.permissions, member ?? null, inputs);
 
-        log.debug(
+        Log.debug(
             `Permission.Resolve: evaluation result`,
             `Permission.Resolve`,
             JSON.stringify({
@@ -65,7 +65,7 @@ export async function Resolve(
         }
 
         if (!evaluation.requiresApproval || options.skipApproval || !options.requestApproval) {
-            log.debug(
+            Log.debug(
                 `Permission.Resolve: skipping approval flow`,
                 `Permission.Resolve`,
                 JSON.stringify({
@@ -84,9 +84,9 @@ export async function Resolve(
             };
         }
 
-        log.debug(`Permission.Resolve: requesting admin approval`, `Permission.Resolve`, JSON.stringify({ tokens }));
+        Log.debug(`Permission.Resolve: requesting admin approval`, `Permission.Resolve`, JSON.stringify({ tokens }));
         const decision = await options.requestApproval({ tokens, reason: evaluation.reason } as any);
-        log.debug(`Permission.Resolve: admin decision received`, `Permission.Resolve`, JSON.stringify({ decision }));
+        Log.debug(`Permission.Resolve: admin decision received`, `Permission.Resolve`, JSON.stringify({ decision }));
 
         if (decision === `approve_once` || decision === `approve_forever`) {
             return { success: true, detail: { tokens, decision } };
@@ -101,7 +101,7 @@ export async function Resolve(
             },
         };
     } catch(error) {
-        log.error(`doEnsure failed: ${String(error)}`, `Permission.doEnsure`);
+        Log.error(`doEnsure failed: ${String(error)}`, `Permission.doEnsure`);
         return {
             success: false,
             detail: {

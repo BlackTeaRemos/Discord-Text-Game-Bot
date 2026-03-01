@@ -1,5 +1,5 @@
 import { neo4jClient } from '../../../../Setup/Neo4j.js';
-import { log } from '../../../../Common/Log.js';
+import { Log } from '../../../../Common/Log.js';
 import type { UID } from '../../../../Repository/Common/Ids.js';
 import { CheckCircularDependency } from './CheckCircularDependency.js';
 import type { SetParentResult } from './Types.js';
@@ -50,7 +50,7 @@ export async function SetOrganizationParent(
             await session.run(createNewParentQuery, { targetUid, newParentUid });
         }
 
-        log.info(
+        Log.info(
             `Updated organization parent: ${targetUid}`,
             `OrganizationHierarchy`,
             `newParent=${newParentUid ?? `none`}`,
@@ -59,7 +59,7 @@ export async function SetOrganizationParent(
         return { success: true };
     } catch(error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Failed to set organization parent`, message, `OrganizationHierarchy`);
+        Log.error(`Failed to set organization parent`, message, `OrganizationHierarchy`);
         return { success: false, error: message };
     } finally {
         await session.close();

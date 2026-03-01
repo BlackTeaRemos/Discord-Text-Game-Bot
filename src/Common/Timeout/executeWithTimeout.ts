@@ -7,7 +7,7 @@
  */
 import { TimeoutError } from './TimeoutError.js';
 
-export async function executeWithTimeout<T>(promise: Promise<T>, timeoutMs: number, desc?: string): Promise<T> {
+export async function ExecuteWithTimeout<T>(promise: Promise<T>, timeoutMs: number, desc?: string): Promise<T> {
     let timer: NodeJS.Timeout | null = null;
     const timeout = new Promise<never>((_, reject) => {
         timer = setTimeout(() => {

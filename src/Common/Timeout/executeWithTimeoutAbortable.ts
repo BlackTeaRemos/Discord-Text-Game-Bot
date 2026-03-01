@@ -8,7 +8,7 @@
  */
 import { TimeoutError } from './TimeoutError.js';
 
-export async function executeWithTimeoutAbortable<T>(
+export async function ExecuteWithTimeoutAbortable<T>(
     operation: (signal: AbortSignal) => Promise<T>,
     timeoutMs: number,
     desc?: string,

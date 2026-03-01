@@ -1,5 +1,5 @@
 import { neo4jClient } from '../../../Setup/Neo4j.js';
-import { log } from '../../../Common/Log.js';
+import { Log } from '../../../Common/Log.js';
 import type { UID } from '../../../Repository/Common/Ids.js';
 import { EnsureUserDefaultOrganization } from './Selection/index.js';
 
@@ -46,7 +46,7 @@ export async function AddUserToOrganization(
             };
         }
 
-        log.info(
+        Log.info(
             `User added to organization`,
             `OrganizationMembership`,
             `user=${userDiscordId} org=${organizationUid}`,
@@ -57,7 +57,7 @@ export async function AddUserToOrganization(
         return { success: true };
     } catch(error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Failed to add user to organization`, message, `OrganizationMembership`);
+        Log.error(`Failed to add user to organization`, message, `OrganizationMembership`);
         return { success: false, error: message };
     } finally {
         await session.close();
@@ -97,7 +97,7 @@ export async function RemoveUserFromOrganization(
             };
         }
 
-        log.info(
+        Log.info(
             `User removed from organization`,
             `OrganizationMembership`,
             `user=${userDiscordId} org=${organizationUid}`,
@@ -108,7 +108,7 @@ export async function RemoveUserFromOrganization(
         return { success: true };
     } catch(error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Failed to remove user from organization`, message, `OrganizationMembership`);
+        Log.error(`Failed to remove user from organization`, message, `OrganizationMembership`);
         return { success: false, error: message };
     } finally {
         await session.close();

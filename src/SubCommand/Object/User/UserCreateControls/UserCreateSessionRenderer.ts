@@ -1,4 +1,4 @@
-import { log } from '../../../../Common/Log.js';
+import { Log } from '../../../../Common/Log.js';
 import { UserCreateFlowConstants } from '../../../../Flow/Object/User/CreateState.js';
 import type { UserCreateSession } from './UserCreateSessionStore.js';
 import { BuildUserPreviewEmbed } from '../Renderers/BuildUserPreviewEmbed.js';
@@ -18,7 +18,7 @@ export async function UpdateUserCreateSessionPreview(session: UserCreateSession)
             embeds: [BuildUserPreviewEmbed(session.state)],
         });
     } catch (error) {
-        log.error(
+        Log.error(
             `Failed to update user preview for user ${session.userId}: ${String(error)}`,
             UserCreateFlowConstants.logSource,
             `UpdateUserCreateSessionPreview`,
@@ -38,7 +38,7 @@ export async function UpdateUserCreateSessionControls(session: UserCreateSession
             components: BuildUserCreateControlRows(session.state),
         });
     } catch (error) {
-        log.error(
+        Log.error(
             `Failed to update user controls for user ${session.userId}: ${String(error)}`,
             UserCreateFlowConstants.logSource,
             `UpdateUserCreateSessionControls`,

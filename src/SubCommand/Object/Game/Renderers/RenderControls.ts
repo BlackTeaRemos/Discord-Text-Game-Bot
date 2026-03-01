@@ -1,6 +1,6 @@
 import { ActionRowBuilder, ButtonBuilder, MessageFlags, StringSelectMenuBuilder } from 'discord.js';
 import type { GameCreateStepContext } from '../../../../Flow/Object/Game/CreateTypes.js';
-import { log } from '../../../../Common/Log.js';
+import { Log } from '../../../../Common/Log.js';
 import { GameCreateFlowConstants } from '../../../../Flow/Object/Game/CreateState.js';
 import { BuildControlRows } from './BuildControlRows.js';
 import { RecallInteraction } from './RecallInteraction.js';
@@ -32,6 +32,6 @@ export async function RenderControls(ctx: GameCreateStepContext, content: string
             await base.webhook.editMessage(ctx.state.controlsMessageId, payload);
         }
     } catch (error) {
-        log.error(`Failed to render controls: ${String(error)}`, GameCreateFlowConstants.logSource, `RenderControls`);
+        Log.error(`Failed to render controls: ${String(error)}`, GameCreateFlowConstants.logSource, `RenderControls`);
     }
 }

@@ -1,6 +1,7 @@
 import type { IParameterDefinition } from './IParameterDefinition.js';
 import type { IActionDefinition } from '../Action/IActionDefinition.js';
 import type { ITemplateDisplayConfig } from '../Display/ITemplateDisplayConfig.js';
+import type { ProjectionStyleMap } from './Projection/ProjectionStyleMap.js';
 
 export interface IGameObjectTemplate {
     /** Unique template identifier. @example 'tpl_factory_abc123' */
@@ -23,6 +24,9 @@ export interface IGameObjectTemplate {
 
     /** Optional display configuration controlling how objects are rendered on visual cards. */
     displayConfig?: ITemplateDisplayConfig;
+
+    /** Optional per perspective card style overrides mapping each ProjectionDisplayStyle to ICardStyleConfig partial */
+    projectionStyleMap?: ProjectionStyleMap;
 
     /** ISO timestamp of creation. @example '2026-02-08T12:00:00.000Z' */
     createdAt: string;

@@ -1,5 +1,5 @@
-import type { TokenSegmentInput } from './Types.js';
-import type { EventIdentifierSubset } from '../ComplexEventEmitter.js';
+import type { TokenSegmentInput } from '../Types.js';
+import type { EventIdentifierSubset } from '../../ComplexEventEmitter.js';
 
 const NUMERIC_SEGMENT = /^(?:-?(?:0|[1-9]\d*))$/;
 

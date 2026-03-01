@@ -1,7 +1,7 @@
 import { ActionRowBuilder, MessageFlags, StringSelectMenuBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 import {
     GetUserOrganizations,
     SetUserDefaultOrganization,
@@ -62,7 +62,7 @@ export async function ExecuteOrganizationSelect(
         });
     } catch(error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Failed to present organization selection`, message, `OrganizationSelectCommand`);
+        Log.error(`Failed to present organization selection`, message, `OrganizationSelectCommand`);
         await interaction.editReply({
             content: TranslateFromContext(interaction.executionContext, `commands.organization.select.errors.failed`, {
                 params: { message },

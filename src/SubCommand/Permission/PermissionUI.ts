@@ -9,9 +9,9 @@ import {
     MessageFlags,
 } from 'discord.js';
 import { GrantForever, type PermissionDecision, type PermissionToken } from '../../Common/Permission/index.js';
-import { FormatPermissionToken } from '../../Common/Permission/FormatPermissionToken.js';
+import { FormatPermissionToken } from '../../Common/Permission/Engine/FormatPermissionToken.js';
 import { PermissionApprovalError } from '../../Common/Errors.js';
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 import { TranslateFromContext } from '../../Services/I18nService.js';
 
 /**
@@ -40,7 +40,7 @@ export async function RequestPermissionFromAdmin(
                 await interaction.reply({ content: message, flags: MessageFlags.Ephemeral });
             }
         } catch(error) {
-            log.warning(
+            Log.warning(
                 `Failed to respond to user during permission flow: ${String(error)}`,
                 `PermissionUI`,
                 `RequestPermissionFromAdmin`,
@@ -76,7 +76,7 @@ export async function RequestPermissionFromAdmin(
                 admins.set(ownerMember.id, ownerMember);
             }
         } catch(ownerFetchError) {
-            log.warning(
+            Log.warning(
                 `Failed to fetch guild owner ${ownerId}: ${String(ownerFetchError)}`,
                 `PermissionUI`,
             );
@@ -94,7 +94,7 @@ export async function RequestPermissionFromAdmin(
                 admins.set(adminId, adminMember);
             }
         } catch(fetchError) {
-            log.error(
+            Log.error(
                 `Failed to fetch guild members`,
                 `PermissionUI`,
                 String(fetchError),
@@ -156,7 +156,7 @@ export async function RequestPermissionFromAdmin(
             : true;
 
     if (!botCanSend) {
-        log.error(
+        Log.error(
             `PermissionUI.BotCannotSend`,
             import.meta.filename,
             JSON.stringify({ channelId: interaction.channel?.id, botId: botMember?.id }),
@@ -179,7 +179,7 @@ export async function RequestPermissionFromAdmin(
             throw new Error(`Channel does not support send`);
         }
     } catch(err) {
-        log.error(
+        Log.error(
             `Failed to send approval request`,
             `PermissionUI`,
             String(err),

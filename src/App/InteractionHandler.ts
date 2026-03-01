@@ -1,5 +1,5 @@
 import { MessageFlags } from 'discord.js';
-import { log } from '../Common/Log.js';
+import { Log } from '../Common/Log.js';
 import { createExecutionContext } from '../Domain/index.js';
 import {
     type TokenSegmentInput,
@@ -34,7 +34,7 @@ export function CreateInteractionHandler(options: { loadedCommands: Record<strin
             try {
                 await ResolveUserLocale(interaction.user.id, interaction.executionContext);
             } catch(error) {
-                log.warning(`Failed to resolve user locale: ${String(error)}`, `InteractionHandler`);
+                Log.warning(`Failed to resolve user locale: ${String(error)}`, `InteractionHandler`);
             }
 
             const member = interaction.guild ? await interaction.guild.members.fetch(interaction.user.id) : null;
@@ -95,7 +95,7 @@ export function CreateInteractionHandler(options: { loadedCommands: Record<strin
                     deferredByHandler = true;
                 } catch(e) {
                     // If deferring fails continue without blocking as the request may still work
-                    log.warning(`Failed to defer interaction reply: ${String(e)}`, `InteractionHandler`);
+                    Log.warning(`Failed to defer interaction reply: ${String(e)}`, `InteractionHandler`);
                 }
             }
 
@@ -138,7 +138,7 @@ export function CreateInteractionHandler(options: { loadedCommands: Record<strin
             await command.execute(interaction);
         } catch(err: any) {
             // Centralized error handler for permission denials and execution errors
-            log.error(`Interaction handler error for /${interaction.commandName}: ${String(err)}`, `Boot`);
+            Log.error(`Interaction handler error for /${interaction.commandName}: ${String(err)}`, `Boot`);
             try {
                 if (!interaction.replied && !interaction.deferred) {
                     await interaction.reply({

@@ -1,6 +1,6 @@
 import { commands, commandsReady } from '../../Commands/index.js';
-import { NormalizeToken } from '../../Common/Permission/NormalizeToken.js';
-import { TokenKey } from '../../Common/Permission/TokenKey.js';
+import { NormalizeToken } from '../../Common/Permission/Token/NormalizeToken.js';
+import { TokenKey } from '../../Common/Permission/Token/TokenKey.js';
 import type { PermissionToken, PermissionTokenInput, TokenSegmentInput } from '../../Common/Permission/Types.js';
 
 /**

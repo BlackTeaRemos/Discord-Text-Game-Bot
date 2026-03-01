@@ -1,7 +1,7 @@
 import { MessageFlags, EmbedBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 import { CreateOrganization } from '../../Flow/Object/Organization/index.js';
 import { TranslateFromContext } from '../../Services/I18nService.js';
 
@@ -84,14 +84,14 @@ export async function ExecuteOrganizationCreate(
             embeds: [embed],
         });
 
-        log.info(
+        Log.info(
             `Organization created: ${organization.uid}`,
             `OrganizationCreateCommand`,
             `name=${organization.name} by=${interaction.user.id}`,
         );
     } catch(error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Failed to create organization`, message, `OrganizationCreateCommand`);
+        Log.error(`Failed to create organization`, message, `OrganizationCreateCommand`);
         await interaction.editReply({
             content: TranslateFromContext(interaction.executionContext, `commands.organization.create.errors.failed`, {
                 params: { reason: message },

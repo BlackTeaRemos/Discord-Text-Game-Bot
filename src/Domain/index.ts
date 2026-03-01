@@ -32,4 +32,4 @@ export type {
 } from './Command.js';
 
 // Execution Context Implementation
-export { CommandExecutionContextImpl, createExecutionContext } from './ExecutionContext.js';
+export { CommandExecutionContextImpl, CreateExecutionContext as createExecutionContext } from './ExecutionContext.js';

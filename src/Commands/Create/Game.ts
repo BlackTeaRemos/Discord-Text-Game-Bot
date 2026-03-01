@@ -3,7 +3,7 @@ import type { ChatInputCommandInteraction } from 'discord.js';
 import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
 import { CreateGame } from '../../Flow/Object/Game/CreateRecord.js';
 import { ListGamesForServer } from '../../Flow/Object/Game/ListGamesForServer.js';
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 import { TranslateFromContext } from '../../Services/I18nService.js';
 
 const DEFAULT_GAME_IMAGE = `https://placehold.co/600x400?text=Game`;
@@ -56,7 +56,7 @@ export async function ExecuteCreateGame(
         });
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Failed to create game`, message, `CreateGame`);
+        Log.error(`Failed to create game`, message, `CreateGame`);
         await interaction.editReply({
             content: TranslateFromContext(interaction.executionContext, `commands.create.game.errors.failed`, {
                 params: { message },

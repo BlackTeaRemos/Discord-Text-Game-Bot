@@ -1,5 +1,5 @@
 import { MessageFlags } from 'discord.js';
-import { log } from '../../../../Common/Log.js';
+import { Log } from '../../../../Common/Log.js';
 import { GameCreateFlowConstants } from '../../../../Flow/Object/Game/CreateState.js';
 import type { GameCreateSession, GameCreateSessionStore } from './GameCreateSessionStore.js';
 import { ClearGameCreateSessionTimeout } from './ClearGameCreateSessionTimeout.js';
@@ -30,7 +30,7 @@ export async function ExpireGameCreateSession(
         try {
             await session.baseInteraction.followUp({ content: message, flags: MessageFlags.Ephemeral });
         } catch (error) {
-            log.error(
+            Log.error(
                 `Failed to send expiration notice for user ${session.userId}: ${error instanceof Error ? error.message : String(error)}`,
                 GameCreateFlowConstants.logSource,
             );
@@ -52,7 +52,7 @@ async function __DeleteSessionMessage(session: GameCreateSession, messageId: str
     try {
         await session.baseInteraction.webhook.deleteMessage(messageId);
     } catch (error) {
-        log.warning(
+        Log.warning(
             `Failed to delete ${label} message for user ${session.userId}: ${error instanceof Error ? error.message : String(error)}`,
             GameCreateFlowConstants.logSource,
         );

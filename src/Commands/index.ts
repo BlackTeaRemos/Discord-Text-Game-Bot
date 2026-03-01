@@ -2,7 +2,7 @@ import { ChatInputCommandInteraction } from 'discord.js';
 import { resolve, dirname } from 'path';
 import { ExecuteFilesAndCollectExports, DepthMode } from '../Execution/Direct/ExecuteFilesAndCollectExports.js';
 import { fileURLToPath } from 'url';
-import { log } from '../Common/Log.js';
+import { Log } from '../Common/Log.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -50,7 +50,7 @@ export const commandsReady: Promise<void> = (async() => {
         );
         modules = [...rootModules, ...groupModules];
     } catch(err) {
-        log.error(`Error scanning command files`, `[commands/index]`);
+        Log.error(`Error scanning command files`, `[commands/index]`);
         return;
     }
     for (const mod of modules) {
@@ -71,7 +71,7 @@ export const commandsReady: Promise<void> = (async() => {
                 } catch {}
             }
         } catch(err) {
-            log.error(`Error loading module`, `[commands/index]`);
+            Log.error(`Error loading module`, `[commands/index]`);
             continue;
         }
         const moduleExports = mod as any;

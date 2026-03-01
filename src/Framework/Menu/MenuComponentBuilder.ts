@@ -7,7 +7,7 @@ import {
     type MessageActionRowComponentBuilder,
 } from 'discord.js';
 import type { MenuConfig, MenuNode } from './MenuTypes.js';
-import { Translate } from '../Services/I18nService.js';
+import { Translate } from '../../Services/I18nService.js';
 import { MenuCustomIdResolver } from './MenuCustomIdResolver.js';
 
 /**

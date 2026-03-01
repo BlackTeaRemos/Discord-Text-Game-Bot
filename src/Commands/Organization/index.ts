@@ -4,7 +4,7 @@ import { dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import type { TokenSegmentInput } from '../../Common/Permission/index.js';
 import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 import { BuildCommandSubcommandIndex, LoadCommandSubcommands } from '../CommandSubcommand.js';
 import type { CommandBuilder } from '../CommandSubcommand.js';
 import { AutocompleteOrganization } from '../Common/AutocompleteOrganization.js';
@@ -90,7 +90,7 @@ export async function execute(
         });
     } catch(error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Organization command failed`, message, `OrganizationCommand`);
+        Log.error(`Organization command failed`, message, `OrganizationCommand`);
 
         if (!interaction.replied && !interaction.deferred) {
             await interaction.reply({

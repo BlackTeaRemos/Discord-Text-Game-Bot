@@ -1,4 +1,4 @@
-import { log } from '../../../../Common/Log.js';
+import { Log } from '../../../../Common/Log.js';
 import { BuildGamePreviewEmbed } from '../Renderers/BuildGamePreviewEmbed.js';
 import { BuildControlsContent } from '../Renderers/BuildControlsContent.js';
 import { BuildControlRows } from '../Renderers/BuildControlRows.js';
@@ -18,7 +18,7 @@ export async function UpdateGameCreateSessionPreview(session: GameCreateSession)
             embeds: [BuildGamePreviewEmbed(session.state)],
         });
     } catch(error) {
-        log.error(
+        Log.error(
             `Failed to update game preview for user ${session.userId}: ${error instanceof Error ? error.message : String(error)}`,
             GameCreateFlowConstants.logSource,
         );
@@ -37,7 +37,7 @@ export async function UpdateGameCreateSessionControls(session: GameCreateSession
             components: BuildControlRows(session.state),
         });
     } catch(error) {
-        log.error(
+        Log.error(
             `Failed to update game controls for user ${session.userId}: ${error instanceof Error ? error.message : String(error)}`,
             GameCreateFlowConstants.logSource,
         );

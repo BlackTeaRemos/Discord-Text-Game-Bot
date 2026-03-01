@@ -1,11 +1,12 @@
 import { MessageFlags } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 import { ListGamesForServer } from '../../Flow/Object/Game/ListGamesForServer.js';
 import { GameObjectTemplateRepository } from '../../Repository/GameObject/GameObjectTemplateRepository.js';
 import { GameObjectRepository } from '../../Repository/GameObject/GameObjectRepository.js';
 import { ResolveExecutionOrganization } from '../../Flow/Object/Organization/index.js';
+import { CreateOwnerProjection } from '../../Flow/GameObject/ProjectionService.js';
 
 /** Log tag for this module */
 const LOG_TAG = `Commands/Create/Object`;
@@ -76,15 +77,23 @@ export async function ExecuteCreateObject(
             name: objectName ?? undefined,
         });
 
+        await CreateOwnerProjection(
+            created.uid,
+            created.templateUid,
+            created.organizationUid,
+            created.name,
+            created.parameters,
+        );
+
         const parameterCount = created.parameters.length;
         await interaction.editReply({
             content: `Object **${created.name}** created (uid: \`${created.uid}\`). ${parameterCount} parameters initialized from template.`,
         });
 
-        log.info(`Object "${created.name}" created from template "${template.name}" for org "${organizationUid}".`, LOG_TAG);
+        Log.info(`Object "${created.name}" created from template "${template.name}" for org "${organizationUid}".`, LOG_TAG);
     } catch(error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Failed to create object: ${message}`, LOG_TAG, `ExecuteCreateObject`);
+        Log.error(`Failed to create object: ${message}`, LOG_TAG, `ExecuteCreateObject`);
         await interaction.editReply({ content: `Failed to create object: ${message}` });
     }
 }

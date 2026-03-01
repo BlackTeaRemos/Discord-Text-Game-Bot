@@ -10,7 +10,7 @@ import { readFile } from 'fs/promises';
  * import { readConfigFile } from './common/configReader';
  * const config = await readConfigFile('./config.json');
  */
-export async function readConfigFile(configPath: string): Promise<any> {
+export async function ReadConfigFile(configPath: string): Promise<any> {
     try {
         const raw = await readFile(configPath, `utf-8`);
         let config: any; // Parsed config object

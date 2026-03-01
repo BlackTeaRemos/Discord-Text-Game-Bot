@@ -2,7 +2,7 @@
  * @brief Loads and provides access to application configuration from config files or environment variables
  */
 
-import { readConfigFile } from './Common/ConfigReader.js';
+import { ReadConfigFile } from './Common/ConfigReader.js';
 import { MAIN_EVENT_BUS } from './Events/MainEventBus.js';
 
 /**
@@ -36,7 +36,7 @@ export interface AppConfig {
  */
 export async function LoadConfig(configPath: string): Promise<AppConfig> {
     try {
-        const parsedConfig = await readConfigFile(configPath); // parsed configuration data
+        const parsedConfig = await ReadConfigFile(configPath); // parsed configuration data
         const envNeo4jUri = process.env.NEO4J_URI;
         const envNeo4jUser = process.env.NEO4J_USER;
         const envNeo4jPassword = process.env.NEO4J_PASSWORD;

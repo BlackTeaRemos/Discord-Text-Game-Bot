@@ -5,7 +5,7 @@ export type FlowEventId = (string | number | boolean | undefined)[];
 
 export const FLOW_NAMESPACE = `flow` as const;
 
-export const flowStepPromptId = (userId: string, stepIndex: number): FlowEventId => {
+export const FlowStepPromptId = (userId: string, stepIndex: number): FlowEventId => {
     return [
         FLOW_NAMESPACE,
         userId,
@@ -14,7 +14,7 @@ export const flowStepPromptId = (userId: string, stepIndex: number): FlowEventId
         `prompt`,
     ];
 };
-export const flowStepInteractionId = (userId: string, stepIndex: number): FlowEventId => {
+export const FlowStepInteractionId = (userId: string, stepIndex: number): FlowEventId => {
     return [
         FLOW_NAMESPACE,
         userId,
@@ -23,7 +23,7 @@ export const flowStepInteractionId = (userId: string, stepIndex: number): FlowEv
         `interaction`,
     ];
 };
-export const flowStepMessageId = (userId: string, stepIndex: number): FlowEventId => {
+export const FlowStepMessageId = (userId: string, stepIndex: number): FlowEventId => {
     return [
         FLOW_NAMESPACE,
         userId,
@@ -32,10 +32,10 @@ export const flowStepMessageId = (userId: string, stepIndex: number): FlowEventI
         `message`,
     ];
 };
-export const flowAdvanceId = (userId: string): FlowEventId => {
+export const FlowAdvanceId = (userId: string): FlowEventId => {
     return [FLOW_NAMESPACE, userId, `advance`];
 };
-export const flowCancelId = (userId: string): FlowEventId => {
+export const FlowCancelId = (userId: string): FlowEventId => {
     return [FLOW_NAMESPACE, userId, `cancel`];
 };
 

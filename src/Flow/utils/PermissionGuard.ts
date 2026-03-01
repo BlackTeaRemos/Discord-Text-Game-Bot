@@ -16,7 +16,7 @@ import {
     type TokenSegmentInput,
     type ResolveEnsureOptions,
 } from '../../Common/Permission/index.js';
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 import type { IFlowInteractionContext, IFlowMember, FlowMemberProvider } from '../../Common/Type/FlowContext.js';
 
 /**
@@ -84,7 +84,7 @@ export async function EnsureCommandPermission(
         try {
             member = await options.memberProvider();
         } catch(error) {
-            log.warning(
+            Log.warning(
                 `Failed to fetch member via provider: ${String(error)}`,
                 `PermissionGuard`,
                 `ensureCommandPermission`,

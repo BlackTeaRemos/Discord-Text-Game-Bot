@@ -29,7 +29,7 @@ import type { InteractionExecutionContextCarrier } from './Type/Interaction.js';
  *   await ctx.reply(`Result: ${expensiveData}`);
  * }
  */
-export function createCommandContext(
+export function CreateCommandContext(
     interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
     correlationId?: string,
 ): CommandExecutionContext {
@@ -90,7 +90,7 @@ export function createCommandContext(
  *   );
  * }
  */
-export async function executeWithContext(
+export async function ExecuteWithContext(
     interaction: InteractionExecutionContextCarrier<ChatInputCommandInteraction>,
     flowBuilderFn: (flowManager: any, executionContext: any) => Promise<void>,
     correlationId?: string,

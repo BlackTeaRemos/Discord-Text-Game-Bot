@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction, Message, MessageFlags } from 'discord.js';
 import { ValidateTextInput } from './Text.js';
 import { MAIN_EVENT_BUS } from '../../Events/MainEventBus.js';
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
 import { TranslateFromContext } from '../../Services/I18nService.js';
 
@@ -83,7 +83,7 @@ export async function PromptText(options: AwaitTextInputOptions): Promise<string
             try {
                 await interaction.webhook.deleteMessage(promptResponse.id);
             } catch (error) {
-                log.warning(
+                Log.warning(
                     `Failed to delete prompt message ${promptResponse.id}: ${error instanceof Error ? error.message : String(error)}`,
                     `Prompt/TextAsync`,
                 );
@@ -92,7 +92,7 @@ export async function PromptText(options: AwaitTextInputOptions): Promise<string
             try {
                 await sourceMessage.delete();
             } catch (error) {
-                log.warning(
+                Log.warning(
                     `Failed to delete user response ${sourceMessage.id}: ${error instanceof Error ? error.message : String(error)}`,
                     `Prompt/TextAsync`,
                 );
@@ -111,7 +111,7 @@ export async function PromptText(options: AwaitTextInputOptions): Promise<string
             try {
                 await interaction.webhook.deleteMessage(promptResponse.id);
             } catch (deleteError) {
-                log.warning(
+                Log.warning(
                     `Failed to delete prompt message ${promptResponse.id}: ${deleteError instanceof Error ? deleteError.message : String(deleteError)}`,
                     `Prompt/TextAsync`,
                 );

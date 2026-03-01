@@ -1,4 +1,4 @@
-import type { TaskStatus } from '../../Domain/Task.js';
+import type { TaskStatus } from '../../../Domain/Task.js';
 
 export const TASK_LABEL = `Task`;
 export const REL_BELONGS_TO = `BELONGS_TO`;

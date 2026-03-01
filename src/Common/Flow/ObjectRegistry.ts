@@ -46,13 +46,13 @@ export const OBJECT_TYPES: Record<ObjectTypeKey, ObjectTypeConfig> = {
     },
 };
 
-export function getSupportedTypes(): Array<{ label: string; value: ObjectTypeKey }> {
+export function GetSupportedTypes(): Array<{ label: string; value: ObjectTypeKey }> {
     return Object.entries(OBJECT_TYPES).map(([key, cfg]) => {
         return { label: cfg.label, value: key as ObjectTypeKey };
     });
 }
 
-export async function listRecordsFor(type: ObjectTypeKey): Promise<Array<{ uid: string; label: string }>> {
+export async function ListRecordsFor(type: ObjectTypeKey): Promise<Array<{ uid: string; label: string }>> {
     const session = await neo4jClient.GetSession(`READ`);
     try {
         const result = await session.run(OBJECT_TYPES[type].listQuery);
@@ -132,7 +132,7 @@ async function __ResolvePriorityDescription(options: {
     };
 }
 
-export async function buildEmbedFor(
+export async function BuildEmbedFor(
     type: ObjectTypeKey,
     id: string,
     viewerUserUid: string,

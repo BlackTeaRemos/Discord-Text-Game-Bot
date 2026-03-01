@@ -80,6 +80,6 @@ export class CommandExecutionContextImpl implements ExecutionContext {
  * @param correlationId Optional correlation ID for tracing
  * @returns New ExecutionContext instance
  */
-export function createExecutionContext(correlationId?: string): ExecutionContext {
+export function CreateExecutionContext(correlationId?: string): ExecutionContext {
     return new CommandExecutionContextImpl(correlationId);
 }

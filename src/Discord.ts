@@ -1,4 +1,4 @@
-import { log } from './Common/Log.js';
+import { Log } from './Common/Log.js';
 import {
     Events,
     TextChannel,
@@ -40,14 +40,14 @@ export class DiscordService {
         });
         // Listen for all error events
         this.client.on(`error`, err => {
-            log.error(
+            Log.error(
                 `Client error event: ${err instanceof Error ? err.stack || err.message : String(err)}`,
                 `DiscordService`,
             );
         });
 
         this.client.on(`shardError`, err => {
-            log.error(
+            Log.error(
                 `Shard error event: ${err instanceof Error ? err.stack || err.message : String(err)}`,
                 `DiscordService`,
             );
@@ -56,7 +56,7 @@ export class DiscordService {
         // DiscordJS debug events are silenced to reduce log noise in production
 
         this.client.on(`warn`, info => {
-            log.warning(`Warning: ${info}`, `DiscordService`);
+            Log.warning(`Warning: ${info}`, `DiscordService`);
         });
 
         this.client.once(Events.ClientReady, async () => {
@@ -64,7 +64,7 @@ export class DiscordService {
                 // Fetch the guild and log it
                 const guild = await this.client.guilds.fetch(guildId);
                 this._guild = guild;
-                log.info(`Connected to guild: ${guild.name} (${guild.id})`, `DiscordService`);
+                Log.info(`Connected to guild: ${guild.name} (${guild.id})`, `DiscordService`);
 
                 // Fetch the category and log it
                 const category = await this.client.channels.fetch(categoryId);
@@ -73,16 +73,16 @@ export class DiscordService {
                     throw new Error(`Category not found or not a category`);
                 }
                 this._category = category as CategoryChannel;
-                log.info(`Using category: ${category.name} (${category.id})`, `DiscordService`);
+                Log.info(`Using category: ${category.name} (${category.id})`, `DiscordService`);
 
                 // Fetch all text channels in the category
                 const allChannels = (category as CategoryChannel).children.cache.filter((ch: any) => {
                     return ch.type === ChannelType.GuildText;
                 });
                 this._channels = Array.from(allChannels.values()) as TextChannel[];
-                log.info(`Found ${this._channels.length} text channel(s) in category.`, `DiscordService`);
+                Log.info(`Found ${this._channels.length} text channel(s) in category.`, `DiscordService`);
                 this._channels.forEach(ch => {
-                    return log.info(`Channel: ${ch.name} (${ch.id})`, `DiscordService`);
+                    return Log.info(`Channel: ${ch.name} (${ch.id})`, `DiscordService`);
                 });
 
                 // Check for any cmd channel and create one if missing
@@ -92,7 +92,7 @@ export class DiscordService {
 
                 if (!cmdChannel) {
                     const uniqueName = `cmd-bot`;
-                    log.info(`No cmd- channel found, creating '${uniqueName}'...`, `DiscordService`);
+                    Log.info(`No cmd- channel found, creating '${uniqueName}'...`, `DiscordService`);
 
                     try {
                         cmdChannel = await (category as CategoryChannel).guild.channels.create({
@@ -101,9 +101,9 @@ export class DiscordService {
                             parent: category.id,
                         });
                         this._channels.push(cmdChannel);
-                        log.info(`'${uniqueName}' channel created.`, `DiscordService`);
+                        Log.info(`'${uniqueName}' channel created.`, `DiscordService`);
                     } catch (err) {
-                        log.error(
+                        Log.error(
                             `Failed to create cmd- channel: ${err instanceof Error ? err.stack || err.message : String(err)}`,
                             `DiscordService`,
                         );
@@ -112,7 +112,7 @@ export class DiscordService {
 
                 MAIN_EVENT_BUS.emit(`discord:ready`, this.client, this._category, this._channels);
             } catch (err) {
-                log.error(
+                Log.error(
                     `Error during ready event: ${err instanceof Error ? err.stack || err.message : String(err)}`,
                     `DiscordService`,
                 );
@@ -126,7 +126,7 @@ export class DiscordService {
             MAIN_EVENT_BUS.emit(`discord:message:raw`, msg);
         });
 
-        log.info(`Attempting to login...`, `DiscordService`);
+        Log.info(`Attempting to login...`, `DiscordService`);
 
         try {
             RegisterDiscordClient(this.client);

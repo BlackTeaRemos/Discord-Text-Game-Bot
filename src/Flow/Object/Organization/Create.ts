@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 import { neo4jClient } from '../../../Setup/Neo4j.js';
-import { log } from '../../../Common/Log.js';
+import { Log } from '../../../Common/Log.js';
 import type { UID } from '../../../Repository/Common/Ids.js';
 import type { OrganizationView } from '../../../Repository/Organization/Organization.js';
 import { CheckCircularDependency } from './Hierarchy/index.js';
@@ -52,7 +52,7 @@ export async function CreateOrganization(options: OrganizationCreateOptions): Pr
     const normalizedName = name.toLowerCase().replace(/\s+/g, `_`);
     const displayName = friendlyName ?? name;
 
-    log.info(
+    Log.info(
         `Creating organization: ${normalizedName}`,
         `OrganizationCreate`,
         `parentUid=${parentUid ?? `none`} createdBy=${createdByDiscordId}`,
@@ -129,14 +129,14 @@ export async function CreateOrganization(options: OrganizationCreateOptions): Pr
             organizationView.uid,
         );
         if (!membershipResult.success) {
-            log.warning(
+            Log.warning(
                 `Failed to add creator as member`,
                 `OrganizationCreate`,
                 `uid=${organizationView.uid} error=${membershipResult.error}`,
             );
         }
 
-        log.info(
+        Log.info(
             `Organization created: ${organizationView.uid}`,
             `OrganizationCreate`,
             `name=${organizationView.name}`,
@@ -145,7 +145,7 @@ export async function CreateOrganization(options: OrganizationCreateOptions): Pr
         return { success: true, organization: organizationView };
     } catch(error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Failed to create organization`, message, `OrganizationCreate`);
+        Log.error(`Failed to create organization`, message, `OrganizationCreate`);
         return { success: false, error: message };
     } finally {
         await session.close();

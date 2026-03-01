@@ -1,5 +1,5 @@
 import { MessageFlags } from 'discord.js';
-import { log } from '../../../../Common/Log.js';
+import { Log } from '../../../../Common/Log.js';
 import { UserCreateFlowConstants } from '../../../../Flow/Object/User/CreateState.js';
 import type { UserCreateSession, UserCreateSessionStore } from './UserCreateSessionStore.js';
 import { ClearUserCreateSessionTimeout } from './ClearUserCreateSessionTimeout.js';
@@ -30,7 +30,7 @@ export async function ExpireUserCreateSession(
         try {
             await session.baseInteraction.followUp({ content: message, flags: MessageFlags.Ephemeral });
         } catch(error) {
-            log.error(
+            Log.error(
                 `Failed to send user create expiration notice for user ${session.userId}: ${String(error)}`,
                 UserCreateFlowConstants.logSource,
             );
@@ -52,7 +52,7 @@ async function __DeleteSessionMessage(session: UserCreateSession, messageId: str
     try {
         await session.baseInteraction.webhook.deleteMessage(messageId);
     } catch(error) {
-        log.warning(
+        Log.warning(
             `Failed to delete ${label} message for user ${session.userId}: ${error instanceof Error ? error.message : String(error)}`,
             UserCreateFlowConstants.logSource,
         );

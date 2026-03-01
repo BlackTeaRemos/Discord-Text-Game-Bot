@@ -1,5 +1,5 @@
 import { neo4jClient } from '../../../../Setup/Neo4j.js';
-import { log } from '../../../../Common/Log.js';
+import { Log } from '../../../../Common/Log.js';
 import type { OrganizationView } from '../../../../Repository/Organization/Organization.js';
 import { GetOrganizationHierarchy } from '../View/GetOrganizationHierarchy.js';
 import {
@@ -58,7 +58,7 @@ export async function EnsureGlobalOrganization(): Promise<OrganizationView> {
         };
     } catch(error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Failed to ensure global organization`, message, `OrganizationGlobal`);
+        Log.error(`Failed to ensure global organization`, message, `OrganizationGlobal`);
         throw error;
     } finally {
         await session.close();

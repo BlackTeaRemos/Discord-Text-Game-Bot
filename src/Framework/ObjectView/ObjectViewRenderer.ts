@@ -9,9 +9,9 @@ import {
     Message,
 } from 'discord.js';
 import type { ObjectViewModel, ObjectViewPage, ObjectViewResolver } from './ObjectViewTypes.js';
-import { ResolveObjectViewTheme } from './ObjectViewThemeRegistry.js';
-import './ObjectViewThemeDefaults.js';
-import { Translate } from '../Services/I18nService.js';
+import { ResolveObjectViewTheme } from '../Theme/ObjectViewThemeRegistry.js';
+import '../Theme/ObjectViewThemeDefaults.js';
+import { Translate } from '../../Services/I18nService.js';
 import { ObjectViewSessionManager } from './ObjectViewSessionManager.js';
 import { ResolveSectionAnchors } from './ResolveSectionAnchors.js';
 

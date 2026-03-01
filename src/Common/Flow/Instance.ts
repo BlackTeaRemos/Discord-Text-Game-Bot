@@ -1,7 +1,7 @@
 import type { Interaction, Message } from 'discord.js';
 import type { ExecutionContext } from '../../Domain/Command.js';
 import type { FlowStep, StepContext, StepSnapshot } from './Types.js';
-import { flowAdvanceId, flowCancelId, flowStepInteractionId, flowStepMessageId, flowStepPromptId } from './Events.js';
+import { FlowAdvanceId, FlowCancelId, FlowStepInteractionId, FlowStepMessageId, FlowStepPromptId } from './Events.js';
 import { FlowManager } from './Manager.js';
 
 /**
@@ -42,7 +42,7 @@ export class FlowInstance<State> {
                 this.ensureSnapshot(step, this.current);
             }
             const ctx = this.buildContext(step, this.current, this.initialInteraction);
-            this.manager.events.emitEvent(flowStepPromptId(this.userId, this.current), {
+            this.manager.events.emitEvent(FlowStepPromptId(this.userId, this.current), {
                 userId: this.userId,
                 stepIndex: this.current,
                 step,
@@ -89,7 +89,7 @@ export class FlowInstance<State> {
         if (snapshot) {
             snapshot.lastInteraction = interaction;
         }
-        this.manager.events.emitEvent(flowStepInteractionId(this.userId, this.current), {
+        this.manager.events.emitEvent(FlowStepInteractionId(this.userId, this.current), {
             userId: this.userId,
             stepIndex: this.current,
             step,
@@ -114,7 +114,7 @@ export class FlowInstance<State> {
             if (snapshot) {
                 snapshot.lastMessage = message;
             }
-            this.manager.events.emitEvent(flowStepMessageId(this.userId, this.current), {
+            this.manager.events.emitEvent(FlowStepMessageId(this.userId, this.current), {
                 userId: this.userId,
                 stepIndex: this.current,
                 step,
@@ -132,7 +132,7 @@ export class FlowInstance<State> {
         const from = this.current;
         this.current++;
         const ctx = this.buildContext();
-        this.manager.events.emitEvent(flowAdvanceId(this.userId), {
+        this.manager.events.emitEvent(FlowAdvanceId(this.userId), {
             userId: this.userId,
             fromStepIndex: from,
             ctx,
@@ -150,7 +150,7 @@ export class FlowInstance<State> {
      */
     public async cancel() {
         const ctx = this.buildContext();
-        this.manager.events.emitEvent(flowCancelId(this.userId), {
+        this.manager.events.emitEvent(FlowCancelId(this.userId), {
             userId: this.userId,
             ctx,
         });

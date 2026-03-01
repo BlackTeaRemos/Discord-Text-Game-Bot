@@ -1,12 +1,12 @@
-import type { ObjectDetail } from '../Flow/Object/FetchObjectDetail.js';
-import type { ObjectAction } from '../Flow/Object/ResolveObjectActions.js';
+import type { ObjectDetail } from '../../Flow/Object/FetchObjectDetail.js';
+import type { ObjectAction } from '../../Flow/Object/ResolveObjectActions.js';
 import type { ObjectViewPage, ObjectViewModel } from './ObjectViewTypes.js';
-import { BuildPropertyLines } from './DetailContentBuilders/BuildPropertyLines.js';
-import { BuildRelationshipsPages } from './DetailContentBuilders/BuildRelationshipsPages.js';
-import { BuildActionsPages } from './DetailContentBuilders/BuildActionsPages.js';
-import { SplitIntoPages } from './DetailPageUtils/SplitIntoPages.js';
-import { CompressPages } from './DetailPageUtils/CompressPages.js';
-import { MAX_PAGE_LENGTH } from './DetailPageUtils/Constants.js';
+import { BuildPropertyLines } from '../DetailContentBuilders/BuildPropertyLines.js';
+import { BuildRelationshipsPages } from '../DetailContentBuilders/BuildRelationshipsPages.js';
+import { BuildActionsPages } from '../DetailContentBuilders/BuildActionsPages.js';
+import { SplitIntoPages } from '../DetailPageUtils/SplitIntoPages.js';
+import { CompressPages } from '../DetailPageUtils/CompressPages.js';
+import { MAX_PAGE_LENGTH } from '../DetailPageUtils/Constants.js';
 
 /**
  * @brief Options for building a detailed multi page object view

@@ -1,6 +1,6 @@
 import path from 'path';
 import * as fs from 'fs';
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 
 export async function ExecuteFilesInSubdirectories(dirPath: string) {
     try {
@@ -21,7 +21,7 @@ export async function ExecuteFilesInSubdirectories(dirPath: string) {
                 try {
                     const dynamicModule = (await import(`file://${filePath}`)).default;
 
-                    log.info(`Module keys from ${filePath}`, JSON.stringify(Reflect.ownKeys(dynamicModule), null, 2));
+                    Log.info(`Module keys from ${filePath}`, JSON.stringify(Reflect.ownKeys(dynamicModule), null, 2));
 
                     const moduleKeys = Reflect.ownKeys(dynamicModule).filter(key => {
                         return key !== `__esModule`;
@@ -38,7 +38,7 @@ export async function ExecuteFilesInSubdirectories(dirPath: string) {
                             ) &&
                             Reflect.ownKeys(dynamicModule.default).length === 0)
                     ) {
-                        log.error(
+                        Log.error(
                             `No exports found in ${filePath}`,
                             `Module at ${filePath} does not contain any exports. Module keys: ${JSON.stringify(Reflect.ownKeys(dynamicModule))}`,
                             import.meta.filename,
@@ -46,13 +46,13 @@ export async function ExecuteFilesInSubdirectories(dirPath: string) {
                         continue;
                     }
 
-                    log.debug(`File at ${filePath} executed successfully`, import.meta.filename);
+                    Log.debug(`File at ${filePath} executed successfully`, import.meta.filename);
                 } catch(error) {
-                    log.error(`Failed to execute file at ${filePath}:`, (error as Error).message, import.meta.filename);
+                    Log.error(`Failed to execute file at ${filePath}:`, (error as Error).message, import.meta.filename);
                 }
             }
         }
     } catch(error) {
-        log.error(`Error while executing files in subdirectories:`, (error as Error).message, import.meta.filename);
+        Log.error(`Error while executing files in subdirectories:`, (error as Error).message, import.meta.filename);
     }
 }

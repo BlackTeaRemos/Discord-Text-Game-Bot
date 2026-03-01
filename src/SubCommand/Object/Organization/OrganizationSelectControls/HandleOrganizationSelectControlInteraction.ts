@@ -1,6 +1,6 @@
 import type { StringSelectMenuInteraction } from 'discord.js';
 import { MessageFlags } from 'discord.js';
-import { log } from '../../../../Common/Log.js';
+import { Log } from '../../../../Common/Log.js';
 import { SetUserDefaultOrganization } from '../../../../Flow/Object/Organization/Selection/index.js';
 import { GetOrganizationByUid } from '../../../../Flow/Object/Organization/View/GetOrganizationByUid.js';
 import { GetUserOrganizations } from '../../../../Flow/Object/Organization/View/GetUserOrganizations.js';
@@ -83,7 +83,7 @@ export async function HandleOrganizationSelectControlInteraction(
             components: [],
         });
 
-        log.info(
+        Log.info(
             `Organization default updated via select`,
             `OrganizationSelect`,
             `user=${interaction.user.id} org=${selectedUid}`,
@@ -91,7 +91,7 @@ export async function HandleOrganizationSelectControlInteraction(
         return true;
     } catch(error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Failed to set default organization`, message, `OrganizationSelect`);
+        Log.error(`Failed to set default organization`, message, `OrganizationSelect`);
         await interaction.reply({
             content: TranslateFromContext(executionContext, `commands.organization.selectInteraction.errors.failed`, {
                 params: { message },

@@ -3,7 +3,7 @@
  */
 
 import { neo4jClient } from '../../../../Setup/Neo4j.js';
-import { log } from '../../../../Common/Log.js';
+import { Log } from '../../../../Common/Log.js';
 import type { UID } from '../../../../Repository/Common/Ids.js';
 
 /**
@@ -54,7 +54,7 @@ export async function GetOrganizationHierarchy(uid: UID): Promise<UID[]> {
 
         return result.records[0].get(`chain`) as UID[];
     } catch(error) {
-        log.warning(
+        Log.warning(
             `Failed to build hierarchy chain for ${uid}`,
             `OrganizationView`,
             error instanceof Error ? error.message : String(error),

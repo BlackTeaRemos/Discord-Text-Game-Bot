@@ -1,5 +1,5 @@
 import ComplexEventEmitter, { EventIdentifier } from '../ComplexEventEmitter.js';
-import { LogLevel, log } from '../Log.js';
+import { LogLevel, Log } from '../Log.js';
 import type { FlowStep } from './Types.js';
 import {
     anyAdvanceId,
@@ -132,7 +132,7 @@ export class FlowEventBus<State> extends ComplexEventEmitter<any> {
             if (!message) {
                 return;
             }
-            log(level, message, source);
+            Log(level, message, source);
         };
 
         this.on(anyStepPromptId, (payload: FlowPromptPayload<State>) => {

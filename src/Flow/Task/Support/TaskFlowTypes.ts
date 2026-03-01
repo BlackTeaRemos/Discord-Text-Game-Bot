@@ -1,4 +1,4 @@
-import type { TaskStatus } from '../../Domain/Task.js';
+import type { TaskStatus } from '../../../Domain/Task.js';
 
 /**
  * Input payload required to persist a task record

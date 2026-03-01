@@ -1,5 +1,5 @@
-import ComplexEventEmitter from '../ComplexEventEmitter.js';
-import type { PermissionEvaluationPayload, PermissionToken, PermissionState } from './Types.js';
+import ComplexEventEmitter from '../../ComplexEventEmitter.js';
+import type { PermissionEvaluationPayload, PermissionToken, PermissionState } from '../Types.js';
 
 /**
  * Evaluates a token against the configured emitter and returns the most specific state

@@ -1,10 +1,10 @@
 import type { ButtonInteraction, Interaction, StringSelectMenuInteraction } from 'discord.js';
-import { log } from '../Common/Log.js';
+import { Log } from '../Common/Log.js';
 import { flowManager } from '../Common/Flow/Manager.js';
 import { HandleGameCreateControlInteraction } from '../SubCommand/Object/Game/GameCreateControls.js';
 import { HandleUserCreateControlInteraction } from '../SubCommand/Object/User/UserCreateControls.js';
 import { HandleOrganizationSelectControlInteraction } from '../SubCommand/Object/Organization/OrganizationSelectControls/index.js';
-import { ObjectViewRenderer } from '../Framework/ObjectViewRenderer.js';
+import { ObjectViewRenderer } from '../Framework/ObjectView/ObjectViewRenderer.js';
 
 /**
  * Handles the interactionCreate event from Discord by delegating processing to the shared flow manager
@@ -37,6 +37,6 @@ export async function OnInteractionCreate(interaction: Interaction): Promise<voi
             await flowManager.onInteraction(interaction);
         }
     } catch(error) {
-        log.error(`Flow manager failed to process interaction ${interaction.id}: ${(error as Error).message}`, `Flow`);
+        Log.error(`Flow manager failed to process interaction ${interaction.id}: ${(error as Error).message}`, `Flow`);
     }
 }

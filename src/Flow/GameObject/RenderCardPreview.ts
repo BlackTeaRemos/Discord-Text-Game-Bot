@@ -4,7 +4,7 @@ import { FetchObjectDetail } from '../Object/FetchObjectDetail.js';
 import type { ITemplateDisplayConfig } from '../../Domain/GameObject/Display/ITemplateDisplayConfig.js';
 import type { ObjectDetail } from '../Object/FetchObjectDetail.js';
 import { RenderObjectCard } from '../../Framework/ImageGen/ObjectCardRenderer.js';
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 
 /** Shared repository instances for preview rendering. */
 const _templateRepository = new GameObjectTemplateRepository();
@@ -92,7 +92,7 @@ export async function RenderCardPreview(
         });
     } catch(error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Failed to render card preview: ${message}`, `Flow/GameObject`, `RenderCardPreview`);
+        Log.error(`Failed to render card preview: ${message}`, `Flow/GameObject`, `RenderCardPreview`);
         return null;
     }
 }

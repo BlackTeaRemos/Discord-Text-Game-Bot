@@ -1,14 +1,11 @@
-export * from './BuildPermissionEmitter.js';
-import ComplexEventEmitter from '../ComplexEventEmitter.js';
-import { NormalizeToken } from './NormalizeToken.js';
-import type { PermissionEvaluationPayload, PermissionsObject } from './Types.js';
+import ComplexEventEmitter from '../../ComplexEventEmitter.js';
+import type { PermissionEvaluationPayload, PermissionsObject } from '../Types.js';
+import { NormalizeToken } from '../Token/NormalizeToken.js';
 
 /**
- * @brief Builds a ComplexEventEmitter instance populated with permission listeners
+ * Builds a ComplexEventEmitter instance populated with permission listeners
  * @param permissions PermissionsObject Map containing token strings and associated states
- * @returns ComplexEventEmitter PermissionEvaluationPayload Configured emitter used during evaluation
- * @example
- * const emitter = buildPermissionEmitter({ 'command:create': 'allowed' });
+ * @returns ComplexEventEmitter of PermissionEvaluationPayload Configured emitter used during evaluation
  */
 export function BuildPermissionEmitter(
     permissions: PermissionsObject,

@@ -4,7 +4,7 @@ import { resolve } from 'path';
 import type { ExecutionContext } from '../Domain/Command.js';
 import { GetCachedConfig } from './ConfigCache.js';
 import { GetUserLocale } from '../Flow/Object/User/Locale.js';
-import { log } from '../Common/Log.js';
+import { Log } from '../Common/Log.js';
 
 const DEFAULT_LOCALE = `en`;
 const DEFAULT_NAMESPACE = `translation`;
@@ -92,7 +92,7 @@ export function Translate(key: string, options: TranslateOptions = {}): string {
     // Prevent callers accidentally overriding the language lng option by passing an lng param
     let translatorParams: any = params;
     if ((params as any).lng !== undefined) {
-        log.warning(`I18n: caller provided 'lng' in params; ignoring to prevent runtime errors`, `I18nService`);
+        Log.warning(`I18n: caller provided 'lng' in params; ignoring to prevent runtime errors`, `I18nService`);
         // Shallow copy without lng
         const { lng: _lng, ...rest } = params as any;
         translatorParams = rest;

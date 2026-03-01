@@ -1,4 +1,4 @@
-import type { PermissionToken } from './Types.js';
+import type { PermissionToken } from '../Types.js';
 
 export function TokenKey(token: PermissionToken): string {
     return token

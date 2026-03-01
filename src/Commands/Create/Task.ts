@@ -7,7 +7,7 @@ import { CreateTaskRecord } from '../../Flow/Task/Command/CreateTaskRecord.js';
 import { RemoveTask } from '../../Flow/Task/Command/RemoveTask.js';
 import { neo4jClient } from '../../Setup/Neo4j.js';
 import { flowManager } from '../../Common/Flow/Manager.js';
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 import { ResolveExecutionOrganization } from '../../Flow/Object/Organization/Selection/ResolveExecutionOrganization.js';
 import { TranslateFromContext } from '../../Services/I18nService.js';
 
@@ -157,7 +157,7 @@ async function __CreateTaskFromInteraction(
     } catch(error) {
         const message = error instanceof Error ? error.message : String(error);
         const stack = error instanceof Error ? error.stack : undefined;
-        log.error(`Failed to create task: ${message}`, `CreateTask`, stack);
+        Log.error(`Failed to create task: ${message}`, `CreateTask`, stack);
         await interaction.editReply({
             content: TranslateFromContext(interaction.executionContext, `commands.create.task.errors.failed`, {
                 params: { message },

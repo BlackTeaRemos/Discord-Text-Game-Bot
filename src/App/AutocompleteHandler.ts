@@ -1,5 +1,5 @@
 import type { AutocompleteInteraction } from 'discord.js';
-import { log } from '../Common/Log.js';
+import { Log } from '../Common/Log.js';
 import { createExecutionContext } from '../Domain/index.js';
 
 /** Log tag for this module */
@@ -23,13 +23,13 @@ export function CreateAutocompleteHandler(options: { loadedCommands: Record<stri
     return async function HandleAutocomplete(interaction: AutocompleteInteraction): Promise<void> {
         const command = loadedCommands[interaction.commandName];
         if (!command) {
-            log.warning(`No command module found for autocomplete: ${interaction.commandName}`, LOG_TAG);
+            Log.warning(`No command module found for autocomplete: ${interaction.commandName}`, LOG_TAG);
             await interaction.respond([]);
             return;
         }
 
         if (typeof command.autocomplete !== `function`) {
-            log.debug(`Command "${interaction.commandName}" has no autocomplete handler`, LOG_TAG);
+            Log.debug(`Command "${interaction.commandName}" has no autocomplete handler`, LOG_TAG);
             await interaction.respond([]);
             return;
         }
@@ -39,7 +39,7 @@ export function CreateAutocompleteHandler(options: { loadedCommands: Record<stri
             await command.autocomplete(interaction);
         } catch(error) {
             const message = error instanceof Error ? error.message : String(error);
-            log.error(`Autocomplete failed for /${interaction.commandName}: ${message}`, LOG_TAG);
+            Log.error(`Autocomplete failed for /${interaction.commandName}: ${message}`, LOG_TAG);
             try {
                 await interaction.respond([]);
             } catch {

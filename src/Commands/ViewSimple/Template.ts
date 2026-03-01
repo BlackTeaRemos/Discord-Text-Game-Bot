@@ -3,11 +3,11 @@ import type { ChatInputCommandInteraction } from 'discord.js';
 import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
 import { ListGamesForServer } from '../../Flow/Object/Game/ListGamesForServer.js';
 import { GameObjectTemplateRepository } from '../../Repository/GameObject/GameObjectTemplateRepository.js';
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 import { ResolveViewAccess } from './ResolveViewAccess.js';
 import { TranslateFromContext } from '../../Services/I18nService.js';
-import { ObjectViewRenderer } from '../../Framework/ObjectViewRenderer.js';
-import type { ObjectViewModel, ObjectViewPage, ObjectViewField } from '../../Framework/ObjectViewTypes.js';
+import { ObjectViewRenderer } from '../../Framework/ObjectView/ObjectViewRenderer.js';
+import type { ObjectViewModel, ObjectViewPage, ObjectViewField } from '../../Framework/ObjectView/ObjectViewTypes.js';
 
 /** Maximum number of templates displayed per page */
 const MAX_TEMPLATES_PER_PAGE = 10;
@@ -114,7 +114,7 @@ export async function ExecuteViewTemplate(
         await _templateViewRenderer.RenderInitial(interaction, viewModel);
     } catch(error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Failed to list templates`, message, `ViewTemplate`);
+        Log.error(`Failed to list templates`, message, `ViewTemplate`);
         await interaction.editReply({
             content: TranslateFromContext(interaction.executionContext, `commands.view.template.errors.failed`, {
                 params: { message },

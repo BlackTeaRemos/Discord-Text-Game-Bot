@@ -3,7 +3,7 @@ import type { ChatInputCommandInteraction } from 'discord.js';
 import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
 import type { PermissionsObject, PermissionState } from '../../Common/Permission/Types.js';
 import { RunDescriptionEditorFlow } from '../../SubCommand/Description/Editor/index.js';
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 import { ResolveObjectByUid } from '../../Flow/Object/ResolveByUid.js';
 import {
     ResolveExecutionOrganization,
@@ -115,7 +115,7 @@ export async function ExecuteEditDescription(
         });
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Failed to open description editor`, message, `EditDescription`);
+        Log.error(`Failed to open description editor`, message, `EditDescription`);
         await interaction.editReply({
             content: TranslateFromContext(interaction.executionContext, `commands.edit.descriptionFlow.errors.failed`, {
                 params: { message },

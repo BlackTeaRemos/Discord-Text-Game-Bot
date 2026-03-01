@@ -5,11 +5,11 @@ import { ResolveObjectByUid } from '../../Flow/Object/ResolveByUid.js';
 import { FetchDescriptionForObject } from '../../Flow/Object/Description/FetchForObject.js';
 import { FetchObjectDetail } from '../../Flow/Object/FetchObjectDetail.js';
 import { ResolveObjectActions } from '../../Flow/Object/ResolveObjectActions.js';
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 import { ResolveViewAccess } from './ResolveViewAccess.js';
 import { TranslateFromContext, GetCachedLocale } from '../../Services/I18nService.js';
-import { ObjectViewRenderer } from '../../Framework/ObjectViewRenderer.js';
-import { BuildDetailPages } from '../../Framework/ObjectDetailPageBuilder.js';
+import { ObjectViewRenderer } from '../../Framework/ObjectView/ObjectViewRenderer.js';
+import { BuildDetailPages } from '../../Framework/ObjectView/ObjectDetailPageBuilder.js';
 import { RenderObjectCard } from '../../Framework/ImageGen/ObjectCardRenderer.js';
 
 /** Shared renderer instance for generic object views */
@@ -133,13 +133,13 @@ export async function ExecuteViewObject(
             }
         } catch (cardError) {
             // Card rendering failure is non fatal so we proceed without image
-            log.warning(`Card rendering failed`, `ViewObject`, cardError instanceof Error ? cardError.message : String(cardError));
+            Log.warning(`Card rendering failed`, `ViewObject`, cardError instanceof Error ? cardError.message : String(cardError));
         }
 
         await _objectViewRenderer.RenderInitial(interaction, viewModel);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Failed to view object`, message, `ViewObject`);
+        Log.error(`Failed to view object`, message, `ViewObject`);
         await interaction.editReply({
             content: TranslateFromContext(interaction.executionContext, `commands.view.object.errors.failed`, {
                 params: { message },

@@ -1,4 +1,4 @@
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 import type { ActionTrigger, IActionDefinition } from '../../Domain/GameObject/Action/IActionDefinition.js';
 import type { IActionExecutionResult, IActionExecutionError } from '../../Domain/GameObject/Action/IActionExecutionResult.js';
 import type { IGameObject } from '../../Domain/GameObject/Entity/IGameObject.js';
@@ -45,7 +45,7 @@ export class TurnActionEngine implements ITurnActionEngine {
             const objects = await this._objectRepository.ListByGame(gameUid);
 
             if (objects.length === 0) {
-                log.info(`No objects found for game "${gameUid}". Nothing to process.`, LOG_TAG);
+                Log.info(`No objects found for game "${gameUid}". Nothing to process.`, LOG_TAG);
                 return allResults;
             }
 
@@ -63,7 +63,7 @@ export class TurnActionEngine implements ITurnActionEngine {
                 const template = templateCache.get(gameObject.templateUid);
 
                 if (!template) {
-                    log.warning(`Template "${gameObject.templateUid}" not found for object "${gameObject.uid}". Skipping.`, LOG_TAG);
+                    Log.warning(`Template "${gameObject.templateUid}" not found for object "${gameObject.uid}". Skipping.`, LOG_TAG);
                     continue;
                 }
 
@@ -87,10 +87,10 @@ export class TurnActionEngine implements ITurnActionEngine {
             // Persist all parameter changes in one transaction
             if (batchUpdates.length > 0) {
                 await this._objectRepository.BatchUpdateParameters(batchUpdates);
-                log.info(`Persisted parameter updates for ${batchUpdates.length} objects.`, LOG_TAG);
+                Log.info(`Persisted parameter updates for ${batchUpdates.length} objects.`, LOG_TAG);
             }
         } catch(error) {
-            log.error(`Turn engine execution failed: ${String(error)}`, LOG_TAG, `Execute`);
+            Log.error(`Turn engine execution failed: ${String(error)}`, LOG_TAG, `Execute`);
             throw error;
         }
 

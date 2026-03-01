@@ -1,4 +1,4 @@
-import { log, LogLevel } from './Common/Log.js';
+import { Log, LogLevel } from './Common/Log.js';
 /**
  * App.ts  Entry point that sets up and starts the main application logic including services and event listeners
  */
@@ -17,7 +17,7 @@ import { OnInteractionCreate } from './Events/InteractionCreate.js';
 import { OnMessageCreate } from './Events/MessageCreate.js';
 import { commands as loadedCommands, commandsReady } from './Commands/index.js';
 import { flowManager } from './Common/Flow/Manager.js';
-import { bootDiscordClient } from './App/Boot.js';
+import { BootDiscordClient } from './App/Boot.js';
 import { InitDiscord } from './App/DiscordInit.js';
 
 // Supported log levels with numeric severity where lower is more verbose
@@ -86,7 +86,7 @@ export class DiscordApp {
      */
     private async __boot(): Promise<void> {
         try {
-            const { client, config } = await bootDiscordClient({
+            const { client, config } = await BootDiscordClient({
                 eventBus: this.eventBus,
                 configService: this._configService,
                 loadedCommands,
@@ -211,7 +211,7 @@ export class DiscordApp {
             // Only log info level messages if current level allows
             if (this._logLevel <= LOG_LEVELS.info) {
                 try {
-                    log.info(msg, `App`);
+                    Log.info(msg, `App`);
                 } catch (err) {
                     // Fallback to console if log fails
                     console.log(msg);

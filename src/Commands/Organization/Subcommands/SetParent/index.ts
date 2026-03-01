@@ -1,7 +1,7 @@
 import { MessageFlags } from 'discord.js';
 import type { ChatInputCommandInteraction, SlashCommandSubcommandBuilder } from 'discord.js';
 import type { InteractionExecutionContextCarrier } from '../../../../Common/Type/Interaction.js';
-import { log } from '../../../../Common/Log.js';
+import { Log } from '../../../../Common/Log.js';
 import { ExecuteOrganizationSetParent } from '../../SetParent.js';
 import type { CommandSubcommand } from '../../../CommandSubcommand.js';
 import { Translate, TranslateFromContext } from '../../../../Services/I18nService.js';
@@ -47,7 +47,7 @@ export async function ExecuteOrganizationSetParentSubcommand(
         await ExecuteOrganizationSetParent(interaction);
     } catch(error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Organization set_parent subcommand failed`, message, `OrganizationSetParentSubcommand`);
+        Log.error(`Organization set_parent subcommand failed`, message, `OrganizationSetParentSubcommand`);
         if (!interaction.deferred && !interaction.replied) {
             await interaction.reply({
                 content: TranslateFromContext(interaction.executionContext, `commands.organization.setParent.errors.failed`, {

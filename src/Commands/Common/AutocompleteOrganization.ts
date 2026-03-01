@@ -1,6 +1,6 @@
 import type { AutocompleteInteraction } from 'discord.js';
 import { GetUserOrganizations } from '../../Flow/Object/Organization/View/GetUserOrganizations.js';
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 
 /** Log tag for this module */
 const LOG_TAG = `AutocompleteOrganization`;
@@ -51,7 +51,7 @@ export async function AutocompleteOrganization(
         await interaction.respond(suggestions);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Autocomplete failed: ${message}`, LOG_TAG);
+        Log.error(`Autocomplete failed: ${message}`, LOG_TAG);
         await interaction.respond([]);
     }
 }

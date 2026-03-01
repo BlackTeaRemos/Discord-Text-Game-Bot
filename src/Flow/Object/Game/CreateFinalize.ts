@@ -2,7 +2,7 @@ import type { Game } from './CreateRecord.js';
 import { CreateGame, UpdateGame } from './CreateRecord.js';
 import type { GameCreateFlowState } from './CreateState.js';
 import { GameCreateFlowConstants } from './CreateState.js';
-import { log } from '../../../Common/Log.js';
+import { Log } from '../../../Common/Log.js';
 import { sanitizeDescriptionText } from '../Description/BuildDefinition.js';
 import { SaveScopedDescription } from '../Description/Scope/SaveScopedDescription.js';
 import type { DescriptionScope } from '../Description/Scope/Types.js';
@@ -41,7 +41,7 @@ export async function FinalizeGameCreation(state: GameCreateFlowState): Promise<
         });
         return { success: true, game: created };
     } catch(error) {
-        log.error(`Game creation failed: ${String(error)}`, GameCreateFlowConstants.logSource, `FinalizeGameCreation`);
+        Log.error(`Game creation failed: ${String(error)}`, GameCreateFlowConstants.logSource, `FinalizeGameCreation`);
         return { success: false, error: String(error) };
     }
 }
@@ -87,7 +87,7 @@ export async function FinalizeGameUpdate(state: GameCreateFlowState): Promise<Ga
 
         return { success: true, game: updated };
     } catch(error) {
-        log.error(`Game update failed: ${String(error)}`, GameCreateFlowConstants.logSource, `FinalizeGameUpdate`);
+        Log.error(`Game update failed: ${String(error)}`, GameCreateFlowConstants.logSource, `FinalizeGameUpdate`);
         return { success: false, error: String(error) };
     }
 }

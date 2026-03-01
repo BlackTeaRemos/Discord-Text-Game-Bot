@@ -1,7 +1,7 @@
 import { MessageFlags, EmbedBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 import {
     GetOrganizationWithMembers,
     GetChildOrganizations,
@@ -97,14 +97,14 @@ export async function ExecuteOrganizationView(
             embeds: [embed],
         });
 
-        log.debug(
+        Log.debug(
             `Organization viewed: ${organization.uid}`,
             `OrganizationViewCommand`,
             `by=${interaction.user.id}`,
         );
     } catch(error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Failed to view organization`, message, `OrganizationViewCommand`);
+        Log.error(`Failed to view organization`, message, `OrganizationViewCommand`);
         await interaction.editReply({
             content: TranslateFromContext(interaction.executionContext, `commands.organization.view.errors.failed`, {
                 params: { message },

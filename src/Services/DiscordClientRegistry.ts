@@ -1,5 +1,5 @@
 import { Client } from 'discord.js';
-import { log } from '../Common/Log.js';
+import { Log } from '../Common/Log.js';
 
 let _client: Client | null = null; // currently registered client instance
 
@@ -10,7 +10,7 @@ let _client: Client | null = null; // currently registered client instance
 export function RegisterDiscordClient(client: Client): void {
     // public API simple enough no JSDoc extras
     if (_client && _client !== client) {
-        log.warning(
+        Log.warning(
             `RegisterDiscordClient called multiple times – overwriting previous client reference`,
             `DiscordClientRegistry`,
         );

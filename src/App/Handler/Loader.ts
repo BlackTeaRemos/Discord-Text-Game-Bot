@@ -1,6 +1,6 @@
 import type { Client } from 'discord.js';
 import { CreateSafeEventListener } from '../../Common/SafeEventListener.js';
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 import { interactionCreateDescriptor } from './Listener/InteractionCreate.js';
 import { messageCreateDescriptor } from './Listener/MessageCreate.js';
 
@@ -29,7 +29,7 @@ export function InitializeHandlers(client: Client, providedHandlers: ProvidedHan
             CreateSafeEventListener(listener as any, {
                 name: desc.name,
                 onError: (error, providedName) => {
-                    log.error(`${providedName ?? desc.name} listener error: ${String(error)}`, `Boot`);
+                    Log.error(`${providedName ?? desc.name} listener error: ${String(error)}`, `Boot`);
                 },
             }) as any,
         );

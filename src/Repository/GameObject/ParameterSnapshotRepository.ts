@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 import { neo4jClient } from '../../Setup/Neo4j.js';
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 import type { IParameterSnapshot } from '../../Domain/GameObject/Entity/IParameterSnapshot.js';
 import type { IParameterSnapshotRepository } from '../../Domain/GameObject/Repository/IParameterSnapshotRepository.js';
 import type { IParameterValue } from '../../Domain/GameObject/Entity/IParameterValue.js';
@@ -87,7 +87,7 @@ export class ParameterSnapshotRepository implements IParameterSnapshotRepository
 
             return __MapNodeToSnapshot(record.get(`snap`).properties);
         } catch(error) {
-            log.error(`Failed to capture snapshot: ${String(error)}`, LOG_TAG, `CaptureSnapshot`);
+            Log.error(`Failed to capture snapshot: ${String(error)}`, LOG_TAG, `CaptureSnapshot`);
             throw error;
         } finally {
             await session.close();
@@ -138,10 +138,10 @@ export class ParameterSnapshotRepository implements IParameterSnapshotRepository
             }
 
             await transaction.commit();
-            log.info(`Captured ${entries.length} parameter snapshots.`, LOG_TAG);
+            Log.info(`Captured ${entries.length} parameter snapshots.`, LOG_TAG);
         } catch(error) {
             await transaction.rollback();
-            log.error(`Batch snapshot capture failed: ${String(error)}`, LOG_TAG, `CaptureSnapshotBatch`);
+            Log.error(`Batch snapshot capture failed: ${String(error)}`, LOG_TAG, `CaptureSnapshotBatch`);
             throw error;
         } finally {
             await session.close();

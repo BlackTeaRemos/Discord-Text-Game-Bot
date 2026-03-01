@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 
 export enum DepthMode {
     UpToDepth, // Up to and including the specific depth
@@ -70,7 +70,7 @@ async function __SearchFiles(
             }
         }
     } catch(error) {
-        log.error(`Error processing directory ${currentPath}:`, error as any, import.meta.filename);
+        Log.error(`Error processing directory ${currentPath}:`, error as any, import.meta.filename);
         throw new Error(`Directory access error: Failed to read directory at ${currentPath}`);
     }
     return filesToExecute;
@@ -80,7 +80,7 @@ async function __ExecuteFile(filePath: string): Promise<any> {
     try {
         const dynamicModule = await import(`file://${filePath}`);
 
-        log.info(`Module keys from ${filePath}`, JSON.stringify(Reflect.ownKeys(dynamicModule), null, 2));
+        Log.info(`Module keys from ${filePath}`, JSON.stringify(Reflect.ownKeys(dynamicModule), null, 2));
 
         const moduleKeys = Reflect.ownKeys(dynamicModule).filter(key => {
             return key !== `__esModule`;
@@ -95,7 +95,7 @@ async function __ExecuteFile(filePath: string): Promise<any> {
                 !(dynamicModule.default.prototype || dynamicModule.default.constructor?.name !== `Object`) &&
                 Reflect.ownKeys(dynamicModule.default).length === 0)
         ) {
-            log.error(
+            Log.error(
                 `No exports found in ${filePath}`,
                 `Module at ${filePath} does not contain any exports. Module keys: ${JSON.stringify(Reflect.ownKeys(dynamicModule))}`,
                 import.meta.filename,
@@ -105,7 +105,7 @@ async function __ExecuteFile(filePath: string): Promise<any> {
 
         return dynamicModule;
     } catch(error) {
-        log.error(`Failed to execute file at ${filePath}:`, (error as Error).message, import.meta.filename);
+        Log.error(`Failed to execute file at ${filePath}:`, (error as Error).message, import.meta.filename);
         return null;
     }
 }

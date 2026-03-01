@@ -18,5 +18,17 @@ export type { IParameterDisplayConfig, ParameterGraphType } from './Display/IPar
 export type { IGameObjectTemplateRepository } from './Repository/IGameObjectTemplateRepository.js';
 export type { IGameObjectRepository } from './Repository/IGameObjectRepository.js';
 export type { IParameterSnapshotRepository } from './Repository/IParameterSnapshotRepository.js';
+export type { IObjectProjectionRepository } from './Repository/IObjectProjectionRepository.js';
+export type { IProjectionSnapshotRepository } from './Repository/IProjectionSnapshotRepository.js';
 
 export type { ITurnActionEngine } from './Action/ITurnActionEngine.js';
+
+export type {
+    IProjectedParameter,
+    ParameterSource,
+    IObjectProjection,
+    ProjectionStatus,
+    IProjectionSnapshot,
+    ProjectionDisplayStyle,
+    ProjectionStyleMap,
+} from './Entity/Projection/index.js';

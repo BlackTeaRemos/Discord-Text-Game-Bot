@@ -1,7 +1,7 @@
 import type { Message } from 'discord.js';
 import { GameCreateFlowConstants } from '../../Flow/Object/Game/CreateState.js';
 import { recallRenderers, type GameCreateStepContext } from '../../Flow/Object/Game/CreateTypes.js';
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 import { Translate } from '../../Services/I18nService.js';
 
 /**
@@ -32,7 +32,7 @@ export async function ProcessImageInput(ctx: GameCreateStepContext, message: Mes
             await message.reply(Translate(`prompt.image.updatedPreview`));
             return true;
         } catch (error) {
-            log.error(
+            Log.error(
                 `Failed to process image: ${String(error)}`,
                 GameCreateFlowConstants.logSource,
                 `ProcessImageInput`,

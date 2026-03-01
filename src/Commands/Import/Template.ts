@@ -1,7 +1,7 @@
 import { MessageFlags, ButtonBuilder, ButtonStyle, ActionRowBuilder, ComponentType } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 import { ListGamesForServer } from '../../Flow/Object/Game/ListGamesForServer.js';
 import { ValidateTemplateJson, CastTemplateJson } from '../../Flow/GameObject/ValidateTemplateJson.js';
 import { AnalyzeMerge, ExecuteMerge, type IMergeAnalysisResult } from '../../Flow/GameObject/MergeTemplate.js';
@@ -226,10 +226,10 @@ export async function ExecuteImportTemplate(
             content: `Template **${created.name}** created (uid: \`${created.uid}\`). ${created.parameters.length} parameters, ${created.actions.length} actions defined.`,
         });
 
-        log.info(`Template "${created.name}" created for game "${game.uid}".`, LOG_TAG);
+        Log.info(`Template "${created.name}" created for game "${game.uid}".`, LOG_TAG);
     } catch(error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Failed to upload template: ${message}`, LOG_TAG, `ExecuteImportTemplate`);
+        Log.error(`Failed to upload template: ${message}`, LOG_TAG, `ExecuteImportTemplate`);
         await interaction.editReply({ content: `Failed to create template: ${message}` });
     }
 }

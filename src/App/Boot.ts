@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
 import { Client, GatewayIntentBits, Events } from 'discord.js';
-import { log } from '../Common/Log.js';
+import { Log } from '../Common/Log.js';
 import type { ConfigService } from '../Services/ConfigService.js';
 import { CreateInteractionHandler } from './InteractionHandler.js';
 import { CreateAutocompleteHandler } from './AutocompleteHandler.js';
@@ -25,12 +25,12 @@ async function __LoadPermissionGrants(client: Client): Promise<void> {
             await LoadGrantsForGuild(guildId);
             loadedGuilds += 1;
         }
-        log.info(`Loaded permission grants for ${loadedGuilds} guilds`, `Boot`);
+        Log.info(`Loaded permission grants for ${loadedGuilds} guilds`, `Boot`);
     } catch(error) {
-        log.error(`Failed to load permission grants: ${String(error)}`, `Boot`);
+        Log.error(`Failed to load permission grants: ${String(error)}`, `Boot`);
     } finally {
         if (guilds.size === 0) {
-            log.info(`No guilds available for permission grant load`, `Boot`);
+            Log.info(`No guilds available for permission grant load`, `Boot`);
         }
     }
 }
@@ -40,7 +40,7 @@ async function __LoadPermissionGrants(client: Client): Promise<void> {
 /**
  * Boot helper that loads config and logs in a Discord client and registers application commands
  */
-export async function bootDiscordClient(options: {
+export async function BootDiscordClient(options: {
     eventBus: EventEmitter;
     configService: ConfigService;
     loadedCommands: Record<string, any>;
@@ -65,7 +65,7 @@ export async function bootDiscordClient(options: {
 
     // Error logging
     client.on(`error`, err => {
-        log.error(`Client error: ${err}`, `Boot`);
+        Log.error(`Client error: ${err}`, `Boot`);
         eventBus.emit(`output`, `Discord client error: ${String(err)}`);
     });
 
@@ -201,7 +201,7 @@ export async function bootDiscordClient(options: {
             {
                 name: `discord:chatInputCommand`,
                 onError: error => {
-                    log.error(`Chat input or message command handler failed: ${String(error)}`, `Boot`);
+                    Log.error(`Chat input or message command handler failed: ${String(error)}`, `Boot`);
                 },
             },
         ) as any,
@@ -221,7 +221,7 @@ export async function bootDiscordClient(options: {
             {
                 name: `discord:autocomplete`,
                 onError: error => {
-                    log.error(`Autocomplete handler failed: ${String(error)}`, `Boot`);
+                    Log.error(`Autocomplete handler failed: ${String(error)}`, `Boot`);
                 },
             },
         ) as any,

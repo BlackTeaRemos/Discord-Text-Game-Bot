@@ -1,6 +1,6 @@
 import { createServer, type Server, type IncomingMessage, type ServerResponse } from 'http';
 import { URL } from 'url';
-import { log } from '../Common/Log.js';
+import { Log } from '../Common/Log.js';
 import { BuildTemplateEditorHtml } from './TemplateEditorPage.js';
 import { BuildTutorialPageHtml } from './TutorialPage.js';
 import { BuildDisplayConfigPageHtml } from './DisplayConfigPage.js';
@@ -75,12 +75,12 @@ export class TemplateEditorServer {
             });
 
             this._server.on(`error`, (error: Error) => {
-                log.error(`Server error: ${error.message}`, LOG_TAG);
+                Log.error(`Server error: ${error.message}`, LOG_TAG);
                 reject(error);
             });
 
             this._server.listen(this._port, () => {
-                log.info(`Template editor available at http://localhost:${this._port}`, LOG_TAG);
+                Log.info(`Template editor available at http://localhost:${this._port}`, LOG_TAG);
                 resolve();
             });
         });
@@ -99,7 +99,7 @@ export class TemplateEditorServer {
                 return;
             }
             this._server.close(() => {
-                log.info(`Template editor server stopped.`, LOG_TAG);
+                Log.info(`Template editor server stopped.`, LOG_TAG);
                 this._server = null;
                 resolve();
             });
@@ -249,7 +249,7 @@ export class TemplateEditorServer {
         });
 
         request.on(`error`, (requestError: Error) => {
-            log.error(`Validate API request error: ${requestError.message}`, LOG_TAG);
+            Log.error(`Validate API request error: ${requestError.message}`, LOG_TAG);
             response.writeHead(500, { 'Content-Type': `application/json` });
             response.end(JSON.stringify({ valid: false, errors: [`Internal server error.`] }));
         });
@@ -358,7 +358,7 @@ export class TemplateEditorServer {
             response.end(JSON.stringify({ templates: templateSummaries }));
         } catch(fetchError) {
             const message = fetchError instanceof Error ? fetchError.message : String(fetchError);
-            log.error(`Failed to list templates: ${message}`, LOG_TAG, `__HandleListTemplates`);
+            Log.error(`Failed to list templates: ${message}`, LOG_TAG, `__HandleListTemplates`);
             response.writeHead(500, { 'Content-Type': `application/json` });
             response.end(JSON.stringify({ error: `Failed to fetch templates.` }));
         }
@@ -524,7 +524,7 @@ export class TemplateEditorServer {
         });
 
         request.on(`error`, (requestError: Error) => {
-            log.error(`Context validation API error: ${requestError.message}`, LOG_TAG);
+            Log.error(`Context validation API error: ${requestError.message}`, LOG_TAG);
             response.writeHead(500, { 'Content-Type': `application/json` });
             response.end(JSON.stringify({ valid: false, errors: [`Internal server error.`] }));
         });
@@ -561,7 +561,7 @@ export class TemplateEditorServer {
             }));
         } catch(fetchError) {
             const message = fetchError instanceof Error ? fetchError.message : String(fetchError);
-            log.error(`Failed to get display config: ${message}`, LOG_TAG, `__HandleGetDisplayConfig`);
+            Log.error(`Failed to get display config: ${message}`, LOG_TAG, `__HandleGetDisplayConfig`);
             response.writeHead(500, { 'Content-Type': `application/json` });
             response.end(JSON.stringify({ error: `Failed to fetch display config.` }));
         }
@@ -609,14 +609,14 @@ export class TemplateEditorServer {
                 response.end(JSON.stringify({ success: true }));
             } catch(saveError) {
                 const message = saveError instanceof Error ? saveError.message : String(saveError);
-                log.error(`Failed to save display config: ${message}`, LOG_TAG, `__HandlePutDisplayConfig`);
+                Log.error(`Failed to save display config: ${message}`, LOG_TAG, `__HandlePutDisplayConfig`);
                 response.writeHead(500, { 'Content-Type': `application/json` });
                 response.end(JSON.stringify({ error: `Failed to save display config.` }));
             }
         });
 
         request.on(`error`, (requestError: Error) => {
-            log.error(`Display config PUT error: ${requestError.message}`, LOG_TAG);
+            Log.error(`Display config PUT error: ${requestError.message}`, LOG_TAG);
             response.writeHead(500, { 'Content-Type': `application/json` });
             response.end(JSON.stringify({ error: `Internal server error.` }));
         });
@@ -666,14 +666,14 @@ export class TemplateEditorServer {
                 response.end(pngBuffer);
             } catch(renderError) {
                 const message = renderError instanceof Error ? renderError.message : String(renderError);
-                log.error(`Card preview render error: ${message}`, LOG_TAG, `__HandleCardPreview`);
+                Log.error(`Card preview render error: ${message}`, LOG_TAG, `__HandleCardPreview`);
                 response.writeHead(500, { 'Content-Type': `application/json` });
                 response.end(JSON.stringify({ error: `Failed to render card preview.` }));
             }
         });
 
         request.on(`error`, (requestError: Error) => {
-            log.error(`Card preview API error: ${requestError.message}`, LOG_TAG);
+            Log.error(`Card preview API error: ${requestError.message}`, LOG_TAG);
             response.writeHead(500, { 'Content-Type': `application/json` });
             response.end(JSON.stringify({ error: `Internal server error.` }));
         });

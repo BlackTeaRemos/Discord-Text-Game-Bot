@@ -15,7 +15,7 @@ import { GetGameCurrentTurn, UpdateGameTurn } from '../../Flow/Object/Game/Turn.
 import { AdvanceTurn } from '../../Flow/GameObject/AdvanceTurn.js';
 import type { TurnAdvanceResult } from '../../Flow/GameObject/AdvanceTurn.js';
 import { flowManager } from '../../Common/Flow/Manager.js';
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 import type { ExecutionContext } from '../../Domain/Command.js';
 import { TranslateFromContext } from '../../Services/I18nService.js';
 
@@ -94,7 +94,7 @@ export async function ExecuteManageGame(
             .start();
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Failed to manage game`, message, `ManageGame`);
+        Log.error(`Failed to manage game`, message, `ManageGame`);
         await interaction.editReply({
             content: TranslateFromContext(interaction.executionContext, `commands.manage.game.errors.failed`, {
                 params: { message },

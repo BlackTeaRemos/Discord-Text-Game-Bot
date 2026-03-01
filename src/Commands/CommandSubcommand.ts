@@ -2,7 +2,7 @@ import type { SlashCommandBuilder, SlashCommandSubcommandBuilder, SlashCommandSu
 import type { ChatInputCommandInteraction } from 'discord.js';
 import type { InteractionExecutionContextCarrier } from '../Common/Type/Interaction.js';
 import { ExecuteFilesAndCollectExports, DepthMode } from '../Execution/Direct/ExecuteFilesAndCollectExports.js';
-import { log } from '../Common/Log.js';
+import { Log } from '../Common/Log.js';
 
 /**
  * @brief Command builder type accepted by subcommand appenders
@@ -46,7 +46,7 @@ export async function LoadCommandSubcommands(rootPath: string): Promise<CommandS
         return __CollectCommandSubcommands(modules);
     } catch(error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Failed to load command subcommands`, message, `CommandSubcommandLoader`);
+        Log.error(`Failed to load command subcommands`, message, `CommandSubcommandLoader`);
         return [];
     } finally {
         // noop

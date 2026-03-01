@@ -1,9 +1,10 @@
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 import { UpdateGameTurn } from '../Object/Game/Turn.js';
 import { TurnActionEngine } from './TurnActionEngine.js';
 import { GameObjectRepository } from '../../Repository/GameObject/GameObjectRepository.js';
 import { GameObjectTemplateRepository } from '../../Repository/GameObject/GameObjectTemplateRepository.js';
 import { ParameterSnapshotRepository } from '../../Repository/GameObject/ParameterSnapshotRepository.js';
+import { SyncProjectionsAfterTurn } from './ProjectionService.js';
 import type { IActionExecutionResult } from '../../Domain/GameObject/Action/IActionExecutionResult.js';
 
 /** Module level log tag */
@@ -42,7 +43,7 @@ export async function AdvanceTurn(gameUid: string, currentTurn: number): Promise
     try {
         // Persist the new turn number
         await UpdateGameTurn(gameUid, newTurn);
-        log.info(`Turn advanced to ${newTurn} for game "${gameUid}".`, LOG_TAG);
+        Log.info(`Turn advanced to ${newTurn} for game "${gameUid}".`, LOG_TAG);
 
         // Execute all onTurnAdvance actions across game objects
         const objectRepository = new GameObjectRepository();
@@ -53,6 +54,9 @@ export async function AdvanceTurn(gameUid: string, currentTurn: number): Promise
 
         // Capture parameter snapshots for all objects that were processed
         await __CapturePostTurnSnapshots(actionResults, newTurn);
+
+        // Sync all auto synced projections and capture projection snapshots
+        await SyncProjectionsAfterTurn(actionResults, newTurn);
 
         // Count successes and failures
         const processedObjectUids = new Set<string>();
@@ -69,7 +73,7 @@ export async function AdvanceTurn(gameUid: string, currentTurn: number): Promise
         const successfulObjectCount = processedObjectUids.size - failedObjectUids.size;
 
         if (failedObjectUids.size > 0) {
-            log.error(
+            Log.error(
                 `Turn ${newTurn}: ${failedObjectUids.size} objects had action failures.`,
                 LOG_TAG,
                 `AdvanceTurn`,
@@ -83,7 +87,7 @@ export async function AdvanceTurn(gameUid: string, currentTurn: number): Promise
             successfulObjectCount,
         };
     } catch(error) {
-        log.error(`Failed to advance turn for game "${gameUid}": ${String(error)}`, LOG_TAG, `AdvanceTurn`);
+        Log.error(`Failed to advance turn for game "${gameUid}": ${String(error)}`, LOG_TAG, `AdvanceTurn`);
         throw error;
     }
 }
@@ -122,6 +126,6 @@ async function __CapturePostTurnSnapshots(
         await snapshotRepository.CaptureSnapshotBatch(entries);
     } catch (error) {
         // Snapshot failures must not break the turn flow
-        log.error(`Failed to capture post-turn snapshots: ${String(error)}`, LOG_TAG, `__CapturePostTurnSnapshots`);
+        Log.error(`Failed to capture post-turn snapshots: ${String(error)}`, LOG_TAG, `__CapturePostTurnSnapshots`);
     }
 }

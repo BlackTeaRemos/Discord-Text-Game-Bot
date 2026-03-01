@@ -1,4 +1,4 @@
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 import type { IGameObjectTemplate } from '../../Domain/GameObject/Entity/IGameObjectTemplate.js';
 import type { ITemplateDisplayConfig } from '../../Domain/GameObject/Display/ITemplateDisplayConfig.js';
 import type { IParameterDefinition } from '../../Domain/GameObject/Entity/IParameterDefinition.js';
@@ -244,7 +244,7 @@ export async function ExecuteMerge(
             ...(newDisplayConfig !== undefined ? { displayConfig: newDisplayConfig } : {}),
         });
 
-        log.info(`Template "${existingTemplate.name}" definition updated.`, LOG_TAG);
+        Log.info(`Template "${existingTemplate.name}" definition updated.`, LOG_TAG);
 
         // Migrate all object instances
         const objects = await objectRepository.ListByGame(existingTemplate.gameUid, {
@@ -272,7 +272,7 @@ export async function ExecuteMerge(
 
         if (batchUpdates.length > 0) {
             await objectRepository.BatchUpdateParameters(batchUpdates);
-            log.info(`Migrated ${batchUpdates.length} objects for template "${existingTemplate.name}".`, LOG_TAG);
+            Log.info(`Migrated ${batchUpdates.length} objects for template "${existingTemplate.name}".`, LOG_TAG);
         }
 
         return {
@@ -281,7 +281,7 @@ export async function ExecuteMerge(
         };
     } catch(error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Merge failed for "${existingTemplate.name}": ${message}`, LOG_TAG, `ExecuteMerge`);
+        Log.error(`Merge failed for "${existingTemplate.name}": ${message}`, LOG_TAG, `ExecuteMerge`);
 
         return {
             success: false,

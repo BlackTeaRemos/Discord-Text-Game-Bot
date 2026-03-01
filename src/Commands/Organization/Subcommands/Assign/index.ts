@@ -1,7 +1,7 @@
 import { MessageFlags } from 'discord.js';
 import type { ChatInputCommandInteraction, SlashCommandSubcommandBuilder } from 'discord.js';
 import type { InteractionExecutionContextCarrier } from '../../../../Common/Type/Interaction.js';
-import { log } from '../../../../Common/Log.js';
+import { Log } from '../../../../Common/Log.js';
 import { GetOrganizationByUid } from '../../../../Flow/Object/Organization/View/GetOrganizationByUid.js';
 import { ResolveObjectByUid } from '../../../../Flow/Object/ResolveByUid.js';
 import { AssignObjectToOrganization } from '../../../../Flow/Object/Organization/Association/AssignObjectToOrganization.js';
@@ -83,10 +83,10 @@ export async function ExecuteOrganizationAssignSubcommand(
                 params: { name: resolved.name, uid: resolved.uid, organizationUid },
             }),
         });
-        log.info(`Object assigned to organization via command`, `OrganizationAssignSubcommand`, `object=${objectUid} org=${organizationUid} by=${interaction.user.id}`);
+        Log.info(`Object assigned to organization via command`, `OrganizationAssignSubcommand`, `object=${objectUid} org=${organizationUid} by=${interaction.user.id}`);
     } catch(error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Organization assign subcommand failed`, message, `OrganizationAssignSubcommand`);
+        Log.error(`Organization assign subcommand failed`, message, `OrganizationAssignSubcommand`);
         await interaction.editReply({
             content: TranslateFromContext(interaction.executionContext, `commands.organization.assign.errors.failed`, {
                 params: { reason: message },

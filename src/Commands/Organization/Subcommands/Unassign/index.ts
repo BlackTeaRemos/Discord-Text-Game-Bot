@@ -1,7 +1,7 @@
 import { MessageFlags } from 'discord.js';
 import type { ChatInputCommandInteraction, SlashCommandSubcommandBuilder } from 'discord.js';
 import type { InteractionExecutionContextCarrier } from '../../../../Common/Type/Interaction.js';
-import { log } from '../../../../Common/Log.js';
+import { Log } from '../../../../Common/Log.js';
 import { GetOrganizationByUid } from '../../../../Flow/Object/Organization/View/GetOrganizationByUid.js';
 import { ResolveObjectByUid } from '../../../../Flow/Object/ResolveByUid.js';
 import { RemoveObjectFromOrganization } from '../../../../Flow/Object/Organization/Association/RemoveObjectFromOrganization.js';
@@ -83,10 +83,10 @@ export async function ExecuteOrganizationUnassignSubcommand(
                 params: { name: resolved.name, uid: resolved.uid, organizationUid },
             }),
         });
-        log.info(`Object unassigned from organization via command`, `OrganizationUnassignSubcommand`, `object=${objectUid} org=${organizationUid} by=${interaction.user.id}`);
+        Log.info(`Object unassigned from organization via command`, `OrganizationUnassignSubcommand`, `object=${objectUid} org=${organizationUid} by=${interaction.user.id}`);
     } catch(error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Organization unassign subcommand failed`, message, `OrganizationUnassignSubcommand`);
+        Log.error(`Organization unassign subcommand failed`, message, `OrganizationUnassignSubcommand`);
         await interaction.editReply({
             content: TranslateFromContext(interaction.executionContext, `commands.organization.unassign.errors.failed`, {
                 params: { reason: message },

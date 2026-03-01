@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
-import type { Neo4jClient } from '../../Repository/Neo4jClient.js';
-import type { TaskListItem } from '../../Domain/Task.js';
+import type { Neo4jClient } from '../../../Repository/Neo4jClient.js';
+import type { TaskListItem } from '../../../Domain/Task.js';
 import {
     DEFAULT_TASK_STATUS,
     REL_BELONGS_TO,

@@ -1,6 +1,6 @@
 import { Attachment, ChatInputCommandInteraction, Message, MessageFlags } from 'discord.js';
 import { MAIN_EVENT_BUS } from '../../Events/MainEventBus.js';
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 import { ValidateFileOrImageInput } from './File.js';
 import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
 import { TranslateFromContext } from '../../Services/I18nService.js';
@@ -85,7 +85,7 @@ export async function AwaitImageInput(options: AwaitImageInputOptions): Promise<
             try {
                 await options.interaction.webhook.deleteMessage(promptResponse.id);
             } catch (error) {
-                log.warning(
+                Log.warning(
                     `Failed to delete prompt message ${promptResponse.id}: ${error instanceof Error ? error.message : String(error)}`,
                     `Prompt/ImageAsync`,
                 );
@@ -95,7 +95,7 @@ export async function AwaitImageInput(options: AwaitImageInputOptions): Promise<
                 try {
                     await sourceMessage.delete();
                 } catch (error) {
-                    log.warning(
+                    Log.warning(
                         `Failed to delete user image message ${sourceMessage.id}: ${error instanceof Error ? error.message : String(error)}`,
                         `Prompt/ImageAsync`,
                     );
@@ -103,7 +103,7 @@ export async function AwaitImageInput(options: AwaitImageInputOptions): Promise<
             } else {
                 setTimeout(() => {
                     void sourceMessage.delete().catch(error => {
-                        log.warning(
+                        Log.warning(
                             `Deferred delete failed for image message ${sourceMessage.id}: ${error instanceof Error ? error.message : String(error)}`,
                             `Prompt/ImageAsync`,
                         );
@@ -124,7 +124,7 @@ export async function AwaitImageInput(options: AwaitImageInputOptions): Promise<
             try {
                 await options.interaction.webhook.deleteMessage(promptResponse.id);
             } catch (deleteError) {
-                log.warning(
+                Log.warning(
                     `Failed to delete prompt message ${promptResponse.id}: ${deleteError instanceof Error ? deleteError.message : String(deleteError)}`,
                     `Prompt/ImageAsync`,
                 );

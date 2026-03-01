@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 import { neo4jClient } from '../../Setup/Neo4j.js';
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 import type { IGameObject } from '../../Domain/GameObject/Entity/IGameObject.js';
 import type { IGameObjectRepository } from '../../Domain/GameObject/Repository/IGameObjectRepository.js';
 import type { IParameterValue } from '../../Domain/GameObject/Entity/IParameterValue.js';
@@ -124,7 +124,7 @@ export class GameObjectRepository implements IGameObjectRepository {
 
             return __MapNodeToInstance(record.get(`obj`).properties);
         } catch(error) {
-            log.error(`Failed to create game object: ${String(error)}`, `Repository/GameObject`, `Create`);
+            Log.error(`Failed to create game object: ${String(error)}`, `Repository/GameObject`, `Create`);
             throw error;
         } finally {
             await session.close();
@@ -281,7 +281,7 @@ export class GameObjectRepository implements IGameObjectRepository {
                 const snapshotRepository = new ParameterSnapshotRepository();
                 await snapshotRepository.CaptureSnapshot(uid, 0, mergedParameters);
             } catch (snapshotError) {
-                log.error(
+                Log.error(
                     `Snapshot capture failed after UpdateParameters: ${String(snapshotError)}`,
                     `Repository/GameObject`,
                     `UpdateParameters`,
@@ -290,7 +290,7 @@ export class GameObjectRepository implements IGameObjectRepository {
 
             return updatedInstance;
         } catch(error) {
-            log.error(`Failed to update parameters: ${String(error)}`, `Repository/GameObject`, `UpdateParameters`);
+            Log.error(`Failed to update parameters: ${String(error)}`, `Repository/GameObject`, `UpdateParameters`);
             throw error;
         } finally {
             await session.close();
@@ -325,7 +325,7 @@ export class GameObjectRepository implements IGameObjectRepository {
             await transaction.commit();
         } catch(error) {
             await transaction.rollback();
-            log.error(`Batch parameter update failed: ${String(error)}`, `Repository/GameObject`, `BatchUpdate`);
+            Log.error(`Batch parameter update failed: ${String(error)}`, `Repository/GameObject`, `BatchUpdate`);
             throw error;
         } finally {
             await session.close();

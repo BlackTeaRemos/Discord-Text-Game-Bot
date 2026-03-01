@@ -2,7 +2,7 @@ import { MessageFlags } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 import type { InteractionExecutionContextCarrier } from '../../../Common/Type/Interaction.js';
 import { RemoveScopedDescriptionByUid } from '../../../Flow/Object/Description/Scope/RemoveScopedDescriptionByUid.js';
-import { log } from '../../../Common/Log.js';
+import { Log } from '../../../Common/Log.js';
 import { TranslateFromContext } from '../../../Services/I18nService.js';
 
 export interface DescriptionRemoveFlowOptions {
@@ -48,7 +48,7 @@ export async function RunDescriptionRemoveFlow(options: DescriptionRemoveFlowOpt
         });
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        log.error(`Error removing description`, message, `DescriptionRemoveFlow`);
+        Log.error(`Error removing description`, message, `DescriptionRemoveFlow`);
         await interaction.reply({
             content: TranslateFromContext(interaction.executionContext, `descriptionRemove.error`, { params: { message } }),
             flags: MessageFlags.Ephemeral,

@@ -1,6 +1,6 @@
-import { log } from '../../Log.js';
-import { FormatPermissionToken } from '../FormatPermissionToken.js';
-import { NormalizeToken } from '../NormalizeToken.js';
+import { Log } from '../../Log.js';
+import { FormatPermissionToken } from '../Engine/FormatPermissionToken.js';
+import { NormalizeToken } from '../Token/NormalizeToken.js';
 import type { PermissionToken, TokenSegmentInput } from '../Types.js';
 import type { TokenResolveContext } from './Types.js';
 
@@ -37,7 +37,7 @@ export function ResolveTokens(
     context: TokenResolveContext = {},
 ): PermissionToken[] {
     if (!template || (Array.isArray(template) && template.length === 0)) {
-        log.info(`Permission resolve: empty or invalid template: ${String(template)}`, `Permission.resolve`);
+        Log.info(`Permission resolve: empty or invalid template: ${String(template)}`, `Permission.resolve`);
         return [];
     }
 
@@ -69,7 +69,7 @@ export function ResolveTokens(
                     continue;
                 }
                 seen.add(key);
-                log.info(
+                Log.info(
                     `Permission resolve: resolved token [${FormatPermissionToken(candidate)}] from array template`,
                     `Permission.resolve`,
                 );
@@ -78,7 +78,7 @@ export function ResolveTokens(
             continue;
         }
 
-        log.info(`Permission resolve: expanding template: "${tmpl}"`, `Permission.resolve`);
+        Log.info(`Permission resolve: expanding template: "${tmpl}"`, `Permission.resolve`);
         const resolved = SubstitutePlaceholders(tmpl, context);
         const parts = resolved
             .split(`:`)
@@ -99,7 +99,7 @@ export function ResolveTokens(
                 continue;
             }
             seen.add(key);
-            log.info(
+            Log.info(
                 `Permission resolve: adding fallback token: "${FormatPermissionToken(candidate)}"`,
                 `Permission.resolve`,
             );

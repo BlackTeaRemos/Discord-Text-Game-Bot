@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 import { neo4jClient } from '../../Setup/Neo4j.js';
-import { log } from '../../Common/Log.js';
+import { Log } from '../../Common/Log.js';
 import type { IGameObjectTemplate } from '../../Domain/GameObject/Entity/IGameObjectTemplate.js';
 import type { ITemplateDisplayConfig } from '../../Domain/GameObject/Display/ITemplateDisplayConfig.js';
 import type { IGameObjectTemplateRepository } from '../../Domain/GameObject/Repository/IGameObjectTemplateRepository.js';
@@ -102,7 +102,7 @@ export class GameObjectTemplateRepository implements IGameObjectTemplateReposito
 
             return __MapNodeToTemplate(record.get(`tpl`).properties);
         } catch(error) {
-            log.error(`Failed to create template: ${String(error)}`, `Repository/GameObject`, `Create`);
+            Log.error(`Failed to create template: ${String(error)}`, `Repository/GameObject`, `Create`);
             throw error;
         } finally {
             await session.close();
@@ -238,7 +238,7 @@ export class GameObjectTemplateRepository implements IGameObjectTemplateReposito
 
             return __MapNodeToTemplate(record.get(`tpl`).properties);
         } catch(error) {
-            log.error(`Failed to update template: ${String(error)}`, `Repository/GameObject`, `Update`);
+            Log.error(`Failed to update template: ${String(error)}`, `Repository/GameObject`, `Update`);
             throw error;
         } finally {
             await session.close();
