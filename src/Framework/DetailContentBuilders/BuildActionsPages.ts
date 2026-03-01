@@ -1,5 +1,5 @@
 import type { ObjectAction } from '../../Flow/Object/ResolveObjectActions.js';
-import type { ObjectViewPage } from '../ObjectViewTypes.js';
+import type { ObjectViewPage } from '../ObjectView/ObjectViewTypes.js';
 import { SplitIntoPages } from '../DetailPageUtils/SplitIntoPages.js';
 
 /**

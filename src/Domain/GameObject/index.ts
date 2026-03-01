@@ -30,5 +30,5 @@ export type {
     ProjectionStatus,
     IProjectionSnapshot,
     ProjectionDisplayStyle,
-    ProjectionStyleMap,
+    ProjectionDisplayConfigMap,
 } from './Entity/Projection/index.js';

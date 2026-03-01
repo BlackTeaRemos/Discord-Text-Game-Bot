@@ -89,7 +89,7 @@ export class ObjectProjectionRepository implements IObjectProjectionRepository {
             }
 
             return __MapNodeToProjection(record.get(`proj`).properties);
-        } catch (error) {
+        } catch(error) {
             Log.error(`Failed to create projection: ${String(error)}`, LOG_TAG, `Create`);
             throw error;
         } finally {
@@ -233,7 +233,7 @@ export class ObjectProjectionRepository implements IObjectProjectionRepository {
             }
 
             return __MapNodeToProjection(record.get(`proj`).properties);
-        } catch (error) {
+        } catch(error) {
             Log.error(`Failed to update projection parameters: ${String(error)}`, LOG_TAG, `UpdateKnownParameters`);
             throw error;
         } finally {
@@ -290,7 +290,7 @@ export class ObjectProjectionRepository implements IObjectProjectionRepository {
             }
 
             return __MapNodeToProjection(record.get(`proj`).properties);
-        } catch (error) {
+        } catch(error) {
             Log.error(`Failed to update projection metadata: ${String(error)}`, LOG_TAG, `UpdateMetadata`);
             throw error;
         } finally {
@@ -327,7 +327,7 @@ export class ObjectProjectionRepository implements IObjectProjectionRepository {
             }
 
             await transaction.commit();
-        } catch (error) {
+        } catch(error) {
             await transaction.rollback();
             Log.error(`Batch projection update failed: ${String(error)}`, LOG_TAG, `BatchUpdateKnownParameters`);
             throw error;
@@ -355,7 +355,7 @@ export class ObjectProjectionRepository implements IObjectProjectionRepository {
 
             const record = result.records[0];
             return record ? record.get(`affected`).toNumber() : 0;
-        } catch (error) {
+        } catch(error) {
             Log.error(`Failed to mark projections destroyed: ${String(error)}`, LOG_TAG, `MarkDestroyedByObject`);
             throw error;
         } finally {

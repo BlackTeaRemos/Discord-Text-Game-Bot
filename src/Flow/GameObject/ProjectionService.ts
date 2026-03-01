@@ -203,7 +203,7 @@ export async function SyncProjectionsAfterTurn(
             `Projection sync complete: ${parameterUpdates.length} projections updated at turn ${turn}`,
             LOG_TAG,
         );
-    } catch (error) {
+    } catch(error) {
         Log.error(`Projection sync failed: ${String(error)}`, LOG_TAG, `SyncProjectionsAfterTurn`);
     }
 }

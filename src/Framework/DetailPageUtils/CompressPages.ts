@@ -1,4 +1,4 @@
-import type { ObjectViewPage } from '../ObjectViewTypes.js';
+import type { ObjectViewPage } from '../ObjectView/ObjectViewTypes.js';
 import { MAX_PAGE_LENGTH, SECTION_SEPARATOR } from './Constants.js';
 
 /**

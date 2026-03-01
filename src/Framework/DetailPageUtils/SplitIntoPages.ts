@@ -1,4 +1,4 @@
-import type { ObjectViewPage } from '../ObjectViewTypes.js';
+import type { ObjectViewPage } from '../ObjectView/ObjectViewTypes.js';
 import { GroupIntoBlocks } from '../DetailFormatters/GroupIntoBlocks.js';
 import { MAX_PAGE_LENGTH } from './Constants.js';
 

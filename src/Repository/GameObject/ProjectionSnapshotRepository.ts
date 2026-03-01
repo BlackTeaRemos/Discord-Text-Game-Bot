@@ -64,7 +64,7 @@ export class ProjectionSnapshotRepository implements IProjectionSnapshotReposito
             }
 
             return __MapNodeToSnapshot(record.get(`snap`).properties);
-        } catch (error) {
+        } catch(error) {
             Log.error(`Failed to capture projection snapshot: ${String(error)}`, LOG_TAG, `CaptureSnapshot`);
             throw error;
         } finally {
@@ -115,7 +115,7 @@ export class ProjectionSnapshotRepository implements IProjectionSnapshotReposito
             }
 
             await transaction.commit();
-        } catch (error) {
+        } catch(error) {
             await transaction.rollback();
             Log.error(`Batch projection snapshot failed: ${String(error)}`, LOG_TAG, `CaptureSnapshotBatch`);
             throw error;
@@ -186,7 +186,7 @@ export class ProjectionSnapshotRepository implements IProjectionSnapshotReposito
 
             const record = result.records[0];
             return record ? record.get(`deleted`).toNumber() : 0;
-        } catch (error) {
+        } catch(error) {
             Log.error(`Failed to delete projection snapshots: ${String(error)}`, LOG_TAG, `DeleteAllForProjection`);
             throw error;
         } finally {

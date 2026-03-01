@@ -16,6 +16,7 @@ ${__GetStyles()}
     <h1>Card Display Configuration</h1>
     <nav style="display:flex;gap:12px;margin-bottom:16px;">
         <a href="/editor" style="color:#a0a8ff;text-decoration:none;font-size:13px;padding:4px 10px;border:1px solid #3f3f46;border-radius:4px;">Back to Editor</a>
+        <a href="/projections" style="color:#a0a8ff;text-decoration:none;font-size:13px;padding:4px 10px;border:1px solid #3f3f46;border-radius:4px;">Projections</a>
     </nav>
 
     <section class="context-bar">

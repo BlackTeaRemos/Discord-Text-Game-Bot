@@ -63,6 +63,8 @@ ${styles}
     <main class="main-content">
         <nav class="editor-nav">
             <a href="/tutorial" class="nav-link">Tutorial</a>
+            <a href="/display-config" class="nav-link">Display Config</a>
+            <a href="/projections" class="nav-link">Projections</a>
         </nav>
 
         <section class="game-context-bar">

@@ -3,6 +3,7 @@ import { neo4jClient } from '../../Setup/Neo4j.js';
 import { Log } from '../../Common/Log.js';
 import type { IGameObjectTemplate } from '../../Domain/GameObject/Entity/IGameObjectTemplate.js';
 import type { ITemplateDisplayConfig } from '../../Domain/GameObject/Display/ITemplateDisplayConfig.js';
+import type { ProjectionDisplayConfigMap } from '../../Domain/GameObject/Entity/Projection/ProjectionStyleMap.js';
 import type { IGameObjectTemplateRepository } from '../../Domain/GameObject/Repository/IGameObjectTemplateRepository.js';
 
 /** Neo4j node label for template nodes */
@@ -40,6 +41,10 @@ function __MapNodeToTemplate(properties: Record<string, any>): IGameObjectTempla
         template.displayConfig = JSON.parse(properties.display_config_json) as ITemplateDisplayConfig;
     }
 
+    if (properties.projection_display_configs_json) {
+        template.projectionDisplayConfigs = JSON.parse(properties.projection_display_configs_json) as ProjectionDisplayConfigMap;
+    }
+
     return template;
 }
 
@@ -66,6 +71,9 @@ export class GameObjectTemplateRepository implements IGameObjectTemplateReposito
             const displayConfigJson = template.displayConfig
                 ? JSON.stringify(template.displayConfig)
                 : null;
+            const projectionDisplayConfigsJson = template.projectionDisplayConfigs
+                ? JSON.stringify(template.projectionDisplayConfigs)
+                : null;
 
             const query = `
                 MATCH (game:Game { uid: $gameUid })
@@ -77,6 +85,7 @@ export class GameObjectTemplateRepository implements IGameObjectTemplateReposito
                     parameters_json: $parametersJson,
                     actions_json: $actionsJson,
                     display_config_json: $displayConfigJson,
+                    projection_display_configs_json: $projectionDisplayConfigsJson,
                     createdAt: $now,
                     updatedAt: $now
                 })
@@ -92,6 +101,7 @@ export class GameObjectTemplateRepository implements IGameObjectTemplateReposito
                 parametersJson,
                 actionsJson,
                 displayConfigJson,
+                projectionDisplayConfigsJson,
                 now,
             });
 
@@ -220,6 +230,13 @@ export class GameObjectTemplateRepository implements IGameObjectTemplateReposito
                 setClauses.push(`tpl.display_config_json = $displayConfigJson`);
                 params.displayConfigJson = updates.displayConfig
                     ? JSON.stringify(updates.displayConfig)
+                    : null;
+            }
+
+            if (updates.projectionDisplayConfigs !== undefined) {
+                setClauses.push(`tpl.projection_display_configs_json = $projectionDisplayConfigsJson`);
+                params.projectionDisplayConfigsJson = updates.projectionDisplayConfigs
+                    ? JSON.stringify(updates.projectionDisplayConfigs)
                     : null;
             }
 

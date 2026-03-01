@@ -7,11 +7,11 @@ function addParameter() {
     const row = document.createElement('div');
     row.className = 'param-row';
     row.id = parameterId;
-    row.innerHTML = \\\`
+    row.innerHTML = \`
         <div class="param-key-header" draggable="true" title="Drag to a group or chart in the sidebar">
             <span class="param-drag-icon">&#x2630;</span>
             <input type="text" data-field="key" placeholder="productionRate" oninput="updatePreview(); dcRefreshIfEnabled();" onclick="event.stopPropagation();" draggable="false">
-            <button class="btn-remove" onclick="removeElement('\\\${parameterId}')" draggable="false">X</button>
+            <button class="btn-remove" onclick="removeElement('\${parameterId}')" draggable="false">X</button>
         </div>
         <div class="param-fields">
             <div class="param-grid">
@@ -41,7 +41,7 @@ function addParameter() {
                 </div>
             </div>
         </div>
-    \\\`;
+    \`;
 
     var keyHeader = row.querySelector('.param-key-header');
     keyHeader.addEventListener('dragstart', function(ev) {
@@ -73,8 +73,8 @@ function addAction() {
     const row = document.createElement('div');
     row.className = 'action-row';
     row.id = actionId;
-    row.innerHTML = \\\`
-        <button class="btn-remove" onclick="removeElement('\\\${actionId}')">X</button>
+    row.innerHTML = \`
+        <button class="btn-remove" onclick="removeElement('\${actionId}')">X</button>
         <div class="action-grid">
             <div class="field">
                 <label>Key</label>
@@ -116,7 +116,7 @@ function addAction() {
                 <button class="btn-expr-add" onclick="addExpression(this.previousElementSibling)">+ expression</button>
             </div>
         </div>
-    \\\`;
+    \`;
     container.appendChild(row);
     updatePreview();
 }

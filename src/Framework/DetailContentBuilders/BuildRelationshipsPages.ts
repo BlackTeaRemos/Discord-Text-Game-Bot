@@ -1,5 +1,5 @@
 import type { ObjectDetail, ObjectRelationship } from '../../Flow/Object/FetchObjectDetail.js';
-import type { ObjectViewPage } from '../ObjectViewTypes.js';
+import type { ObjectViewPage } from '../ObjectView/ObjectViewTypes.js';
 import { FormatRelationshipType } from '../DetailFormatters/FormatRelationshipType.js';
 import { SplitIntoPages } from '../DetailPageUtils/SplitIntoPages.js';
 

@@ -4,6 +4,7 @@ import type { InteractionExecutionContextCarrier } from '../../Common/Type/Inter
 import { ResolveObjectByUid } from '../../Flow/Object/ResolveByUid.js';
 import { FetchDescriptionForObject } from '../../Flow/Object/Description/FetchForObject.js';
 import { FetchObjectDetail } from '../../Flow/Object/FetchObjectDetail.js';
+import { FetchProjectedObjectDetail } from '../../Flow/Object/FetchProjectedObjectDetail.js';
 import { ResolveObjectActions } from '../../Flow/Object/ResolveObjectActions.js';
 import { Log } from '../../Common/Log.js';
 import { ResolveViewAccess } from './ResolveViewAccess.js';
@@ -67,7 +68,29 @@ export async function ExecuteViewObject(
             organizationUids: organizationUidsForScope,
         });
 
-        const detail = await FetchObjectDetail(objectInfo.uid, true);
+        let detail = await FetchObjectDetail(objectInfo.uid, true);
+        let projectionDisplayConfig: import('../../Domain/GameObject/Display/ITemplateDisplayConfig.js').ITemplateDisplayConfig | undefined;
+
+        const isGameObject = objectInfo.type.toLowerCase() === `gameobject`;
+        if (isGameObject && access.organizationUid) {
+            const projected = await FetchProjectedObjectDetail(
+                objectInfo.uid,
+                access.organizationUid,
+                true,
+            );
+
+            if (!projected) {
+                await interaction.editReply({
+                    content: TranslateFromContext(interaction.executionContext, `commands.view.object.errors.notFound`, {
+                        params: { id: objectId },
+                    }),
+                });
+                return;
+            }
+
+            detail = projected.detail;
+            projectionDisplayConfig = projected.resolvedDisplayConfig;
+        }
 
         const typeLabel = TranslateFromContext(interaction.executionContext, `objectRegistry.types.${objectInfo.type}`, {
             defaultValue: objectInfo.type,
@@ -124,6 +147,7 @@ export async function ExecuteViewObject(
                 description,
                 typeLabel,
                 locale: GetCachedLocale(interaction.executionContext),
+                displayConfig: projectionDisplayConfig,
             });
             const attachment = new AttachmentBuilder(cardPng, { name: `card.png` });
             viewModel.files = [attachment];

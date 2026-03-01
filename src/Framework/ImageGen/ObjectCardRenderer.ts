@@ -1,5 +1,5 @@
 import type { ObjectDetail } from '../../Flow/Object/FetchObjectDetail.js';
-import { ResolveObjectViewTheme } from '../ObjectViewThemeRegistry.js';
+import { ResolveObjectViewTheme } from '../Theme/ObjectViewThemeRegistry.js';
 import { ACCENT_COLOR } from './CardTheme.js';
 import { BuildCardLayout } from './CardLayout.js';
 import type { CardLayoutOptions } from './CardLayout.js';
