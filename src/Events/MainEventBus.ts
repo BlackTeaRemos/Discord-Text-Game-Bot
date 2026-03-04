@@ -25,6 +25,18 @@ export class MainEventBus extends EventEmitter {
         super.on(eventName, listener);
         return this;
     }
+
+    /** Typed once helper for single fire listeners */
+    public Once<T extends EventName>(eventName: T, listener: (...args: any[]) => void): this {
+        super.once(eventName, listener);
+        return this;
+    }
+
+    /** Typed off helper for removing a specific listener */
+    public Off<T extends EventName>(eventName: T, listener: (...args: any[]) => void): this {
+        super.off(eventName, listener);
+        return this;
+    }
 }
 
 /**

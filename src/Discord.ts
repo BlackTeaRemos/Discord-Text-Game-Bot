@@ -10,6 +10,7 @@ import {
     AttachmentBuilder,
 } from 'discord.js';
 import { MAIN_EVENT_BUS } from './Events/MainEventBus.js';
+import { EVENT_NAMES } from './Domain/index.js';
 import { RegisterDiscordClient } from './Services/DiscordClientRegistry.js';
 
 /**
@@ -110,20 +111,22 @@ export class DiscordService {
                     }
                 }
 
-                MAIN_EVENT_BUS.emit(`discord:ready`, this.client, this._category, this._channels);
+                MAIN_EVENT_BUS.Emit(EVENT_NAMES.discordReady, this.client, this._category, this._channels);
             } catch (err) {
                 Log.error(
                     `Error during ready event: ${err instanceof Error ? err.stack || err.message : String(err)}`,
                     `DiscordService`,
                 );
-                MAIN_EVENT_BUS.emit(`discord:error`, err);
+                MAIN_EVENT_BUS.Emit(EVENT_NAMES.discordError, err);
             }
         });
 
         this.client.on(Events.MessageCreate, msg => {
-            // Emit raw message events for downstream consumers
-            // Individual listeners are responsible for ignoring irrelevant channels
-            MAIN_EVENT_BUS.emit(`discord:message:raw`, msg);
+            MAIN_EVENT_BUS.Emit(EVENT_NAMES.discordMessageRaw, msg);
+        });
+
+        this.client.on(Events.InteractionCreate, interaction => {
+            MAIN_EVENT_BUS.Emit(EVENT_NAMES.discordInteraction, interaction);
         });
 
         Log.info(`Attempting to login...`, `DiscordService`);

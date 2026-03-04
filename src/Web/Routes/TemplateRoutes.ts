@@ -1,5 +1,7 @@
 import type { FastifyInstance } from 'fastify';
+import type { IGameObjectTemplate } from '../../Domain/GameObject/Entity/IGameObjectTemplate.js';
 import { Log } from '../../Common/Log.js';
+import { neo4jClient } from '../../Setup/Neo4j.js';
 import type { IRouteContext } from './IRouteContext.js';
 import {
     ValidateTemplateWithExpressions,
@@ -12,12 +14,15 @@ import {
     ErrorResponseSchema,
     ValidateResponseSchema,
     ContextValidateResponseSchema,
+    TemplateSchema,
+    TemplateBodySchema,
+    SuccessResponseSchema,
 } from './ApiSchemas.js';
 
 const LOG_TAG = `Web/TemplateRoutes`;
 
 export function RegisterTemplateRoutes(fastify: FastifyInstance, context: IRouteContext): void {
-    fastify.get<{ Querystring: { gameUid: string } }>(`/api/templates`, {
+    fastify.get<{ Querystring: { gameUid: string; organizationUid?: string } }>(`/api/templates`, {
         schema: {
             tags: [`Templates`],
             summary: `List templates for a game`,
@@ -26,6 +31,7 @@ export function RegisterTemplateRoutes(fastify: FastifyInstance, context: IRoute
                 required: [`gameUid`],
                 properties: {
                     gameUid: { type: `string`, description: `Game identifier` },
+                    organizationUid: { type: `string`, description: `Optional organization to filter templates by visibility` },
                 },
             },
             response: {
@@ -53,7 +59,40 @@ export function RegisterTemplateRoutes(fastify: FastifyInstance, context: IRoute
         },
     }, async (request, reply) => {
         try {
-            const templates = await context.templateRepository.ListByGame(request.query.gameUid);
+            let templates: IGameObjectTemplate[];
+
+            if (request.query.organizationUid) {
+                const session = await neo4jClient.GetSession(`READ`);
+                try {
+                    const result = await session.run(
+                        `MATCH (org:Organization { uid: $organizationUid })-[:OWNS_OBJECT]->(obj:GameObject)-[:INSTANCE_OF]->(tpl:GameObjectTemplate { gameUid: $gameUid })
+                         RETURN DISTINCT tpl
+                         ORDER BY tpl.name`,
+                        { gameUid: request.query.gameUid, organizationUid: request.query.organizationUid },
+                    );
+
+                    templates = result.records.map(record => {
+                        const node = record.get(`tpl`);
+                        const properties = node.properties;
+                        return {
+                            uid: properties.uid as string,
+                            gameUid: properties.gameUid as string,
+                            name: properties.name as string,
+                            description: (properties.description as string) ?? ``,
+                            parameters: properties.parameters_json ? JSON.parse(properties.parameters_json as string) : [],
+                            actions: properties.actions_json ? JSON.parse(properties.actions_json as string) : [],
+                            displayConfig: properties.display_config_json ? JSON.parse(properties.display_config_json as string) : undefined,
+                            projectionDisplayConfigs: properties.projection_display_configs_json ? JSON.parse(properties.projection_display_configs_json as string) : undefined,
+                            createdAt: properties.createdAt as string,
+                            updatedAt: properties.updatedAt as string,
+                        } as IGameObjectTemplate;
+                    });
+                } finally {
+                    await session.close();
+                }
+            } else {
+                templates = await context.templateRepository.ListByGame(request.query.gameUid);
+            }
 
             const templateSummaries = templates.map(template => {
                 return {
@@ -242,6 +281,152 @@ export function RegisterTemplateRoutes(fastify: FastifyInstance, context: IRoute
             const message = parseError instanceof Error ? parseError.message : String(parseError);
             Log.error(`Context validation error: ${message}`, LOG_TAG, `ValidateContext`);
             return reply.status(400).send({ valid: false, errors: [`Validation failed: ${message}`] });
+        }
+    });
+
+    fastify.get<{ Params: { uid: string } }>(`/api/templates/:uid`, {
+        schema: {
+            tags: [`Templates`],
+            summary: `Get a single template by UID`,
+            params: {
+                type: `object`,
+                required: [`uid`],
+                properties: {
+                    uid: { type: `string`, description: `Template UID` },
+                },
+            },
+            response: {
+                200: TemplateSchema,
+                404: ErrorResponseSchema,
+                500: ErrorResponseSchema,
+            },
+        },
+    }, async (request, reply) => {
+        try {
+            const template = await context.templateRepository.GetByUid(request.params.uid);
+            if (!template) {
+                return reply.status(404).send({ error: `Template not found` });
+            }
+            return template;
+        } catch (fetchError) {
+            const message = fetchError instanceof Error ? fetchError.message : String(fetchError);
+            Log.error(`Failed to get template: ${message}`, LOG_TAG, `GetTemplate`);
+            return reply.status(500).send({ error: `Failed to retrieve template` });
+        }
+    });
+
+    fastify.post<{ Body: Record<string, unknown> }>(`/api/templates`, {
+        schema: {
+            tags: [`Templates`],
+            summary: `Create a new template`,
+            body: TemplateBodySchema,
+            response: {
+                201: TemplateSchema,
+                400: ErrorResponseSchema,
+                500: ErrorResponseSchema,
+            },
+        },
+    }, async (request, reply) => {
+        try {
+            const body = request.body;
+            const validationResult = ValidateTemplateWithExpressions(body, context.expressionEvaluator);
+            if (!validationResult.valid) {
+                return reply.status(400).send({ error: validationResult.structuralErrors.join(`; `) });
+            }
+
+            const template = await context.templateRepository.Create({
+                gameUid: body.gameUid as string,
+                name: body.name as string,
+                description: (body.description as string) ?? ``,
+                parameters: body.parameters as IGameObjectTemplate[`parameters`],
+                actions: body.actions as IGameObjectTemplate[`actions`],
+                displayConfig: body.displayConfig as IGameObjectTemplate[`displayConfig`],
+            });
+
+            return reply.status(201).send(template);
+        } catch (createError) {
+            const message = createError instanceof Error ? createError.message : String(createError);
+            Log.error(`Failed to create template: ${message}`, LOG_TAG, `CreateTemplate`);
+            return reply.status(500).send({ error: `Failed to create template` });
+        }
+    });
+
+    fastify.put<{ Params: { uid: string }; Body: Record<string, unknown> }>(`/api/templates/:uid`, {
+        schema: {
+            tags: [`Templates`],
+            summary: `Update an existing template`,
+            params: {
+                type: `object`,
+                required: [`uid`],
+                properties: {
+                    uid: { type: `string`, description: `Template UID to update` },
+                },
+            },
+            body: TemplateBodySchema,
+            response: {
+                200: TemplateSchema,
+                400: ErrorResponseSchema,
+                404: ErrorResponseSchema,
+                500: ErrorResponseSchema,
+            },
+        },
+    }, async (request, reply) => {
+        try {
+            const existing = await context.templateRepository.GetByUid(request.params.uid);
+            if (!existing) {
+                return reply.status(404).send({ error: `Template not found` });
+            }
+
+            const body = request.body;
+            const validationResult = ValidateTemplateWithExpressions(body, context.expressionEvaluator);
+            if (!validationResult.valid) {
+                return reply.status(400).send({ error: validationResult.structuralErrors.join(`; `) });
+            }
+
+            const updated = await context.templateRepository.Update(request.params.uid, {
+                name: body.name as string,
+                description: (body.description as string) ?? ``,
+                parameters: body.parameters as IGameObjectTemplate[`parameters`],
+                actions: body.actions as IGameObjectTemplate[`actions`],
+                displayConfig: body.displayConfig as IGameObjectTemplate[`displayConfig`],
+            });
+
+            return updated;
+        } catch (updateError) {
+            const message = updateError instanceof Error ? updateError.message : String(updateError);
+            Log.error(`Failed to update template: ${message}`, LOG_TAG, `UpdateTemplate`);
+            return reply.status(500).send({ error: `Failed to update template` });
+        }
+    });
+
+    fastify.delete<{ Params: { uid: string } }>(`/api/templates/:uid`, {
+        schema: {
+            tags: [`Templates`],
+            summary: `Delete a template`,
+            params: {
+                type: `object`,
+                required: [`uid`],
+                properties: {
+                    uid: { type: `string`, description: `Template UID to delete` },
+                },
+            },
+            response: {
+                200: SuccessResponseSchema,
+                404: ErrorResponseSchema,
+                500: ErrorResponseSchema,
+            },
+        },
+    }, async (request, reply) => {
+        try {
+            const deleted = await context.templateRepository.Delete(request.params.uid);
+            if (!deleted) {
+                return reply.status(404).send({ error: `Template not found` });
+            }
+            return { success: true };
+        } catch (deleteError) {
+            const message = deleteError instanceof Error ? deleteError.message : String(deleteError);
+            Log.error(`Failed to delete template: ${message}`, LOG_TAG, `DeleteTemplate`);
+            return reply.status(500).send({ error: `Failed to delete template` });
         }
     });
 }

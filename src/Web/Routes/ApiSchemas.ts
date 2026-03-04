@@ -15,7 +15,7 @@ export const ActionDefinitionSchema = {
     properties: {
         key: { type: `string`, description: `Unique action identifier`, example: `produceGoods` },
         label: { type: `string`, description: `Display label`, example: `Produce Goods` },
-        trigger: { type: `string`, enum: [`manual`, `turnStart`, `turnEnd`, `onCreation`], description: `When the action fires` },
+        trigger: { type: `string`, enum: [`onTurnAdvance`, `onManual`, `onCreate`, `onDestroy`], description: `When the action fires` },
         priority: { type: `number`, description: `Execution order priority`, example: 0 },
         expressions: { type: `array`, items: { type: `string` }, description: `Math expressions to evaluate` },
         description: { type: `string`, description: `Action purpose` },
@@ -168,5 +168,35 @@ export const ContextValidateResponseSchema = {
             },
             description: `Known templates and their numeric parameters`,
         },
+    },
+} as const;
+
+export const TemplateSchema = {
+    type: `object`,
+    description: `Full template entity`,
+    properties: {
+        uid: { type: `string`, description: `Template unique identifier`, example: `tpl_factory_abc123` },
+        gameUid: { type: `string`, description: `Game this template belongs to`, example: `game_xyz789` },
+        name: { type: `string`, description: `Template display name`, example: `Factory` },
+        description: { type: `string`, description: `Template purpose`, example: `A production building` },
+        parameters: { type: `array`, items: ParameterDefinitionSchema },
+        actions: { type: `array`, items: ActionDefinitionSchema },
+        displayConfig: TemplateDisplayConfigSchema,
+        createdAt: { type: `string`, description: `ISO creation timestamp` },
+        updatedAt: { type: `string`, description: `ISO last modified timestamp` },
+    },
+} as const;
+
+export const TemplateBodySchema = {
+    type: `object`,
+    required: [`gameUid`, `name`, `parameters`, `actions`],
+    description: `Payload for creating or updating a template`,
+    properties: {
+        gameUid: { type: `string`, description: `Game identifier`, example: `game_xyz789` },
+        name: { type: `string`, description: `Template name`, example: `Factory` },
+        description: { type: `string`, description: `Template description`, example: `A production building` },
+        parameters: { type: `array`, items: ParameterDefinitionSchema },
+        actions: { type: `array`, items: ActionDefinitionSchema },
+        displayConfig: TemplateDisplayConfigSchema,
     },
 } as const;

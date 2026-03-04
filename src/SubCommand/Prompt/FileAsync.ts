@@ -1,5 +1,6 @@
 import { Attachment, ChatInputCommandInteraction, Message, MessageFlags } from 'discord.js';
 import { MAIN_EVENT_BUS } from '../../Events/MainEventBus.js';
+import { EVENT_NAMES } from '../../Domain/index.js';
 import { ValidateFileOrImageInput } from './File.js';
 import { Log } from '../../Common/Log.js';
 import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
@@ -54,7 +55,7 @@ export async function AwaitFileInput(options: AwaitFileInputOptions): Promise<{
                 clearTimeout(timeoutHandle);
                 timeoutHandle = undefined;
             }
-            MAIN_EVENT_BUS.off(`discord:message:raw`, onMessage);
+            MAIN_EVENT_BUS.Off(EVENT_NAMES.discordMessageRaw, onMessage);
         };
 
         const resolveWith = async(
@@ -151,6 +152,6 @@ export async function AwaitFileInput(options: AwaitFileInputOptions): Promise<{
             Math.max(0, timeoutMs),
         );
 
-        MAIN_EVENT_BUS.on(`discord:message:raw`, onMessage);
+        MAIN_EVENT_BUS.On(EVENT_NAMES.discordMessageRaw, onMessage);
     });
 }

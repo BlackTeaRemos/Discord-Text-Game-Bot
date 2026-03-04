@@ -1,12 +1,10 @@
-import { EventEmitter } from 'events';
 import type { Client } from 'discord.js';
 import { DiscordService } from '../Discord.js';
+import type { MainEventBus } from '../Events/MainEventBus.js';
+import { EVENT_NAMES } from '../Domain/index.js';
 
-/**
- * Initializes the DiscordService and wires app specific event handling with an optional setter for the cmd channel id
- */
 export function InitDiscord(options: {
-    eventBus: EventEmitter;
+    eventBus: MainEventBus;
     client: Client;
     config: any;
     setCmdChannelId?: (id: string | null) => void;
@@ -14,47 +12,22 @@ export function InitDiscord(options: {
     const { eventBus, client, config, setCmdChannelId } = options;
 
     if (!config.discordToken || !config.discordGuildId || !config.discordCategoryId) {
-        eventBus.emit(`output`, `Missing discordToken, discordGuildId, or discordCategoryId in config.`);
+        eventBus.Emit(EVENT_NAMES.output, `Missing discordToken, discordGuildId, or discordCategoryId in config.`);
         return null;
     }
 
     const discord = new DiscordService(client, config.discordGuildId, config.discordCategoryId, config.discordToken);
 
-    eventBus.on(`discord:ready`, async (_client, category, channels) => {
-        eventBus.emit(`output`, `Connected to Discord API.`);
-        eventBus.emit(`output`, `Category: ${category.name} (#${category.id})`);
-        eventBus.emit(`output`, `Found ${channels.length} folder(s):`);
-
+    eventBus.On(EVENT_NAMES.discordReady, async (_client, _category, channels) => {
         for (const ch of channels) {
-            eventBus.emit(`output`, `- #${ch.name} (${ch.id})`);
-
-            try {
-                const messages = await ch.messages.fetch({ limit: 5 });
-                if (messages.size > 0) {
-                    eventBus.emit(`output`, `  Last ${messages.size} messages:`);
-                    messages.reverse().forEach((msg: any) => {
-                        eventBus.emit(`output`, `    [${msg.author?.username}] ${msg.content}`);
-                    });
-                } else {
-                    eventBus.emit(`output`, `  (No messages)`);
-                }
-            } catch (err) {
-                eventBus.emit(`output`, `[DiscordInit]   Failed to fetch messages: ${err}`);
-            }
-
             if (ch.name.startsWith(`cmd-`) && setCmdChannelId) {
                 setCmdChannelId(ch.id);
             }
         }
     });
 
-    eventBus.on(`discord:error`, err => {
-        eventBus.emit(`output`, `Discord error: ${err}`);
-    });
-
-    eventBus.on(`discord:message:raw`, (msg: any) => {
-        // Re emit raw messages for the caller to filter
-        eventBus.emit(`output`, `[Discord] ${msg.author?.username}: ${msg.content}`);
+    eventBus.On(EVENT_NAMES.discordError, err => {
+        eventBus.Emit(EVENT_NAMES.output, `Discord error: ${err}`);
     });
 
     return discord;

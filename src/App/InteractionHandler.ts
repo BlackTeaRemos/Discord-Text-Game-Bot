@@ -1,6 +1,8 @@
 import { MessageFlags } from 'discord.js';
 import { Log } from '../Common/Log.js';
 import { createExecutionContext } from '../Domain/index.js';
+import { EVENT_NAMES } from '../Domain/index.js';
+import { MAIN_EVENT_BUS } from '../Events/MainEventBus.js';
 import {
     type TokenSegmentInput,
     resolve,
@@ -134,8 +136,8 @@ export function CreateInteractionHandler(options: { loadedCommands: Record<strin
                 throw new Error(resolution.detail.reason ?? `Permission denied`);
             }
 
-            // Execute the command after the global gate passes
             await command.execute(interaction);
+            MAIN_EVENT_BUS.Emit(EVENT_NAMES.userCommandExecute, interaction.commandName, interaction.user.id);
         } catch(err: any) {
             // Centralized error handler for permission denials and execution errors
             Log.error(`Interaction handler error for /${interaction.commandName}: ${String(err)}`, `Boot`);

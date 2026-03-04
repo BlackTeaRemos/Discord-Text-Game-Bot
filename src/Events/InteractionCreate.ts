@@ -5,14 +5,9 @@ import { HandleGameCreateControlInteraction } from '../SubCommand/Object/Game/Ga
 import { HandleUserCreateControlInteraction } from '../SubCommand/Object/User/UserCreateControls.js';
 import { HandleOrganizationSelectControlInteraction } from '../SubCommand/Object/Organization/OrganizationSelectControls/index.js';
 import { ObjectViewRenderer } from '../Framework/ObjectView/ObjectViewRenderer.js';
+import { MAIN_EVENT_BUS } from '../Events/MainEventBus.js';
+import { EVENT_NAMES } from '../Domain/index.js';
 
-/**
- * Handles the interactionCreate event from Discord by delegating processing to the shared flow manager
- * @param interaction Interaction Discord interaction instance received from the gateway
- * @returns void
- * @example
- * client.on('interactionCreate', onInteractionCreate);
- */
 export async function OnInteractionCreate(interaction: Interaction): Promise<void> {
     try {
         let handled = false;
@@ -33,9 +28,13 @@ export async function OnInteractionCreate(interaction: Interaction): Promise<voi
             );
         }
 
-        if (!handled) {
-            await flowManager.onInteraction(interaction);
+        if (handled) {
+            MAIN_EVENT_BUS.Emit(EVENT_NAMES.userComponentInteraction, interaction.id, interaction.user.id);
+            return;
         }
+
+        MAIN_EVENT_BUS.Emit(EVENT_NAMES.userFlowInteraction, interaction.id, interaction.user.id);
+        await flowManager.onInteraction(interaction);
     } catch(error) {
         Log.error(`Flow manager failed to process interaction ${interaction.id}: ${(error as Error).message}`, `Flow`);
     }

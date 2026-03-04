@@ -1,4 +1,5 @@
-import { EventEmitter } from 'events';
+import type { MainEventBus } from '../Events/MainEventBus.js';
+import { EVENT_NAMES } from '../Domain/index.js';
 import { LoadConfig } from '../Config.js';
 import type { ValidatedConfig } from '../Types/Config.js';
 import type { Neo4jConfig } from '../Repository/Neo4jClient.js';
@@ -10,13 +11,13 @@ import { resolve } from 'path';
  */
 export class ConfigService {
     /** Event bus for emitting config related events */
-    private _eventBus: EventEmitter;
+    private _eventBus: MainEventBus;
 
     /**
      * Constructs a ConfigService
      * @param eventBus EventEmitter Event bus used for emitting config loaded
      */
-    constructor(eventBus: EventEmitter) {
+    constructor(eventBus: MainEventBus) {
         this._eventBus = eventBus;
     }
 
@@ -81,7 +82,7 @@ export class ConfigService {
                 defaultLocale: (value.defaultLocale as string) ?? `en`,
                 supportedLocales: (value.supportedLocales as string[]) ?? [`en`,`ru`],
             };
-            this._eventBus.emit(`config:loaded`, validated);
+            this._eventBus.Emit(EVENT_NAMES.configLoaded, validated);
             return validated;
         } catch(err: any) {
             throw new Error(`Failed to load config from '${path}': ${err.message}`);

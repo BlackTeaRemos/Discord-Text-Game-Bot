@@ -1,0 +1,3 @@
+[submodule "packages/editor-app"]
+	path = packages/editor-app
+	url = https://github.com/BlackTeaRemos/MPG-Configurator.git

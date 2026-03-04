@@ -1,6 +1,8 @@
 import type { AutocompleteInteraction } from 'discord.js';
 import { Log } from '../Common/Log.js';
 import { createExecutionContext } from '../Domain/index.js';
+import { EVENT_NAMES } from '../Domain/index.js';
+import { MAIN_EVENT_BUS } from '../Events/MainEventBus.js';
 
 /** Log tag for this module */
 const LOG_TAG = `AutocompleteHandler`;
@@ -36,6 +38,7 @@ export function CreateAutocompleteHandler(options: { loadedCommands: Record<stri
 
         try {
             interaction.executionContext = createExecutionContext(interaction.id);
+            MAIN_EVENT_BUS.Emit(EVENT_NAMES.userAutocomplete, interaction.commandName, interaction.user.id);
             await command.autocomplete(interaction);
         } catch(error) {
             const message = error instanceof Error ? error.message : String(error);

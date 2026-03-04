@@ -1,21 +1,23 @@
 /** Utility.ts  Central utility types and result wrappers for the VPI system */
 
-/** Central enumeration of well known event names for typed event bus helpers */
+/** Central enumeration of all event names flowing through MAIN_EVENT_BUS */
 export const EVENT_NAMES = {
-    guildProvisioned: `guild.provisioned`,
-    objectCreated: `object.created`,
-    objectUpdated: `object.updated`,
-    objectDeleted: `object.deleted`,
-    indexUpdated: `index.updated`,
+    discordReady: `discord:ready`,
+    discordError: `discord:error`,
+    discordMessageRaw: `discord:message:raw`,
+    discordInteraction: `discord:interaction`,
+    configLoaded: `config:loaded`,
+    configError: `config:error`,
+    output: `output`,
+    input: `input`,
+    systemShutdown: `system:shutdown`,
     commandLoaded: `command.loaded`,
     commandReloaded: `command.reloaded`,
-    editSessionStarted: `edit.session.started`,
-    editSessionEnded: `edit.session.ended`,
-    securityPolicyCheck: `security.policyCheck`,
-    automationTaskExecuted: `automation.task.executed`,
-    automationViewGenerated: `automation.view.generated`,
-    triggerExecuted: `trigger.executed`,
-    scriptExecuted: `script.executed`,
+    userCommandExecute: `user:command:execute`,
+    userAutocomplete: `user:autocomplete`,
+    userComponentInteraction: `user:component:interaction`,
+    userFlowInteraction: `user:flow:interaction`,
+    userFlowMessage: `user:flow:message`,
 } as const;
 
 /** Type union of event string literals */

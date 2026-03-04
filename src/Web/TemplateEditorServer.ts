@@ -11,7 +11,11 @@ import {
     RegisterTemplateRoutes,
     RegisterDisplayConfigRoutes,
     RegisterProjectionConfigRoutes,
+    RegisterProjectionRoutes,
     RegisterPreviewRoutes,
+    RegisterGameRoutes,
+    RegisterAuditRoutes,
+    RegisterMetricsRoutes,
 } from './Routes/index.js';
 
 const DEFAULT_PORT = 3500;
@@ -44,7 +48,10 @@ export class TemplateEditorServer {
     }
 
     public async Start(): Promise<void> {
-        await this._fastify.register(FastifyCors, { origin: `*` });
+        await this._fastify.register(FastifyCors, {
+            origin: `*`,
+            methods: [`GET`, `POST`, `PUT`, `DELETE`, `OPTIONS`],
+        });
 
         await this._fastify.register(FastifySwagger, {
             openapi: {
@@ -55,9 +62,13 @@ export class TemplateEditorServer {
                 },
                 tags: [
                     { name: `Health`, description: `Service health` },
+                    { name: `Games`, description: `Game management` },
                     { name: `Templates`, description: `Template management and validation` },
                     { name: `Display Config`, description: `Card display configuration` },
                     { name: `Projection Config`, description: `Projection display profiles` },
+                    { name: `Projections`, description: `Organization projection assignments` },
+                    { name: `Audit`, description: `User action audit log` },
+                    { name: `Metrics`, description: `System metrics and event counters` },
                     { name: `Preview`, description: `Card preview rendering` },
                 ],
             },
@@ -77,7 +88,11 @@ export class TemplateEditorServer {
         RegisterTemplateRoutes(this._fastify, routeContext);
         RegisterDisplayConfigRoutes(this._fastify, routeContext);
         RegisterProjectionConfigRoutes(this._fastify, routeContext);
+        RegisterProjectionRoutes(this._fastify);
         RegisterPreviewRoutes(this._fastify);
+        RegisterGameRoutes(this._fastify);
+        RegisterAuditRoutes(this._fastify);
+        RegisterMetricsRoutes(this._fastify);
 
         await this._fastify.listen({ port: this._port, host: `0.0.0.0` });
         Log.info(`Template editor available at http://localhost:${this._port}`, LOG_TAG);

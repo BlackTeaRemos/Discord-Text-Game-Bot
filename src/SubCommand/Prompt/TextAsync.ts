@@ -1,6 +1,7 @@
 import { ChatInputCommandInteraction, Message, MessageFlags } from 'discord.js';
 import { ValidateTextInput } from './Text.js';
 import { MAIN_EVENT_BUS } from '../../Events/MainEventBus.js';
+import { EVENT_NAMES } from '../../Domain/index.js';
 import { Log } from '../../Common/Log.js';
 import type { InteractionExecutionContextCarrier } from '../../Common/Type/Interaction.js';
 import { TranslateFromContext } from '../../Services/I18nService.js';
@@ -70,7 +71,7 @@ export async function PromptText(options: AwaitTextInputOptions): Promise<string
                 clearTimeout(timeoutHandle);
                 timeoutHandle = undefined;
             }
-            MAIN_EVENT_BUS.off(`discord:message:raw`, onMessage);
+            MAIN_EVENT_BUS.Off(EVENT_NAMES.discordMessageRaw, onMessage);
         };
 
         const resolveWith = async (value: string, sourceMessage: Message) => {
@@ -167,6 +168,6 @@ export async function PromptText(options: AwaitTextInputOptions): Promise<string
             Math.max(0, timeoutMs),
         );
 
-        MAIN_EVENT_BUS.on(`discord:message:raw`, onMessage);
+        MAIN_EVENT_BUS.On(EVENT_NAMES.discordMessageRaw, onMessage);
     });
 }

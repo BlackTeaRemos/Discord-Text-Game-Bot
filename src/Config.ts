@@ -4,6 +4,7 @@
 
 import { ReadConfigFile } from './Common/ConfigReader.js';
 import { MAIN_EVENT_BUS } from './Events/MainEventBus.js';
+import { EVENT_NAMES } from './Domain/index.js';
 
 /**
  * @brief Application configuration interface defining all required and optional settings
@@ -52,10 +53,10 @@ export async function LoadConfig(configPath: string): Promise<AppConfig> {
                 (parsedConfig as any).neo4j.password = envNeo4jPassword;
             }
         }
-        MAIN_EVENT_BUS.emit(`config:loaded`, parsedConfig);
+        MAIN_EVENT_BUS.Emit(EVENT_NAMES.configLoaded, parsedConfig);
         return parsedConfig as AppConfig;
     } catch(configError) {
-        MAIN_EVENT_BUS.emit(`config:error`, configError);
+        MAIN_EVENT_BUS.Emit(EVENT_NAMES.configError, configError);
         throw configError;
     }
 }

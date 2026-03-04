@@ -29,6 +29,23 @@ services:
         networks:
             - default
 
+    editor-app:
+        build:
+            context: .
+            dockerfile: packages/editor-app/Dockerfile
+            args:
+                NEXT_PUBLIC_API_BASE_URL: 'http://localhost:3500'
+        container_name: editor-app
+        restart: unless-stopped
+        environment:
+            NODE_ENV: production
+        ports:
+            - '3100:3000'
+        depends_on:
+            - discord-cmp-bot
+        networks:
+            - default
+
     neo4j:
         image: neo4j:5.22-community
         container_name: neo4j

@@ -1,24 +1,20 @@
 import { Log, LogLevel } from './Common/Log.js';
-/**
- * App.ts  Entry point that sets up and starts the main application logic including services and event listeners
- */
-import { EventEmitter } from 'events';
-import { MAIN_EVENT_BUS } from './Events/MainEventBus.js';
-// ConfigService handles loading and validating config
+import { MAIN_EVENT_BUS, MainEventBus } from './Events/MainEventBus.js';
+import { EVENT_NAMES } from './Domain/index.js';
 import { ConfigService } from './Services/ConfigService.js';
 import type { ValidatedConfig } from './Types/Config.js';
 import { DiscordService } from './Discord.js';
 
 import { GatewayIntentBits, REST, Routes, Client, MessageFlags, Events } from 'discord.js';
 import { Session } from './Common/Session.js';
-import type { Message } from 'discord.js';
-import { OnReady } from './Events/Ready.js';
+import type { Message, Interaction } from 'discord.js';
 import { OnInteractionCreate } from './Events/InteractionCreate.js';
 import { OnMessageCreate } from './Events/MessageCreate.js';
 import { commands as loadedCommands, commandsReady } from './Commands/index.js';
 import { flowManager } from './Common/Flow/Manager.js';
 import { BootDiscordClient } from './App/Boot.js';
 import { InitDiscord } from './App/DiscordInit.js';
+import { auditService } from './Services/AuditService.js';
 
 // Supported log levels with numeric severity where lower is more verbose
 const LOG_LEVELS = { debug: 0, info: 1, warn: 2, error: 3 } as const;
@@ -43,7 +39,7 @@ export class DiscordApp {
     /**
      * @brief Event bus for communication between UI and backend
      */
-    public eventBus: EventEmitter;
+    public eventBus: MainEventBus;
 
     /** @brief Service for loading and validating app config */
     private _configService: ConfigService;
@@ -66,16 +62,15 @@ export class DiscordApp {
     /**
      * @brief Initializes the application and sets up event bus
      */
-    public constructor(eventBus: EventEmitter = MAIN_EVENT_BUS) {
+    public constructor(eventBus: MainEventBus = MAIN_EVENT_BUS) {
         this.eventBus = eventBus;
         this.__setupEventHandlers();
 
         this._configService = new ConfigService(this.eventBus);
-        this.eventBus.emit(`output`, `Application starting...`);
+        this.eventBus.Emit(EVENT_NAMES.output, `Application starting...`);
 
         void this.__boot();
 
-        // Stores the id of the cmd channel after discord ready
         this._cmdChannelId = null;
     }
 
@@ -91,13 +86,19 @@ export class DiscordApp {
                 configService: this._configService,
                 loadedCommands,
                 commandsReady,
-                onInteractionCreate: OnInteractionCreate,
-                onMessageCreate: OnMessageCreate,
             });
 
             this._client = client;
 
-            // Initialize the higher level DiscordService and wire additional listeners
+            this.eventBus.On(EVENT_NAMES.discordInteraction, async (interaction: Interaction) => {
+                await OnInteractionCreate(interaction);
+            });
+            this.eventBus.On(EVENT_NAMES.discordMessageRaw, async (message: Message) => {
+                await OnMessageCreate(message);
+            });
+
+            auditService.Start();
+
             const discord = InitDiscord({
                 eventBus: this.eventBus,
                 client: client,
@@ -111,10 +112,9 @@ export class DiscordApp {
                 this._discordService = discord;
             }
 
-            // Keep original lightweight output after login
-            this.eventBus.emit(`output`, `Boot completed.`);
+            this.eventBus.Emit(EVENT_NAMES.output, `Boot completed.`);
         } catch (err) {
-            this.eventBus.emit(`output`, `Fatal boot error: ${err}`);
+            this.eventBus.Emit(EVENT_NAMES.output, `Fatal boot error: ${err}`);
             throw err;
         }
     }
@@ -131,12 +131,12 @@ export class DiscordApp {
 
             if (Object.prototype.hasOwnProperty.call(LOG_LEVELS, levelKey)) {
                 this._logLevel = LOG_LEVELS[levelKey];
-                this.eventBus.emit(`output`, `Log level set to '${levelKey}'`);
+                this.eventBus.Emit(EVENT_NAMES.output, `Log level set to '${levelKey}'`);
             }
         }
 
-        this.eventBus.emit(`output`, `Loaded config, connecting to Discord...`);
-        this.eventBus.on(`config:loaded`, cfg => {
+        this.eventBus.Emit(EVENT_NAMES.output, `Loaded config, connecting to Discord...`);
+        this.eventBus.On(EVENT_NAMES.configLoaded, cfg => {
             this.__initDiscord(cfg);
         });
 
@@ -146,16 +146,15 @@ export class DiscordApp {
 
     // Keep a thin compatibility wrapper that delegates to the new init module when present
     private __initDiscord(config: any): void {
-        this.eventBus.emit(`output`, `[TRACE] Entered __initDiscord (delegating to DiscordInit)`);
+        this.eventBus.Emit(EVENT_NAMES.output, `[TRACE] Entered __initDiscord (delegating to DiscordInit)`);
 
         if (!config || !this._client) {
-            this.eventBus.emit(`output`, `[TRACE] __initDiscord skipped: missing config or client.`);
+            this.eventBus.Emit(EVENT_NAMES.output, `[TRACE] __initDiscord skipped: missing config or client.`);
             return;
         }
 
-        // If the DiscordService has already been created during boot skip creating a new one
         if (this._discordService) {
-            this.eventBus.emit(`output`, `[TRACE] DiscordService already initialized.`);
+            this.eventBus.Emit(EVENT_NAMES.output, `[TRACE] DiscordService already initialized.`);
             return;
         }
 
@@ -178,11 +177,11 @@ export class DiscordApp {
      * @private
      */
     private __setupEventHandlers(): void {
-        this.eventBus.on(`input`, (data: string) => {
+        this.eventBus.On(EVENT_NAMES.input, (data: string) => {
             this.__handleInput(data);
         });
 
-        this.eventBus.on(`system:shutdown`, () => {
+        this.eventBus.On(EVENT_NAMES.systemShutdown, () => {
             this._running = false;
         });
     }
@@ -193,7 +192,7 @@ export class DiscordApp {
      */
     private __handleInput(input: string): void {
         // For now just echo the input
-        this.eventBus.emit(`output`, `Echo: ${input}`);
+        this.eventBus.Emit(EVENT_NAMES.output, `Echo: ${input}`);
     }
 
     /**
@@ -207,7 +206,7 @@ export class DiscordApp {
          * @brief Handles output events by logging if available otherwise falling back to console
          * @param msg string The message to log
          */
-        this.eventBus.on(`output`, (msg: string) => {
+        this.eventBus.On(EVENT_NAMES.output, (msg: string) => {
             // Only log info level messages if current level allows
             if (this._logLevel <= LOG_LEVELS.info) {
                 try {
@@ -221,7 +220,7 @@ export class DiscordApp {
 
         // Read from stdin asynchronously
         for await (const line of this.__readLines()) {
-            this.eventBus.emit(`input`, line);
+            this.eventBus.Emit(EVENT_NAMES.input, line);
 
             if (!this._running) {
                 break;
